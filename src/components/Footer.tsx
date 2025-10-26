@@ -38,14 +38,14 @@ const Footer = () => {
                   Solutions
                 </a>
               </li>
-              {/* <li>
+              <li>
                 <a
-                  href="#cta"
+                  href="#pricing"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   Pricing
                 </a>
-              </li> */}
+              </li>
             </ul>
           </div>
 

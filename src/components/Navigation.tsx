@@ -66,12 +66,12 @@ const Navigation = () => {
             >
               Industries
             </button>
-            {/* <button
+            <button
               onClick={() => scrollToSection("pricing")}
               className="text-foreground/80 hover:text-primary transition-colors font-medium"
             >
               Pricing
-            </button> */}
+            </button>
           </div>
 
           {/* Theme Toggle & CTA */}

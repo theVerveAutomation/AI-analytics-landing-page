@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -9,9 +16,10 @@ const Pricing = () => {
   const pricingTiers = [
     {
       name: "Starter",
-      price: "$499",
+      price: "Custom",
       period: "/month",
-      description: "Perfect for small businesses getting started with video analytics",
+      description:
+        "Perfect for small businesses getting started with video analytics",
       features: [
         "Up to 10 camera streams",
         "Core security features",
@@ -24,9 +32,10 @@ const Pricing = () => {
     },
     {
       name: "Professional",
-      price: "$1,299",
+      price: "Custom",
       period: "/month",
-      description: "Advanced analytics for growing retail and commercial operations",
+      description:
+        "Advanced analytics for growing retail and commercial operations",
       features: [
         "Up to 50 camera streams",
         "All security & detection features",
@@ -43,7 +52,8 @@ const Pricing = () => {
       name: "Enterprise",
       price: "Custom",
       period: "",
-      description: "Tailored solutions for large-scale deployments and multi-site operations",
+      description:
+        "Tailored solutions for large-scale deployments and multi-site operations",
       features: [
         "Unlimited camera streams",
         "All features included",
@@ -67,7 +77,8 @@ const Pricing = () => {
             Choose Your Plan
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Flexible pricing to match your security and analytics needs. All plans include free setup and training.
+            Flexible pricing to match your security and analytics needs. All
+            plans include free setup and training.
           </p>
         </div>
 
@@ -88,7 +99,7 @@ const Pricing = () => {
                   Most Popular
                 </div>
               )}
-              
+
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl mb-2">{tier.name}</CardTitle>
                 <CardDescription className="text-sm mb-4">
@@ -105,7 +116,9 @@ const Pricing = () => {
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-foreground/90">{feature}</span>
+                      <span className="text-sm text-foreground/90">
+                        {feature}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -130,8 +143,19 @@ const Pricing = () => {
 
         {/* Additional Info */}
         <div className="text-center mt-12 text-muted-foreground text-sm">
-          <p>All plans include SSL encryption, GDPR compliance, and regular software updates.</p>
-          <p className="mt-2">Need a custom solution? <button onClick={() => navigate("/book-demo")} className="text-primary hover:underline">Contact our team</button></p>
+          <p>
+            All plans include SSL encryption, GDPR compliance, and regular
+            software updates.
+          </p>
+          <p className="mt-2">
+            Need a custom solution?{" "}
+            <button
+              onClick={() => navigate("/book-demo")}
+              className="text-primary hover:underline"
+            >
+              Contact our team
+            </button>
+          </p>
         </div>
       </div>
     </section>
