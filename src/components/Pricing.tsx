@@ -16,7 +16,7 @@ const Pricing = () => {
   const pricingTiers = [
     {
       name: "Starter",
-      price: "Custom",
+      // price: "Custom",
       period: "/month",
       description:
         "Perfect for small businesses getting started with video analytics",
@@ -32,7 +32,7 @@ const Pricing = () => {
     },
     {
       name: "Professional",
-      price: "Custom",
+      // price: "Custom",
       period: "/month",
       description:
         "Advanced analytics for growing retail and commercial operations",
@@ -50,7 +50,7 @@ const Pricing = () => {
     },
     {
       name: "Enterprise",
-      price: "Custom",
+      // price: "Custom",
       period: "",
       description:
         "Tailored solutions for large-scale deployments and multi-site operations",
@@ -105,10 +105,10 @@ const Pricing = () => {
                 <CardDescription className="text-sm mb-4">
                   {tier.description}
                 </CardDescription>
-                <div className="mt-4">
+                {/* <div className="mt-4">
                   <span className="text-5xl font-bold">{tier.price}</span>
                   <span className="text-muted-foreground">{tier.period}</span>
-                </div>
+                </div> */}
               </CardHeader>
 
               <CardContent className="flex-grow">
@@ -134,7 +134,8 @@ const Pricing = () => {
                       : ""
                   }`}
                 >
-                  {tier.price === "Custom" ? "Contact Sales" : "Get Started"}
+                  {/* {tier.price === "Custom" ? "Contact Sales" : "Get Started"} */}
+                  Contact Sales
                 </Button>
               </CardFooter>
             </Card>
