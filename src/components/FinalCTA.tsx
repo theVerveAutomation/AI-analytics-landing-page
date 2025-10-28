@@ -3,7 +3,10 @@ import { ArrowRight } from "lucide-react";
 
 const FinalCTA = () => {
   return (
-    <section id="cta" className="py-24 bg-gradient-to-br from-card to-background relative overflow-hidden">
+    <section
+      id="cta"
+      className="py-24 bg-gradient-to-br from-card to-background relative overflow-hidden"
+    >
       {/* Decorative Elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-10 w-64 h-64 bg-primary rounded-full blur-3xl"></div>
@@ -24,6 +27,7 @@ const FinalCTA = () => {
           <Button
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow-lg hover:shadow-glow transition-all duration-300 font-semibold px-10 py-7 text-lg animate-glow-pulse"
+            onClick={() => (window.location.href = "/book-demo")}
           >
             Book a Demo
             <ArrowRight className="ml-2 w-5 h-5" />
