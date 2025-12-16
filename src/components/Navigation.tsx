@@ -27,6 +27,10 @@ const Navigation = () => {
     window.location.href = "/book-demo";
   };
 
+  const handleLoginClick = () => {
+    window.location.href = "/login";
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -89,10 +93,17 @@ const Navigation = () => {
               )}
             </Button>
             <Button
-              onClick={handleDemoClick}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow hover:shadow-glow-lg transition-all duration-300 font-semibold px-6"
+              onClick={handleLoginClick}
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-semibold px-6"
             >
-              Book a Demo
+              Login
+            </Button>
+            <Button
+              onClick={handleDemoClick}
+              className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-glow hover:shadow-glow-lg transition-all duration-300 font-semibold px-8"
+            >
+              Request Access
             </Button>
           </div>
         </div>

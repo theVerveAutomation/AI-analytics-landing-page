@@ -43,7 +43,9 @@ const Hero = () => {
         <div className="max-w-4xl mx-auto text-center animate-fade-in">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 rounded-full px-4 py-2 mb-8">
             <Eye className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered Video Intelligence</span>
+            <span className="text-sm font-medium text-primary">
+              AI-Powered Video Intelligence
+            </span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
@@ -58,8 +60,9 @@ const Hero = () => {
           </p>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto">
-            Transform your existing camera streams into actionable intelligence. Detect threats, optimize
-            operations, and unlock powerful business insights in real-time.
+            Transform your existing camera streams into actionable intelligence.
+            Detect threats, optimize operations, and unlock powerful business
+            insights in real-time.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -68,7 +71,7 @@ const Hero = () => {
               size="lg"
               className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow hover:shadow-glow-lg transition-all duration-300 font-semibold px-8 py-6 text-lg"
             >
-              Book a Demo
+              Request Access
             </Button>
             <Button
               onClick={scrollToFeatures}

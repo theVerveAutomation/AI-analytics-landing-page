@@ -22,14 +22,14 @@ const FinalCTA = () => {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground mb-10">
-            Schedule your personalized demo today and discover the power of VAP.
+            Request access today and discover the power of VAP.
           </p>
           <Button
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow-lg hover:shadow-glow transition-all duration-300 font-semibold px-10 py-7 text-lg animate-glow-pulse"
             onClick={() => (window.location.href = "/book-demo")}
           >
-            Book a Demo
+            Request Access
             <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
