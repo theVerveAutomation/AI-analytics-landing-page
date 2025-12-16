@@ -95,11 +95,11 @@ const BookDemo = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // In production, you would send this to your backend
-      console.log("Demo request submitted:", data);
+      console.log("Access request submitted:", data);
 
       setIsSubmitted(true);
       toast({
-        title: "Demo Request Received!",
+        title: "Access Request Received!",
         description: "Our team will contact you within 24 hours.",
       });
     } catch (error) {
@@ -123,8 +123,8 @@ const BookDemo = () => {
               </div>
               <CardTitle className="text-3xl">Thank You!</CardTitle>
               <CardDescription className="text-base mt-4">
-                Your demo request has been received. Our team will reach out to
-                you to schedule your personalized demo.
+                Your access request has been received. Our team will reach out
+                to you shortly.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -156,20 +156,20 @@ const BookDemo = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Book Your Free Demo
+              Request Access
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              See VAP in action. Our experts will walk you through a
-              personalized demo tailored to your specific needs and use cases.
+              Get started with VAP. Fill out the form below and our team will
+              reach out to you shortly.
             </p>
           </div>
 
           <Card className="border-border shadow-card animate-fade-in">
             <CardHeader>
-              <CardTitle>Request a Demo</CardTitle>
+              <CardTitle>Request Access</CardTitle>
               <CardDescription>
                 Fill out the form below and we'll get back to you within 24
-                hours to schedule your demo.
+                hours.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -361,7 +361,7 @@ const BookDemo = () => {
                   >
                     {form.formState.isSubmitting
                       ? "Submitting..."
-                      : "Request Demo"}
+                      : "Request Access"}
                   </Button>
 
                   <p className="text-sm text-muted-foreground text-center">
@@ -381,7 +381,7 @@ const BookDemo = () => {
               </p>
             </div>
             <div className="p-6">
-              <h3 className="font-semibold mb-2">Personalized Demo</h3>
+              <h3 className="font-semibold mb-2">Personalized Support</h3>
               <p className="text-sm text-muted-foreground">
                 Tailored to your specific needs
               </p>
@@ -389,7 +389,7 @@ const BookDemo = () => {
             <div className="p-6">
               <h3 className="font-semibold mb-2">No Commitment</h3>
               <p className="text-sm text-muted-foreground">
-                Free demo with no obligations
+                Get started with no obligations
               </p>
             </div>
           </div>
