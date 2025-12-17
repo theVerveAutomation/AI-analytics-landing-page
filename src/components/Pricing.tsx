@@ -62,7 +62,6 @@ const Pricing = () => {
         "Dedicated account manager",
         "On-premise deployment option",
         "SLA guarantee",
-        "White-label options",
       ],
       highlighted: false,
     },
