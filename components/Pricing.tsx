@@ -11,63 +11,63 @@ import {
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+const pricingTiers = [
+  {
+    name: "Starter",
+    // price: "Custom",
+    period: "/month",
+    description:
+      "Perfect for small businesses getting started with video analytics",
+    features: [
+      "Up to 10 camera streams",
+      "Core security features",
+      "Real-time alerts",
+      "7-day video retention",
+      "Email support",
+      "Basic analytics dashboard",
+    ],
+    highlighted: false,
+  },
+  {
+    name: "Professional",
+    // price: "Custom",
+    period: "/month",
+    description:
+      "Advanced analytics for growing retail and commercial operations",
+    features: [
+      "Up to 50 camera streams",
+      "All security & detection features",
+      "Advanced retail analytics",
+      "30-day video retention",
+      "Priority support (24/7)",
+      "Custom integrations",
+      "Heat mapping & dwell time",
+      "API access",
+    ],
+    highlighted: true,
+  },
+  {
+    name: "Enterprise",
+    // price: "Custom",
+    period: "",
+    description:
+      "Tailored solutions for large-scale deployments and multi-site operations",
+    features: [
+      "Unlimited camera streams",
+      "All features included",
+      "Custom AI model training",
+      "Unlimited video retention",
+      "Dedicated account manager",
+      "On-premise deployment option",
+      "SLA guarantee",
+      "White-label options",
+    ],
+    highlighted: false,
+  },
+];
+
 const Pricing = () => {
   const router = useRouter();
-
-  const pricingTiers = [
-    {
-      name: "Starter",
-      // price: "Custom",
-      period: "/month",
-      description:
-        "Perfect for small businesses getting started with video analytics",
-      features: [
-        "Up to 10 camera streams",
-        "Core security features",
-        "Real-time alerts",
-        "7-day video retention",
-        "Email support",
-        "Basic analytics dashboard",
-      ],
-      highlighted: false,
-    },
-    {
-      name: "Professional",
-      // price: "Custom",
-      period: "/month",
-      description:
-        "Advanced analytics for growing retail and commercial operations",
-      features: [
-        "Up to 50 camera streams",
-        "All security & detection features",
-        "Advanced retail analytics",
-        "30-day video retention",
-        "Priority support (24/7)",
-        "Custom integrations",
-        "Heat mapping & dwell time",
-        "API access",
-      ],
-      highlighted: true,
-    },
-    {
-      name: "Enterprise",
-      // price: "Custom",
-      period: "",
-      description:
-        "Tailored solutions for large-scale deployments and multi-site operations",
-      features: [
-        "Unlimited camera streams",
-        "All features included",
-        "Custom AI model training",
-        "Unlimited video retention",
-        "Dedicated account manager",
-        "On-premise deployment option",
-        "SLA guarantee",
-        "White-label options",
-      ],
-      highlighted: false,
-    },
-  ];
 
   return (
     <section id="pricing" className="py-24 px-6">
