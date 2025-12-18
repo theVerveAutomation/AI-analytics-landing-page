@@ -13,6 +13,7 @@ import {
 import vapLogo from "@/assets/vap-logo.jpeg";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +31,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 px-4">
       <Button
         variant="ghost"
-        onClick={() => (window.location.href = "/")}
+        onClick={() => redirect("/")}
         className="absolute top-6 left-6 text-foreground/80 hover:text-foreground"
       >
         <ArrowLeft className="h-5 w-5 mr-2" />
@@ -138,7 +139,7 @@ const Login = () => {
             <div className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
               <a
-                href="/book-demo"
+                href="/bookdemo"
                 className="text-primary hover:text-primary/80 font-semibold transition-colors"
               >
                 Request Access

@@ -5,11 +5,13 @@ import { Moon, Sun, Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import vapLogo from "@/assets/vap-logo.jpeg";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,11 +30,11 @@ const Navigation = () => {
   };
 
   const handleDemoClick = () => {
-    window.location.href = "/book-demo";
+    router.push("/bookdemo");
   };
 
   const handleLoginClick = () => {
-    window.location.href = "/login";
+    router.push("/login");
   };
 
   return (

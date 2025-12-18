@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
