@@ -5,17 +5,20 @@ import FeatureExplorer from "@/components/FeatureExplorer";
 import Pricing from "@/components/Pricing";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
+import { ThemeProvider } from "next-themes";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Navigation />
-      <Hero />
-      <HowItWorks />
-      <FeatureExplorer />
-      <Pricing />
-      <FinalCTA />
-      <Footer />
-    </div>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <div className="min-h-screen bg-background text-foreground">
+        <Navigation />
+        <Hero />
+        <HowItWorks />
+        <FeatureExplorer />
+        <Pricing />
+        <FinalCTA />
+        <Footer />
+      </div>
+    </ThemeProvider>
   );
 }
