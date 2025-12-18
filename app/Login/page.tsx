@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import vapLogo from "@/assets/vap-logo.jpeg";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +39,7 @@ const Login = () => {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <img
+            <Image
               src={vapLogo}
               alt="VAP Logo"
               className="h-16 w-auto rounded-md"

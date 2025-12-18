@@ -28,8 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
+import { useRouter } from "next/router";
 import Footer from "@/components/Footer";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
@@ -71,9 +71,9 @@ const demoFormSchema = z.object({
 type DemoFormValues = z.infer<typeof demoFormSchema>;
 
 const BookDemo = () => {
+  const router = useRouter();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const form = useForm<DemoFormValues>({
     resolver: zodResolver(demoFormSchema),
@@ -128,7 +128,7 @@ const BookDemo = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate("/")} className="w-full">
+              <Button onClick={() => router.push("/")} className="w-full">
                 Return to Home
               </Button>
             </CardContent>
@@ -146,7 +146,7 @@ const BookDemo = () => {
       <div className="container mx-auto px-6 py-24">
         <Button
           variant="ghost"
-          onClick={() => navigate("/")}
+          onClick={() => router.push("/")}
           className="mb-8 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -168,7 +168,7 @@ const BookDemo = () => {
             <CardHeader>
               <CardTitle>Request Access</CardTitle>
               <CardDescription>
-                Fill out the form below and we'll get back to you within 24
+                Fill out the form below and we&apos;ll get back to you within 24
                 hours.
               </CardDescription>
             </CardHeader>
