@@ -92,18 +92,33 @@ const BookDemo = () => {
 
   const onSubmit = async (data: DemoFormValues) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // In production, you would send this to your backend
-      console.log("Access request submitted:", data);
-
-      setIsSubmitted(true);
-      toast({
-        title: "Access Request Received!",
-        description: "Our team will contact you within 24 hours.",
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
+
+      if (response.ok) {
+        toast({
+          title: "Access Request Received!",
+          description: "Our team will contact you within 24 hours.",
+        });
+        form.reset({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          company: "",
+          industry: "",
+          cameraCount: "",
+          message: "",
+        });
+        setIsSubmitted(true);
+      }
     } catch (error) {
+      console.error("Error submitting form:", error);
       toast({
         title: "Something went wrong",
         description: "Please try again or contact us directly.",
