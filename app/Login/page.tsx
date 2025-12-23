@@ -14,18 +14,70 @@ import vapLogo from "@/assets/vap-logo.jpeg";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabaseClient";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [organizationId, setOrganizationId] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your login logic here
-    console.log("Login attempted with:", { organizationId, email, password });
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orgId: organizationId,
+          username: username,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        toast.error(data.error || "Login failed");
+        return;
+      }
+
+      if (data.success) {
+        // Store the token in localStorage or cookies
+        if (data.token?.access_token) {
+          localStorage.setItem("access_token", data.token.access_token);
+          localStorage.setItem("refresh_token", data.token.refresh_token);
+          localStorage.setItem("user_profile", JSON.stringify(data.profile));
+        }
+
+        toast.success("Login successful!");
+
+        await supabase.auth.setSession({
+          access_token: data.token.access_token,
+          refresh_token: data.token.refresh_token,
+        });
+
+        // Redirect to dashboard or home
+        router.push("/panels/admin");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,21 +120,23 @@ const Login = () => {
                 onChange={(e) => setOrganizationId(e.target.value)}
                 required
                 className="h-11"
+                disabled={isLoading}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email Address
+              <Label htmlFor="username" className="text-sm font-medium">
+                Username
               </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="h-11"
+                disabled={isLoading}
               />
             </div>
 
@@ -99,6 +153,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="h-11 pr-10"
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
@@ -113,6 +168,12 @@ const Login = () => {
                 </button>
               </div>
             </div>
+
+            {error && (
+              <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                {error}
+              </div>
+            )}
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -133,17 +194,18 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-glow hover:shadow-glow-lg transition-all duration-300 font-semibold text-base"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
               <a
-                href="/bookdemo"
+                href="/register"
                 className="text-primary hover:text-primary/80 font-semibold transition-colors"
               >
-                Request Access
+                Create Account
               </a>
             </div>
           </form>
