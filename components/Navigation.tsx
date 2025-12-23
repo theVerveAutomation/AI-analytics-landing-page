@@ -162,6 +162,12 @@ const Navigation = () => {
               >
                 Pricing
               </button>
+              <button
+                onClick={() => router.push("/shop")}
+                className="text-foreground/80 hover:text-primary transition-colors font-medium text-left"
+              >
+                Shop
+              </button>
               <div className="pt-4 space-y-3 border-t border-border">
                 <Button
                   onClick={handleLoginClick}
