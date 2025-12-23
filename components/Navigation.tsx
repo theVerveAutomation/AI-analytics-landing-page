@@ -30,7 +30,7 @@ const Navigation = () => {
   };
 
   const handleDemoClick = () => {
-    router.push("/bookdemo");
+    router.push("bookdemo");
   };
 
   const handleLoginClick = () => {
@@ -81,6 +81,12 @@ const Navigation = () => {
               className="text-foreground/80 hover:text-primary transition-colors font-medium"
             >
               Pricing
+            </button>
+            <button
+              onClick={() => router.push("/shop")}
+              className="text-foreground/80 hover:text-primary transition-colors font-medium"
+            >
+              Shop
             </button>
           </div>
 
