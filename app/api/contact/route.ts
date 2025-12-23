@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import type { NextRequest } from "next/server";
 
-const ADMIN_EMAIL = process.env.REGISTER_ADMIN_EMAIL || "guestiefy@gmail.com";
+const ADMIN_EMAIL = process.env.REGISTER_ADMIN_EMAIL || "info@verveautomation.com";
 const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
 const SMTP_PORT = process.env.SMTP_PORT || "465";
 const SMTP_SECURE = process.env.SMTP_SECURE === "true" || true;
