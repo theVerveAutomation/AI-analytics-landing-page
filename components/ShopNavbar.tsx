@@ -10,7 +10,7 @@ import { User, LogOut, KeyRound, ChevronDown } from "lucide-react";
 
 interface ShopNavbarProps {
   fullName: string;
-  role: "admin" | "shop";
+  role: "admin" | "user";
   organizationLogo?: string | null;
   organizationName?: string;
   hideBrandLogo?: boolean;

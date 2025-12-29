@@ -14,12 +14,7 @@ import {
   CalendarDays,
   ChevronDown,
 } from "lucide-react";
-
-interface Profile {
-  role: "admin" | "shop";
-  full_name: string;
-  organization_logo?: string | null;
-}
+import { Profile } from "@/types";
 
 export default function AuthenticationLayout({
   children,

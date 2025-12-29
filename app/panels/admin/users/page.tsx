@@ -17,29 +17,18 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
-
-interface User {
-  id: string;
-  username: string;
-  org_id: string;
-  organization_name: string;
-  role: string;
-  email?: string;
-  full_name?: string;
-  organization_logo?: string;
-  created_at?: string;
-}
+import { Profile } from "@/types";
 
 export default function UserManagementPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<Profile[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<Profile | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -124,6 +113,8 @@ export default function UserManagementPage() {
       method: "POST",
       body: JSON.stringify({ id }),
     });
+
+    console.log("Delete response:", res);
 
     const data = await res.json();
 
@@ -362,7 +353,7 @@ export default function UserManagementPage() {
                           className={`px-3 py-1 rounded-full text-sm font-semibold border ${
                             u.role === "admin"
                               ? "bg-red-500/20 text-red-400 border-red-500/30"
-                              : u.role === "shop"
+                              : u.role === "user"
                               ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
                               : "bg-slate-700/50 text-slate-300 border-slate-600"
                           }`}

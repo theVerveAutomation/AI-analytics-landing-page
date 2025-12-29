@@ -68,8 +68,11 @@ const Login = () => {
           refresh_token: data.token.refresh_token,
         });
 
-        // Redirect to dashboard or home
-        router.push("/panels/admin");
+        if (data.profile.role === "admin") {
+          router.push("/panels/admin");
+        } else if (data.profile.role === "user") {
+          router.push("/panels/shop");
+        }
       }
     } catch (err) {
       const errorMessage =

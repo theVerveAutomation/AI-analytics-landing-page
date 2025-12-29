@@ -14,12 +14,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Image from "next/image";
-
-interface Profile {
-  role: "admin" | "shop";
-  full_name: string;
-  organization_logo?: string | null;
-}
+import { Profile } from "@/types";
 
 interface Product {
   id: string;

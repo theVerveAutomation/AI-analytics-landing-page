@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { UserPlus, Lock, Building2, Mail } from "lucide-react";
 import Image from "next/image";
+import { Feature, Profile } from "@/types";
 
 export default function UserRegistrationPage() {
   const router = useRouter();
 
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [orgId, setOrgId] = useState("");
@@ -27,7 +28,7 @@ export default function UserRegistrationPage() {
   const [formError, setFormError] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showServices, setShowServices] = useState(false);
-  const [features, setFeatures] = useState<any[]>([]);
+  const [features, setFeatures] = useState<Feature[]>([]);
   const [loadingFeatures, setLoadingFeatures] = useState(true);
 
   function toggleService(service: string) {
@@ -111,7 +112,6 @@ export default function UserRegistrationPage() {
         email,
         password,
         full_name: organizationName,
-        logo_url: organizationLogo,
         username,
         org_id: orgId,
         role: "user",
@@ -138,6 +138,8 @@ export default function UserRegistrationPage() {
     setConfirmPassword("");
     setSelectedServices([]);
     setShowServices(false);
+
+    router.push("/panels/admin/users");
   }
 
   if (loading || !profile) {

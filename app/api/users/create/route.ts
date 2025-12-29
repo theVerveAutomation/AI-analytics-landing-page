@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -19,7 +19,11 @@ export async function POST(req: Request) {
     }
 
     const { data: authData, error: authError } =
-      await supabase.auth.signUp({ email, password });
+      await supabaseAdmin.auth.admin.createUser({ 
+        email, 
+        password,
+        email_confirm: true 
+      });
 
     if (authError || !authData.user) {
       return NextResponse.json(
@@ -30,7 +34,7 @@ export async function POST(req: Request) {
 
     const userId = authData.user.id;
 
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .insert({
         id: userId,
@@ -54,7 +58,7 @@ export async function POST(req: Request) {
       Array.isArray(services) ? services : [];
 
     if (selectedServices.length > 0) {
-      const { error: featureError } = await supabase
+      const { error: featureError } = await supabaseAdmin
         .from("user_features")
         .insert(
           selectedServices.map((featureId) => ({
