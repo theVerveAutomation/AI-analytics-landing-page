@@ -49,41 +49,28 @@ export async function POST(req: Request) {
       );
     }
 
+    // Assign selected features to the user
     const selectedServices: string[] =
       Array.isArray(services) ? services : [];
 
     if (selectedServices.length > 0) {
-      const { error: serviceError } = await supabase
-        .from("user_services")
+      const { error: featureError } = await supabase
+        .from("user_features")
         .insert(
-          selectedServices.map((service) => ({
+          selectedServices.map((featureId) => ({
             user_id: userId,
-            service_key: service,
+            feature_id: featureId,
+            assigned_by: null, // Can be updated to track who assigned it
           }))
         );
 
-      if (serviceError) {
+      if (featureError) {
+        console.error("Error assigning features:", featureError);
         return NextResponse.json(
-          { error: serviceError.message },
+          { error: "User created but failed to assign features: " + featureError.message },
           { status: 500 }
         );
       }
-    }
-
-    const { error: serviceError } = await supabase
-      .from("user_services")
-      .insert(
-        selectedServices.map((service) => ({
-          user_id: userId,
-          service_key: service,
-        }))
-      );
-
-    if (serviceError) {
-      return NextResponse.json(
-        { error: serviceError.message },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

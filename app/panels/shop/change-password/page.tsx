@@ -26,7 +26,7 @@ export default function ChangePasswordPage() {
 
       const { data: prof } = await supabase
         .from("profiles")
-        .select("role, org_id, full_name, organization_logo")
+        .select("*")
         .eq("id", data.user.id)
         .single();
 
@@ -74,7 +74,7 @@ export default function ChangePasswordPage() {
   if (loading || !profile) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 mt-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 mt-20">
       <ShopNavbar
         fullName={profile.full_name}
         role={profile.role}
@@ -82,29 +82,29 @@ export default function ChangePasswordPage() {
       />
 
       <div className="flex items-center justify-center py-12 px-6">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border p-6">
-          <h1 className="text-xl font-semibold text-center mb-6">
+        <div className="w-full max-w-md bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 p-6">
+          <h1 className="text-xl font-semibold text-center mb-6 text-white">
             Change Password
           </h1>
 
           <div className="space-y-4">
             {/* New Password */}
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-slate-300">
                 New Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 border rounded-lg text-sm"
+                  className="w-full pl-10 pr-10 py-2 bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-lg text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -117,21 +117,21 @@ export default function ChangePasswordPage() {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-slate-300">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 border rounded-lg text-sm"
+                  className="w-full pl-10 pr-10 py-2 bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-lg text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -145,7 +145,7 @@ export default function ChangePasswordPage() {
             <button
               onClick={handleChangePassword}
               disabled={saving}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold"
+              className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white py-2 rounded-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? "Updating..." : "Update Password"}
             </button>

@@ -56,8 +56,8 @@ export default function ShopNavbar({
         hideBrandLogo ? "left-0" : "left-0"
       } right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 backdrop-blur-lg shadow-lg border-b border-slate-300"
-          : "bg-slate-100/95 backdrop-blur-md border-b border-slate-300"
+          ? "bg-slate-950/95 backdrop-blur-lg shadow-lg shadow-black/20 border-b border-slate-800"
+          : "bg-slate-950/90 backdrop-blur-md border-b border-slate-800"
       }`}
     >
       <div
@@ -81,8 +81,8 @@ export default function ShopNavbar({
 
         {/* ORGANIZATION NAME */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-          <div className="px-6 py-2.5 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-200/60 shadow-sm">
-            <span className="text-lg font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent whitespace-nowrap">
+          <div className="px-6 py-2.5 bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm rounded-2xl border border-primary/30 shadow-lg shadow-primary/10">
+            <span className="text-lg font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent whitespace-nowrap">
               {fullName}
             </span>
           </div>
@@ -95,7 +95,7 @@ export default function ShopNavbar({
             className="cursor-pointer transition-all duration-200 group"
           >
             {/* Avatar/Logo */}
-            <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all bg-white p-1">
+            <div className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center shadow-md shadow-primary/20 group-hover:shadow-lg group-hover:shadow-primary/30 group-hover:scale-105 transition-all bg-slate-800 p-1 border border-slate-700">
               {organizationLogo && !logoError ? (
                 <Image
                   src={organizationLogo}
@@ -113,7 +113,7 @@ export default function ShopNavbar({
                   }}
                 />
               ) : (
-                <span className="w-full h-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center text-sm font-bold rounded-full">
+                <span className="w-full h-full bg-gradient-to-br from-primary to-blue-600 text-white flex items-center justify-center text-sm font-bold rounded-full shadow-inner">
                   {initials}
                 </span>
               )}
@@ -129,11 +129,11 @@ export default function ShopNavbar({
               />
 
               {/* Menu */}
-              <div className="absolute right-0 top-full mt-2 bg-white shadow-xl rounded-2xl border border-slate-200 w-64 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute right-0 top-full mt-2 bg-slate-900 shadow-xl shadow-black/30 rounded-2xl border border-slate-800 w-64 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* User Info Header */}
-                <div className="px-4 py-3 border-b border-slate-200">
+                <div className="px-4 py-3 border-b border-slate-800">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-md">
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-slate-800 shadow-md border border-slate-700">
                       {organizationLogo && !logoError ? (
                         <Image
                           src={organizationLogo}
@@ -145,13 +145,13 @@ export default function ShopNavbar({
                           onError={() => setLogoError(true)}
                         />
                       ) : (
-                        <span className="w-full h-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center text-base font-bold">
+                        <span className="w-full h-full bg-gradient-to-br from-primary to-blue-600 text-white flex items-center justify-center text-base font-bold">
                           {initials}
                         </span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">
+                      <p className="text-sm font-semibold text-slate-200 truncate">
                         {fullName}
                       </p>
                     </div>
@@ -161,18 +161,18 @@ export default function ShopNavbar({
                 {/* Menu Items */}
                 <div className="py-2">
                   <button
-                    className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex items-center gap-3 text-gray-700"
+                    className="w-full text-left px-4 py-3 hover:bg-slate-800/50 transition-colors flex items-center gap-3 text-slate-300 hover:text-white"
                     onClick={() => {
                       setMenuOpen(false);
                       router.push(`${basePath}/change-password`);
                     }}
                   >
-                    <KeyRound className="w-4 h-4 text-gray-500" />
+                    <KeyRound className="w-4 h-4 text-slate-400" />
                     <span className="text-sm font-medium">Change Password</span>
                   </button>
 
                   <button
-                    className="w-full text-left px-4 py-3 hover:bg-red-50 transition-colors flex items-center gap-3 text-red-600"
+                    className="w-full text-left px-4 py-3 hover:bg-red-500/10 transition-colors flex items-center gap-3 text-red-400 hover:text-red-300"
                     onClick={handleLogout}
                   >
                     <LogOut className="w-4 h-4" />

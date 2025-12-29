@@ -4,15 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
-import {
-  UserPlus,
-  Lock,
-  User,
-  Building2,
-  Eye,
-  EyeOff,
-  Mail,
-} from "lucide-react";
+import { UserPlus, Lock, Building2, Mail } from "lucide-react";
+import Image from "next/image";
 
 export default function UserRegistrationPage() {
   const router = useRouter();
@@ -34,6 +27,8 @@ export default function UserRegistrationPage() {
   const [formError, setFormError] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showServices, setShowServices] = useState(false);
+  const [features, setFeatures] = useState<any[]>([]);
+  const [loadingFeatures, setLoadingFeatures] = useState(true);
 
   function toggleService(service: string) {
     setSelectedServices((prev) =>
@@ -52,17 +47,40 @@ export default function UserRegistrationPage() {
 
       const { data: prof } = await supabase
         .from("profiles")
-        .select("role, org_id, full_name, organization_logo")
+        .select("*")
         .eq("id", user.id)
         .single();
 
-      if (!prof || prof.role !== "admin") return router.replace("/login");
+      if (!prof) return router.replace("/login");
 
       setProfile(prof);
       setOrgId("");
+      await loadFeatures();
       setLoading(false);
     })();
   }, []);
+
+  async function loadFeatures() {
+    try {
+      const { data, error } = await supabase
+        .from("features")
+        .select("*")
+        .eq("enabled", true)
+        .order("name", { ascending: true });
+
+      if (error) {
+        console.error("Error loading features:", error);
+        setFeatures([]);
+      } else {
+        setFeatures(data || []);
+      }
+    } catch (err) {
+      console.error("Unexpected error loading features:", err);
+      setFeatures([]);
+    } finally {
+      setLoadingFeatures(false);
+    }
+  }
 
   async function handleRegister() {
     if (
@@ -96,7 +114,7 @@ export default function UserRegistrationPage() {
         logo_url: organizationLogo,
         username,
         org_id: orgId,
-        role: "shop",
+        role: "user",
         services: selectedServices,
       }),
     });
@@ -124,10 +142,10 @@ export default function UserRegistrationPage() {
 
   if (loading || !profile) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
+      <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <span className="text-lg text-gray-600 font-medium">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <span className="text-lg text-slate-300 font-medium">
             Loading user registration...
           </span>
         </div>
@@ -161,11 +179,11 @@ export default function UserRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 mt-20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 mt-20 relative overflow-auto">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
       </div>
@@ -180,62 +198,62 @@ export default function UserRegistrationPage() {
         <div className="w-full max-w-2xl">
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-600 to-green-600 rounded-2xl shadow-lg mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-blue-600 rounded-2xl shadow-lg shadow-primary/20 mb-4">
               <UserPlus className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-700 via-green-600 to-blue-700 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
               User Registration
             </h1>
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Register a new user under your organization
             </p>
           </div>
 
           {/* Form */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-emerald-100 p-8">
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 p-8">
             <form className="space-y-4">
               {/* Organization ID */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-emerald-600" />
+                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-primary" />
                   Organization ID
                 </label>
                 <input
                   type="text"
                   value={orgId}
                   onChange={(e) => setOrgId(e.target.value)}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-200 outline-none font-mono text-sm"
+                  className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none font-mono text-sm"
                 />
               </div>
 
               {/* Organization Name */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-300 mb-2">
                   Organization Name
                 </label>
                 <input
                   type="text"
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-200 outline-none"
+                  className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
               </div>
 
               {/* Organization Logo */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-300 mb-2">
                   Organization Logo
                 </label>
 
                 <div className="flex items-center gap-4">
                   {organizationLogo ? (
-                    <img
+                    <Image
                       src={organizationLogo}
                       alt="Organization Logo"
-                      className="w-20 h-20 rounded-xl object-cover border"
+                      className="w-20 h-20 rounded-xl object-cover border border-slate-700"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-xl border border-dashed flex items-center justify-center text-gray-400 text-sm">
+                    <div className="w-20 h-20 rounded-xl border border-dashed border-slate-700 flex items-center justify-center text-slate-500 text-sm">
                       No Logo
                     </div>
                   )}
@@ -254,75 +272,107 @@ export default function UserRegistrationPage() {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-emerald-600" />
+                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-primary" />
                   Email
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-200 outline-none"
+                  className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
               </div>
 
               {/* Username */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-slate-300 mb-2">
                   Username
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-200 outline-none"
+                  className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
               </div>
 
               {/* SERVICES DROPDOWN */}
               <div className="relative">
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-emerald-600" />
+                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-primary" />
                   Enabled Services
                 </label>
 
                 <button
                   type="button"
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 bg-gray-50 text-left flex justify-between items-center"
+                  className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-left flex justify-between items-center hover:bg-slate-800/70 transition-colors"
                   onClick={() => setShowServices((v) => !v)}
                 >
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-slate-300">
                     {selectedServices.length > 0
-                      ? selectedServices.join(", ")
-                      : "Select services"}
+                      ? `${selectedServices.length} feature${
+                          selectedServices.length > 1 ? "s" : ""
+                        } selected`
+                      : loadingFeatures
+                      ? "Loading features..."
+                      : "Select features"}
                   </span>
-                  <span className="text-gray-400">▾</span>
+                  <span className="text-slate-500">▾</span>
                 </button>
 
                 {showServices && (
-                  <div className="absolute z-20 mt-2 w-full bg-white border-2 border-gray-200 rounded-xl shadow-lg p-3 space-y-2">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedServices.includes("authentication")}
-                        onChange={() => toggleService("authentication")}
-                        className="w-4 h-4 accent-emerald-600"
-                      />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">
-                          Authentication
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          Access authentication dashboard
+                  <div className="absolute z-20 mt-2 w-full bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-3 space-y-2 max-h-96 overflow-y-auto">
+                    {loadingFeatures ? (
+                      <div className="text-center py-8">
+                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                        <p className="text-sm text-slate-400">
+                          Loading features...
                         </p>
                       </div>
-                    </label>
+                    ) : features.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-sm text-slate-400">
+                          No features available
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Add features in Feature Management
+                        </p>
+                      </div>
+                    ) : (
+                      features.map((feature) => (
+                        <label
+                          key={feature.id}
+                          className="flex items-center gap-3 cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedServices.includes(feature.id)}
+                            onChange={() => toggleService(feature.id)}
+                            className="w-4 h-4 accent-primary"
+                          />
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-lg">
+                              {feature.icon || "⚙️"}
+                            </span>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-slate-200">
+                                {feature.name}
+                              </p>
+                              <p className="text-xs text-slate-400">
+                                {feature.description}
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      ))
+                    )}
 
-                    <div className="pt-2 text-center">
+                    <div className="pt-2 text-center border-t border-slate-700">
                       <button
                         type="button"
                         onClick={() => setShowServices(false)}
-                        className="text-sm font-semibold text-emerald-600 hover:underline"
+                        className="text-sm font-semibold text-primary hover:underline"
                       >
                         Done
                       </button>
@@ -334,33 +384,33 @@ export default function UserRegistrationPage() {
               {/* Passwords */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-300 mb-2">
                     Password
                   </label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border-2 border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-200 outline-none"
+                    className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-slate-300 mb-2">
                     Confirm Password
                   </label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full border-2 border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-200 outline-none"
+                    className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                   />
                 </div>
               </div>
 
               {/* Error */}
               {formError && (
-                <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
                   {formError}
                 </div>
               )}
@@ -370,7 +420,7 @@ export default function UserRegistrationPage() {
                 <button
                   type="button"
                   onClick={() => router.back()}
-                  className="flex-1 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50"
+                  className="flex-1 py-3 border border-slate-700 bg-slate-800/50 text-slate-300 rounded-xl font-semibold hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
@@ -378,7 +428,7 @@ export default function UserRegistrationPage() {
                 <button
                   type="button"
                   onClick={handleRegister}
-                  className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-green-700 shadow-lg hover:shadow-xl"
+                  className="flex-1 py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl font-semibold hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/40 transition-all"
                 >
                   Register User
                 </button>

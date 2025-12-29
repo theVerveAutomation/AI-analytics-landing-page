@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabaseClient";
+import { debug } from "console";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -198,16 +199,6 @@ const Login = () => {
             >
               {isLoading ? "Signing In..." : "Sign In"}
             </Button>
-
-            <div className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <a
-                href="/register"
-                className="text-primary hover:text-primary/80 font-semibold transition-colors"
-              >
-                Create Account
-              </a>
-            </div>
           </form>
         </CardContent>
       </Card>

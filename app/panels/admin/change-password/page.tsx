@@ -24,11 +24,15 @@ export default function ChangePasswordPage() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) return router.replace("/login");
 
+      console.log(data.user);
+
       const { data: prof } = await supabase
         .from("profiles")
-        .select("role, org_id, full_name, organization_logo")
+        .select("*")
         .eq("id", data.user.id)
         .single();
+
+      console.log(prof);
 
       if (!prof) return router.replace("/login");
 
