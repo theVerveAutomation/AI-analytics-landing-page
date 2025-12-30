@@ -71,7 +71,7 @@ const Login = () => {
         if (data.profile.role === "admin") {
           router.push("/panels/admin");
         } else if (data.profile.role === "user") {
-          router.push("/panels/shop");
+          router.push("/panels/features");
         }
       }
     } catch (err) {

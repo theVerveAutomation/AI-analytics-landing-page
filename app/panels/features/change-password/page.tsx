@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
+import { Profile } from "@/types";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
 
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [password, setPassword] = useState("");

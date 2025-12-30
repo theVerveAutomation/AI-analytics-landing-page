@@ -15,6 +15,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Profile } from "@/types";
+import Image from "next/image";
 
 export default function AuthenticationLayout({
   children,
@@ -25,7 +26,7 @@ export default function AuthenticationLayout({
   const pathname = usePathname();
 
   const [openEmployees, setOpenEmployees] = useState(
-    pathname.startsWith("/panels/shop/services/authentication/employees")
+    pathname.startsWith("/panels/features/services/employees")
   );
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,27 +63,29 @@ export default function AuthenticationLayout({
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Navbar */}
-      <div className="fixed top-0 left-0 right-0 z-40">
+      {/* <div className="fixed top-0 left-0 right-0 z-40">
         <ShopNavbar
           fullName={profile.full_name}
           role={profile.role}
           organizationLogo={profile.organization_logo}
           hideBrandLogo
         />
-      </div>
+      </div> */}
 
       {/* Sidebar */}
       <aside className="w-72 bg-white shadow-xl border-r border-slate-200 fixed left-0 top-0 h-screen flex flex-col z-50">
         {/* Logo & Header Section */}
         <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-teal-50">
           <div className="flex items-center gap-3">
-            <div className="w-20 h-20 rounded-xl flex items-center justify-center">
-              <img
+            {/* <div className="w-20 h-20 rounded-xl flex items-center justify-center">
+              <Image
                 src="/assets/images/logo.png"
                 alt="Logo"
                 className="w-16 h-16 object-contain"
+                width={64}
+                height={64}
               />
-            </div>
+            </div> */}
             <div>
               <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
                 Attendance System
@@ -98,10 +101,10 @@ export default function AuthenticationLayout({
         <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
           {/* Dashboard */}
           <button
-            onClick={() => router.push("/panels/shop/services/authentication")}
+            onClick={() => router.push("/panels/shop/services")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
-                pathname === "/panels/shop/services/authentication"
+                pathname === "/panels/shop/services"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
                   : "text-slate-700 hover:bg-slate-100 hover:scale-105"
               }`}
@@ -112,12 +115,10 @@ export default function AuthenticationLayout({
 
           {/* Alerts */}
           <button
-            onClick={() =>
-              router.push("/panels/shop/services/authentication/alerts")
-            }
+            onClick={() => router.push("/panels/shop/services/alerts")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
-                pathname === "/panels/shop/services/authentication/alerts"
+                pathname === "/panels/shop/services/alerts"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
                   : "text-slate-700 hover:bg-slate-100 hover:scale-105"
               }`}
@@ -132,9 +133,7 @@ export default function AuthenticationLayout({
               onClick={() => setOpenEmployees(!openEmployees)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-all duration-200
                 ${
-                  pathname.startsWith(
-                    "/panels/shop/services/authentication/employees"
-                  )
+                  pathname.startsWith("/panels/shop/services/employees")
                     ? "bg-emerald-50 text-emerald-700"
                     : "text-slate-700 hover:bg-slate-100"
                 }`}
@@ -159,14 +158,11 @@ export default function AuthenticationLayout({
               {/* Employee Registration */}
               <button
                 onClick={() =>
-                  router.push(
-                    "/panels/shop/services/authentication/employees/register"
-                  )
+                  router.push("/panels/shop/services/employees/register")
                 }
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
-                    pathname ===
-                    "/panels/shop/services/authentication/employees/register"
+                    pathname === "/panels/shop/services/employees/register"
                       ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
@@ -178,14 +174,11 @@ export default function AuthenticationLayout({
               {/* Attendance */}
               <button
                 onClick={() =>
-                  router.push(
-                    "/panels/shop/services/authentication/employees/attendance"
-                  )
+                  router.push("/panels/shop/services/employees/attendance")
                 }
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
-                    pathname ===
-                    "/panels/shop/services/authentication/employees/attendance"
+                    pathname === "/panels/shop/services/employees/attendance"
                       ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
@@ -197,14 +190,11 @@ export default function AuthenticationLayout({
               {/* Reports */}
               <button
                 onClick={() =>
-                  router.push(
-                    "/panels/shop/services/authentication/employees/reports"
-                  )
+                  router.push("/panels/shop/services/employees/reports")
                 }
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
-                    pathname ===
-                    "/panels/shop/services/authentication/employees/reports"
+                    pathname === "/panels/shop/services/employees/reports"
                       ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
@@ -217,12 +207,10 @@ export default function AuthenticationLayout({
 
           {/* Schedule */}
           <button
-            onClick={() =>
-              router.push("/panels/shop/services/authentication/schedule")
-            }
+            onClick={() => router.push("/panels/shop/services/schedule")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
-                pathname === "/panels/shop/services/authentication/schedule"
+                pathname === "/panels/shop/services/schedule"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
                   : "text-slate-700 hover:bg-slate-100 hover:scale-105"
               }`}
