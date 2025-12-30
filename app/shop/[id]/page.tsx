@@ -5,14 +5,12 @@ import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
   Package,
-  Building2,
   Calendar,
   ExternalLink,
   Loader2,
 } from "lucide-react";
 import { Product } from "@/types";
 import Image from "next/image";
-import ShopNavbar from "@/components/ShopNavbar";
 import Navigation from "@/components/Navigation";
 
 export default function ProductDetailsPage() {
