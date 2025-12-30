@@ -9,9 +9,10 @@ export function OPTIONS() {
 
 export async function POST(req: Request) {
   try {
-    const { name, description, imageUrl, orgId } = await req.json();
+    const { name, description, imageUrl } = await req.json();
+    console.log("Received product data:", { name, description, imageUrl });
 
-    if (!name || !description || !imageUrl || !orgId) {
+      if (!name || !description || !imageUrl) {
       return withCors({ error: "Missing fields" }, 400);
     }
 
@@ -20,11 +21,11 @@ export async function POST(req: Request) {
       name,
       description,
       image_url: imageUrl,
-      org_id: orgId,
       created_at: new Date().toISOString(),
     });
 
     if (error) {
+      console.error("Error inserting product:", error);
       return withCors({ error: error.message }, 500);
     }
 

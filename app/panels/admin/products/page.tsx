@@ -152,6 +152,8 @@ export default function AdminProductsPage() {
                           src={p.image_url}
                           alt={p.name}
                           className="w-16 h-16 object-cover rounded-xl border border-slate-700"
+                          width={100}
+                          height={100}
                         />
                       </td>
                       <td className="p-4 font-semibold text-slate-200">
