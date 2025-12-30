@@ -1,17 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShoppingBag, Package, Search, Eye } from "lucide-react";
+import { ShoppingBag, Package, Search, Eye, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  image_url: string;
-  org_id: string;
-  created_at?: string;
-}
+import { Product } from "@/types";
 
 export default function ShopPage() {
   const router = useRouter();
@@ -52,13 +44,20 @@ export default function ShopPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
       <div className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="max-w-7xl mx-auto px-2 py-6 flex items-center justify-between gap-6">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-slate-800/50 rounded-xl transition-all group"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
+          </button>
           <div className="flex items-center gap-4">
-            <div className="p-4 bg-gradient-to-br from-primary to-blue-600 rounded-2xl shadow-lg shadow-primary/20">
+            <div className="p-3 bg-gradient-to-br from-primary to-blue-600 rounded-2xl shadow-lg shadow-primary/20">
               <ShoppingBag className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-1">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-1">
                 Product Catalog
               </h1>
               <p className="text-slate-400">
@@ -66,6 +65,7 @@ export default function ShopPage() {
               </p>
             </div>
           </div>
+          <div className="w-10"></div> {/* Spacer for symmetry */}
         </div>
       </div>
 

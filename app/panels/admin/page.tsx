@@ -90,7 +90,10 @@ export default function AdminHome() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* User Management card */}
           <div className="group relative">
-            <div className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:border-primary/50">
+            <div
+              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 hover:border-primary/50 cursor-pointer"
+              onClick={() => router.push("/panels/admin/users")}
+            >
               <div className="mb-4 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary to-blue-600 blur-lg opacity-30 rounded-full"></div>
                 <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-blue-600/20 rounded-2xl flex items-center justify-center border border-primary/40">
@@ -104,28 +107,15 @@ export default function AdminHome() {
                 Manage users, permissions, and access control for your
                 organization
               </p>
-              <div className="flex flex-wrap gap-2 mb-3 justify-center">
-                {/* User Management */}
-                <button
-                  onClick={() => router.push("/panels/admin/users")}
-                  className="px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary text-xs font-semibold rounded-full border border-primary/40 cursor-pointer transition-all hover:shadow-md hover:shadow-primary/20"
-                >
-                  View Users
-                </button>
-                {/* New User */}
-                <button
-                  onClick={() => router.push("/panels/admin/user-registration")}
-                  className="px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/40 cursor-pointer transition-all hover:shadow-md hover:shadow-blue-500/20"
-                >
-                  Add New User
-                </button>
-              </div>
             </div>
           </div>
 
           {/* Shop Management card */}
           <div className="group relative">
-            <div className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1 hover:border-blue-500/50">
+            <div
+              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1 hover:border-blue-500/50 cursor-pointer"
+              onClick={() => router.push("/panels/admin/products")}
+            >
               <div className="mb-4 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-600 blur-lg opacity-30 rounded-full"></div>
                 <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-blue-500/20 to-cyan-600/20 rounded-2xl flex items-center justify-center border border-blue-500/40">
@@ -138,20 +128,15 @@ export default function AdminHome() {
               <p className="text-slate-400 mb-3 leading-relaxed text-sm text-center">
                 Manage shop products, inventory, and business operations
               </p>
-              <div className="flex flex-wrap gap-2 mb-3 justify-center">
-                <button
-                  onClick={() => router.push("/panels/admin/products")}
-                  className="px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/40 cursor-pointer transition-all hover:shadow-md hover:shadow-blue-500/20"
-                >
-                  View Products
-                </button>
-              </div>
             </div>
           </div>
 
           {/* Feature Management card */}
           <div className="group relative">
-            <div className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-cyan-500/5 hover:shadow-xl hover:shadow-cyan-500/20 hover:-translate-y-1 hover:border-cyan-500/50">
+            <div
+              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-cyan-500/5 hover:shadow-xl hover:shadow-cyan-500/20 hover:-translate-y-1 hover:border-cyan-500/50 cursor-pointer"
+              onClick={() => router.push("/panels/admin/features")}
+            >
               <div className="mb-4 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-emerald-600 blur-lg opacity-30 rounded-full"></div>
                 <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-cyan-500/20 to-emerald-600/20 rounded-2xl flex items-center justify-center border border-cyan-500/40">
@@ -164,14 +149,6 @@ export default function AdminHome() {
               <p className="text-slate-400 mb-3 leading-relaxed text-sm text-center">
                 Configure and manage available features and services
               </p>
-              <div className="flex flex-wrap gap-2 mb-3 justify-center">
-                <button
-                  onClick={() => router.push("/panels/admin/features")}
-                  className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs font-semibold rounded-full border border-cyan-500/40 cursor-pointer transition-all hover:shadow-md hover:shadow-cyan-500/20"
-                >
-                  Manage Features
-                </button>
-              </div>
             </div>
           </div>
         </div>

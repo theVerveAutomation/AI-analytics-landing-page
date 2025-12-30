@@ -22,3 +22,12 @@ export interface Feature {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
+  org_id: string;
+  created_at?: string;
+}

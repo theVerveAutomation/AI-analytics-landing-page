@@ -14,6 +14,7 @@ import {
   Mail,
   Building2,
   Shield,
+  UserPlus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -171,6 +172,13 @@ export default function UserManagementPage() {
             </div>
 
             <div className="flex gap-3">
+              <button
+                onClick={() => router.push("/panels/admin/user-registration")}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/50"
+              >
+                <UserPlus className="w-4 h-4" />
+                Add User
+              </button>
               <button
                 onClick={refreshUsers}
                 disabled={refreshing}
