@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { withCors, corsOptions } from "@/lib/cors";
 

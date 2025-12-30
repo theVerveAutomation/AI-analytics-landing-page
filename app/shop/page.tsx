@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ShoppingBag, Package, Search, Eye, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Product } from "@/types";
+import Image from "next/image";
 
 export default function ShopPage() {
   const router = useRouter();
@@ -46,7 +47,7 @@ export default function ShopPage() {
       <div className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-2 py-6 flex items-center justify-between gap-6">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.replace("/")}
             className="p-2 hover:bg-slate-800/50 rounded-xl transition-all group"
             aria-label="Go back"
           >
@@ -119,10 +120,12 @@ export default function ShopPage() {
               >
                 {/* Image - Fixed Height */}
                 <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 h-56 flex-shrink-0">
-                  <img
+                  <Image
                     src={p.image_url}
                     alt={p.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    width={100}
+                    height={100}
                   />
                   <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg shadow-primary/30">
                     <svg
@@ -149,21 +152,9 @@ export default function ShopPage() {
                     {p.description}
                   </p>
 
-                  {/* Organization */}
-                  <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-800">
-                    <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-blue-600/20 rounded-full flex items-center justify-center flex-shrink-0 border border-primary/30">
-                      <span className="text-xs font-bold text-primary">
-                        {p.org_id?.substring(0, 2).toUpperCase()}
-                      </span>
-                    </div>
-                    <span className="text-xs text-slate-500 font-medium truncate">
-                      {p.org_id?.substring(0, 12)}...
-                    </span>
-                  </div>
-
                   {/* View Details Button */}
                   <button
-                    onClick={() => router.push(`/Shop/${p.id}`)}
+                    onClick={() => router.push(`/shop/${p.id}`)}
                     className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-2 group mt-auto"
                   >
                     <Eye className="w-4 h-4 group-hover:scale-110 transition-transform" />

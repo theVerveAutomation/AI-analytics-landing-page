@@ -8,24 +8,18 @@ import {
   Building2,
   Calendar,
   ExternalLink,
-  Mail,
-  Phone,
-  MapPin,
   Loader2,
 } from "lucide-react";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  image_url: string;
-  org_id: string;
-  created_at?: string;
-}
+import { Product } from "@/types";
+import Image from "next/image";
+import ShopNavbar from "@/components/ShopNavbar";
+import Navigation from "@/components/Navigation";
 
 export default function ProductDetailsPage() {
+  console.log("Rendering ProductDetailsPage");
   const router = useRouter();
   const params = useParams();
+  console.log("ProductDetailsPage params:", params);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -85,11 +79,12 @@ export default function ProductDetailsPage() {
 
   return (
     <main className="min-h-screen mt-20 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <Navigation />
       {/* Back Button */}
       <div className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-lg sticky top-20 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <button
-            onClick={() => router.push("/Shop")}
+            onClick={() => router.push("/shop")}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -103,10 +98,12 @@ export default function ProductDetailsPage() {
           {/* Left Column - Image */}
           <div className="space-y-6">
             <div className="relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-sm shadow-xl border border-slate-800 h-[500px]">
-              <img
+              <Image
                 src={product.image_url}
                 alt={product.name}
                 className="w-full h-full object-cover"
+                width={100}
+                height={100}
               />
               <div className="absolute top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-lg">
                 <svg
@@ -189,30 +186,6 @@ export default function ProductDetailsPage() {
                   <ExternalLink className="w-5 h-5" />
                   Request Quote
                 </button>
-              </div>
-            </div>
-
-            {/* Organization Card */}
-            <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 p-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-6 h-6 text-primary" />
-                <h3 className="font-bold text-white text-xl">
-                  Supplier Information
-                </h3>
-              </div>
-
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-22 h-22 bg-gradient-to-br from-primary to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                  <span className="text-xl font-bold text-white">
-                    {product.org_id?.substring(0, 2).toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400 mb-1">Organization ID</p>
-                  <p className="text-sm text-slate-200 font-mono font-semibold">
-                    {product.org_id}
-                  </p>
-                </div>
               </div>
             </div>
           </div>
