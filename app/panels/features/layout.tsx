@@ -2,18 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { supabase } from "@/lib/supabaseClient";
 import {
   LayoutDashboard,
-  Bell,
   Users,
   UserPlus,
   ClipboardCheck,
   BarChart3,
-  CalendarDays,
   ChevronDown,
+  Menu,
+  X,
+  Sun,
+  Moon,
+  Camera,
+  LogOut,
+  Key,
+  User,
+  Settings,
 } from "lucide-react";
-import { Profile } from "@/types";
+import { Feature, Profile } from "@/types";
 
 export default function AuthenticationLayout({
   children,
@@ -22,12 +30,21 @@ export default function AuthenticationLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   const [openEmployees, setOpenEmployees] = useState(
     pathname.startsWith("/panels/features/employees")
   );
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -50,6 +67,22 @@ export default function AuthenticationLayout({
         return;
       }
 
+      const { data: userFeatures, error: featuresError } = await supabase
+        .from("user_features")
+        .select("feature_id, features!inner(*)")
+        .eq("user_id", user.id)
+        .eq("features.enabled", true);
+
+      if (featuresError) {
+        console.error("Error fetching features:", featuresError);
+      } else {
+        const assignedFeatures: Feature[] =
+          userFeatures
+            ?.map((uf: any) => uf.features)
+            .filter((f: Feature) => f !== null) || [];
+        setFeatures(assignedFeatures);
+      }
+
       setProfile(prof);
       setLoading(false);
     })();
@@ -59,70 +92,115 @@ export default function AuthenticationLayout({
     return null;
   }
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Navbar */}
-      {/* <div className="fixed top-0 left-0 right-0 z-40">
-        <ShopNavbar
-          fullName={profile.full_name}
-          role={profile.role}
-          organizationLogo={profile.organization_logo}
-          hideBrandLogo
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 shadow-md border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <Menu className="w-6 h-6 text-slate-700 dark:text-slate-300" />
+          </button>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold bg-gradient-to-r from-emerald-700 to-teal-700 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+              AI VAP
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle - Mobile */}
+            {mounted && (
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-5 h-5 text-yellow-500" />
+                ) : (
+                  <Moon className="w-5 h-5 text-slate-700" />
+                )}
+              </button>
+            )}
+            <div
+              className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 
+              flex items-center justify-center text-white font-bold text-sm shadow-md"
+            >
+              {profile.username?.charAt(0).toUpperCase() || "U"}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={() => setSidebarOpen(false)}
         />
-      </div> */}
+      )}
 
       {/* Sidebar */}
-      <aside className="w-72 bg-white shadow-xl border-r border-slate-200 fixed left-0 top-0 h-screen flex flex-col z-50">
+      <aside
+        className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-72 lg:w-1/5 bg-white dark:bg-slate-900 shadow-xl border-r border-slate-200 dark:border-slate-700
+        max-h-screen flex flex-col
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+      `}
+      >
         {/* Logo & Header Section */}
-        <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-teal-50">
-          <div className="flex items-center gap-3">
-            {/* <div className="w-20 h-20 rounded-xl flex items-center justify-center">
-              <Image
-                src="/assets/images/logo.png"
-                alt="Logo"
-                className="w-16 h-16 object-contain"
-                width={64}
-                height={64}
-              />
-            </div> */}
-            <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
-                AI VAP
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">
-                AI Video Analytics Platform
-              </p>
+        <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+                  AI VAP
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  AI Video Analytics Platform
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Theme Toggle - Desktop */}
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="hidden lg:flex p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-slate-700 transition-colors"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-5 h-5 text-yellow-500" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+                  )}
+                </button>
+              )}
+              {/* Close button for mobile */}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+              </button>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {/* Dashboard */}
           <button
             onClick={() => router.push("/panels/features")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
                 pathname === "/panels/features"
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
-                  : "text-slate-700 hover:bg-slate-100 hover:scale-105"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 scale-105"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
               }`}
           >
             <LayoutDashboard className="w-5 h-5" />
             <span>Dashboard</span>
-          </button>
-
-          {/* Alerts */}
-          <button
-            onClick={() => router.push("/panels/features/alerts")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
-              ${
-                pathname === "/panels/features/alerts"
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
-                  : "text-slate-700 hover:bg-slate-100 hover:scale-105"
-              }`}
-          >
-            <Bell className="w-5 h-5" />
-            <span>Alerts</span>
           </button>
 
           {/* Employees Dropdown */}
@@ -132,8 +210,8 @@ export default function AuthenticationLayout({
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-all duration-200
                 ${
                   pathname.startsWith("/panels/features/employees")
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "text-slate-700 hover:bg-slate-100"
+                    ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
             >
               <div className="flex items-center gap-3">
@@ -149,7 +227,7 @@ export default function AuthenticationLayout({
 
             {/* Dropdown Items */}
             <div
-              className={`ml-4 pl-4 border-l-2 border-emerald-200 space-y-1 overflow-hidden transition-all duration-300 ${
+              className={`ml-4 pl-4 border-l-2 border-emerald-200 dark:border-emerald-700 space-y-1 overflow-hidden transition-all duration-300 ${
                 openEmployees ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
               }`}
             >
@@ -161,8 +239,8 @@ export default function AuthenticationLayout({
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
                     pathname === "/panels/features/employees/register"
-                      ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
               >
                 <UserPlus className="w-4 h-4" />
@@ -177,8 +255,8 @@ export default function AuthenticationLayout({
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
                     pathname === "/panels/features/employees/attendance"
-                      ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
               >
                 <ClipboardCheck className="w-4 h-4" />
@@ -193,8 +271,8 @@ export default function AuthenticationLayout({
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
                     pathname === "/panels/features/employees/reports"
-                      ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
               >
                 <BarChart3 className="w-4 h-4" />
@@ -204,7 +282,7 @@ export default function AuthenticationLayout({
           </div>
 
           {/* Schedule */}
-          <button
+          {/* <button
             onClick={() => router.push("/panels/features/schedule")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
@@ -215,16 +293,58 @@ export default function AuthenticationLayout({
           >
             <CalendarDays className="w-5 h-5" />
             <span>Schedule</span>
+          </button> */}
+
+          {/* enabled feature links*/}
+          {features.map((feature) => (
+            <button
+              key={feature.id}
+              onClick={() => {
+                router.push(
+                  `/panels/features/${feature.name
+                    .toLowerCase()
+                    .split(" ")
+                    .join("-")}`
+                );
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
+              ${
+                pathname ===
+                `/panels/features/${feature.name
+                  .toLowerCase()
+                  .split(" ")
+                  .join("-")}`
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 scale-105"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
+              }`}
+            >
+              <span>{feature.name}</span>
+            </button>
+          ))}
+          {/* Camera Settings */}
+          <button
+            onClick={() => router.push("/panels/features/camera-settings")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
+              ${
+                pathname === "/panels/features/camera-settings"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 scale-105"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
+              }`}
+          >
+            <Camera className="w-5 h-5" />
+            <span>Camera Settings</span>
           </button>
         </nav>
 
         {/* Profile Section */}
-        <div className="p-4 border-t border-slate-200">
+        <div className="flex-shrink-0 p-4 border-t border-slate-200 dark:border-slate-700">
+          {/* Profile Button */}
           <button
-            onClick={() => router.push("/panels/features/change-password")}
+            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
             className="group w-full flex items-center gap-3 px-4 py-3 rounded-xl 
-            bg-gradient-to-r from-slate-50 to-slate-100 hover:from-emerald-50 hover:to-teal-50
-            border border-slate-200 hover:border-emerald-200 transition-all duration-300"
+            bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800 
+            hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30
+            border border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-700 transition-all duration-300"
           >
             <div
               className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 
@@ -232,39 +352,78 @@ export default function AuthenticationLayout({
             >
               {profile.full_name?.charAt(0).toUpperCase() || "U"}
             </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold text-slate-800 truncate">
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
                 {profile.full_name || "User"}
               </p>
-              <p className="text-xs text-slate-500 capitalize">
+              <p className="text-xs text-slate-500 dark:text-slate-400 capitalize truncate">
                 {profile.role || "Member"}
               </p>
             </div>
-            <svg
-              className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
+            {profileMenuOpen ? (
+              <ChevronDown className="w-4 h-4 flex-shrink-0 text-slate-400 dark:text-slate-500 transition-transform rotate-180" />
+            ) : (
+              <ChevronDown className="w-4 h-4 flex-shrink-0 text-slate-400 dark:text-slate-500 transition-transform" />
+            )}
           </button>
+
+          {/* Profile Menu Options */}
+          <div
+            className={`mt-2 space-y-1 overflow-hidden transition-all duration-300 ${
+              profileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            {/* View Profile */}
+            <button
+              onClick={() => router.push("/panels/features/profile")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 
+              hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
+            >
+              <User className="w-4 h-4" />
+              <span className="text-sm">View Profile</span>
+            </button>
+
+            {/* Change Password */}
+            <button
+              onClick={() => router.push("/panels/features/change-password")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 
+              hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
+            >
+              <Key className="w-4 h-4" />
+              <span className="text-sm">Change Password</span>
+            </button>
+
+            {/* Settings */}
+            <button
+              onClick={() => router.push("/panels/features/settings")}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 
+              hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="text-sm">Settings</span>
+            </button>
+
+            {/* Divider */}
+            <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
+
+            {/* Logout */}
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.replace("/login");
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-red-600 dark:text-red-400 
+              hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium">Log Out</span>
+            </button>
+          </div>
         </div>
 
         {/* Footer Info */}
-        <div className="w-full p-4 border-t border-slate-200 bg-slate-50">
-          <div className="text-xs text-slate-500 text-center">
+        <div className="flex-shrink-0 w-full p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <div className="text-xs text-slate-500 dark:text-slate-400 text-center">
             <p className="font-medium">Version 1.0.0</p>
             <p className="mt-1">© 2025 AI VAP</p>
           </div>
@@ -272,8 +431,8 @@ export default function AuthenticationLayout({
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8 overflow-auto ml-72 mt-20">
-        <div className="max-w-7xl mx-auto">{children}</div>
+      <main className="flex-1 flex overflow-auto pt-16 lg:pt-0">
+        {children}
       </main>
     </div>
   );

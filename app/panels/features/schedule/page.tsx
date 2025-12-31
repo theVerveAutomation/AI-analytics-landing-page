@@ -2,28 +2,25 @@
 
 import { Clock, CheckCircle2, XCircle } from "lucide-react";
 
-export default function SchedulePage() {
-  const schedules = [
-    {
-      id: "EMP-001",
-      name: "John Doe",
-      role: "Software Engineer",
-      photo:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
-      checkIn: "09:05 AM",
-      checkOut: "06:02 PM",
-      status: "completed", // pending | active | completed
-    },
-  ];
+const schedules = [
+  {
+    id: "EMP-001",
+    name: "John Doe",
+    role: "Software Engineer",
+    photo:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+    checkIn: "09:05 AM",
+    checkOut: "06:02 PM",
+    status: "completed", // pending | active | completed
+  },
+];
 
+export default function SchedulePage() {
   return (
     <div className="space-y-8">
-
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Schedule
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Schedule</h1>
         <p className="text-gray-600">
           Employee check-in and check-out schedule overview
         </p>
@@ -31,12 +28,9 @@ export default function SchedulePage() {
 
       {/* Schedule Table */}
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-
         <div className="p-6 border-b border-gray-200 bg-gray-50 flex items-center gap-3">
           <Clock className="w-5 h-5 text-gray-600" />
-          <h2 className="text-xl font-bold text-gray-800">
-            Today’s Schedule
-          </h2>
+          <h2 className="text-xl font-bold text-gray-800">Today’s Schedule</h2>
         </div>
 
         {schedules.length === 0 ? (
@@ -72,9 +66,7 @@ export default function SchedulePage() {
                         <p className="font-semibold text-gray-800">
                           {item.name}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          {item.role}
-                        </p>
+                        <p className="text-sm text-gray-600">{item.role}</p>
                       </div>
                     </div>
                   </td>
