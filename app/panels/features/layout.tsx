@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import ShopNavbar from "@/components/ShopNavbar";
 import {
   LayoutDashboard,
   Bell,
@@ -15,7 +14,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Profile } from "@/types";
-import Image from "next/image";
 
 export default function AuthenticationLayout({
   children,
@@ -26,7 +24,7 @@ export default function AuthenticationLayout({
   const pathname = usePathname();
 
   const [openEmployees, setOpenEmployees] = useState(
-    pathname.startsWith("/panels/features/services/employees")
+    pathname.startsWith("/panels/features/employees")
   );
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +53,7 @@ export default function AuthenticationLayout({
       setProfile(prof);
       setLoading(false);
     })();
-  }, []);
+  }, [router]);
 
   if (loading || !profile) {
     return null;
@@ -88,10 +86,10 @@ export default function AuthenticationLayout({
             </div> */}
             <div>
               <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">
-                Attendance System
+                AI VAP
               </h2>
               <p className="text-xs text-slate-500 font-medium">
-                Manage & Track
+                AI Video Analytics Platform
               </p>
             </div>
           </div>
@@ -101,10 +99,10 @@ export default function AuthenticationLayout({
         <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
           {/* Dashboard */}
           <button
-            onClick={() => router.push("/panels/shop/services")}
+            onClick={() => router.push("/panels/features")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
-                pathname === "/panels/shop/services"
+                pathname === "/panels/features"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
                   : "text-slate-700 hover:bg-slate-100 hover:scale-105"
               }`}
@@ -115,10 +113,10 @@ export default function AuthenticationLayout({
 
           {/* Alerts */}
           <button
-            onClick={() => router.push("/panels/shop/services/alerts")}
+            onClick={() => router.push("/panels/features/alerts")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
-                pathname === "/panels/shop/services/alerts"
+                pathname === "/panels/features/alerts"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
                   : "text-slate-700 hover:bg-slate-100 hover:scale-105"
               }`}
@@ -133,7 +131,7 @@ export default function AuthenticationLayout({
               onClick={() => setOpenEmployees(!openEmployees)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-all duration-200
                 ${
-                  pathname.startsWith("/panels/shop/services/employees")
+                  pathname.startsWith("/panels/features/employees")
                     ? "bg-emerald-50 text-emerald-700"
                     : "text-slate-700 hover:bg-slate-100"
                 }`}
@@ -158,11 +156,11 @@ export default function AuthenticationLayout({
               {/* Employee Registration */}
               <button
                 onClick={() =>
-                  router.push("/panels/shop/services/employees/register")
+                  router.push("/panels/features/employees/register")
                 }
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
-                    pathname === "/panels/shop/services/employees/register"
+                    pathname === "/panels/features/employees/register"
                       ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
@@ -174,11 +172,11 @@ export default function AuthenticationLayout({
               {/* Attendance */}
               <button
                 onClick={() =>
-                  router.push("/panels/shop/services/employees/attendance")
+                  router.push("/panels/features/employees/attendance")
                 }
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
-                    pathname === "/panels/shop/services/employees/attendance"
+                    pathname === "/panels/features/employees/attendance"
                       ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
@@ -190,11 +188,11 @@ export default function AuthenticationLayout({
               {/* Reports */}
               <button
                 onClick={() =>
-                  router.push("/panels/shop/services/employees/reports")
+                  router.push("/panels/features/employees/reports")
                 }
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
-                    pathname === "/panels/shop/services/employees/reports"
+                    pathname === "/panels/features/employees/reports"
                       ? "bg-emerald-100 text-emerald-700 font-semibold shadow-sm"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
@@ -207,10 +205,10 @@ export default function AuthenticationLayout({
 
           {/* Schedule */}
           <button
-            onClick={() => router.push("/panels/shop/services/schedule")}
+            onClick={() => router.push("/panels/features/schedule")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
-                pathname === "/panels/shop/services/schedule"
+                pathname === "/panels/features/schedule"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
                   : "text-slate-700 hover:bg-slate-100 hover:scale-105"
               }`}
@@ -220,21 +218,30 @@ export default function AuthenticationLayout({
           </button>
         </nav>
 
-        {/* Go Back Button */}
+        {/* Profile Section */}
         <div className="p-4 border-t border-slate-200">
           <button
-            onClick={() => router.push("/panels/shop")}
-            className="group relative w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-700 
-            text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-emerald-700 
-            hover:to-teal-800 transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden"
+            onClick={() => router.push("/panels/features/change-password")}
+            className="group w-full flex items-center gap-3 px-4 py-3 rounded-xl 
+            bg-gradient-to-r from-slate-50 to-slate-100 hover:from-emerald-50 hover:to-teal-50
+            border border-slate-200 hover:border-emerald-200 transition-all duration-300"
           >
             <div
-              className="absolute inset-0 bg-gradient-to-r from-teal-400 to-emerald-500 opacity-0 
-            group-hover:opacity-20 transition-opacity duration-300"
-            ></div>
-
+              className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 
+            flex items-center justify-center text-white font-bold text-sm shadow-md"
+            >
+              {profile.full_name?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold text-slate-800 truncate">
+                {profile.full_name || "User"}
+              </p>
+              <p className="text-xs text-slate-500 capitalize">
+                {profile.role || "Member"}
+              </p>
+            </div>
             <svg
-              className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform duration-300"
+              className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -242,17 +249,16 @@ export default function AuthenticationLayout({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                strokeWidth={2}
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-
-            <span className="relative z-10">Back to Services</span>
-
-            <div
-              className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform 
-            duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
-            ></div>
           </button>
         </div>
 
@@ -260,7 +266,7 @@ export default function AuthenticationLayout({
         <div className="w-full p-4 border-t border-slate-200 bg-slate-50">
           <div className="text-xs text-slate-500 text-center">
             <p className="font-medium">Version 1.0.0</p>
-            <p className="mt-1">© 2024 Attendance System</p>
+            <p className="mt-1">© 2025 AI VAP</p>
           </div>
         </div>
       </aside>

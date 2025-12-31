@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import ShopNavbar from "@/components/ShopNavbar";
-import { ShieldCheck } from "lucide-react";
 import { Profile, Feature } from "@/types";
 import { Users, UserCheck, UserX, CalendarClock } from "lucide-react";
 import {
