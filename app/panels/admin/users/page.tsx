@@ -8,40 +8,28 @@ import {
   Users,
   Pencil,
   Trash2,
-  Loader2,
   Search,
   Filter,
-  UserPlus,
   RefreshCw,
   Mail,
   Building2,
   Shield,
+  UserPlus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
-
-interface User {
-  id: string;
-  username: string;
-  org_id: string;
-  organization_name: string;
-  role: string;
-  email?: string;
-  full_name?: string;
-  organization_logo?: string;
-  created_at?: string;
-}
+import { Profile } from "@/types";
 
 export default function UserManagementPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<Profile[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<Profile | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -127,6 +115,8 @@ export default function UserManagementPage() {
       body: JSON.stringify({ id }),
     });
 
+    console.log("Delete response:", res);
+
     const data = await res.json();
 
     if (!res.ok) {
@@ -144,38 +134,38 @@ export default function UserManagementPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 flex justify-center items-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex justify-center items-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600 font-medium">Loading users...</p>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-slate-300 font-medium">Loading users...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-emerald-100 p-6 mb-6">
+        <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-emerald-600 to-green-600 rounded-2xl shadow-lg">
+              <div className="p-4 bg-gradient-to-br from-primary to-blue-600 rounded-2xl shadow-lg shadow-primary/20">
                 <Users className="text-white w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-700 via-green-600 to-blue-700 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
                   User Management
                 </h1>
-                <p className="text-gray-600 text-sm mt-1">
+                <p className="text-slate-400 text-sm mt-1">
                   Manage and monitor all registered users
                 </p>
               </div>
@@ -183,9 +173,16 @@ export default function UserManagementPage() {
 
             <div className="flex gap-3">
               <button
+                onClick={() => router.push("/panels/admin/user-registration")}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/50"
+              >
+                <UserPlus className="w-4 h-4" />
+                Add User
+              </button>
+              <button
                 onClick={refreshUsers}
                 disabled={refreshing}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all hover:shadow-lg disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-primary/50 disabled:opacity-50"
               >
                 <RefreshCw
                   className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
@@ -197,48 +194,48 @@ export default function UserManagementPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/30 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-600 rounded-lg">
-                  <Users className="w-5 h-5 text-white" />
+                <div className="p-2 bg-primary/20 rounded-lg border border-primary/40">
+                  <Users className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 font-medium">
+                  <p className="text-sm text-slate-400 font-medium">
                     Total Users
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-white">
                     {users.length}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/30 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
-                  <Filter className="w-5 h-5 text-white" />
+                <div className="p-2 bg-blue-500/20 rounded-lg border border-blue-500/40">
+                  <Filter className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 font-medium">
+                  <p className="text-sm text-slate-400 font-medium">
                     Filtered Results
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-white">
                     {filteredUsers.length}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 border border-cyan-500/30 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-600 rounded-lg">
-                  <Building2 className="w-5 h-5 text-white" />
+                <div className="p-2 bg-cyan-500/20 rounded-lg border border-cyan-500/40">
+                  <Building2 className="w-5 h-5 text-cyan-400" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 font-medium">
+                  <p className="text-sm text-slate-400 font-medium">
                     Organizations
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-white">
                     {new Set(users.map((u) => u.org_id)).size}
                   </p>
                 </div>
@@ -248,36 +245,36 @@ export default function UserManagementPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-blue-100 p-6 mb-6">
+        <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Search */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-300 mb-2">
                 Search Users
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   type="text"
                   placeholder="Search by username, email, org ID, or name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
               </div>
             </div>
 
             {/* Role Filter */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-300 mb-2">
                 Filter by Role
               </label>
               <div className="relative">
-                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 outline-none appearance-none bg-white cursor-pointer"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700 text-white rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none appearance-none cursor-pointer"
                 >
                   <option value="all">All Roles</option>
                   {uniqueRoles.map((role) => (
@@ -292,11 +289,11 @@ export default function UserManagementPage() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-gray-200 overflow-hidden mb-6">
+        <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 overflow-hidden mb-6">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-                <tr className="text-left text-sm font-semibold text-gray-700">
+              <thead className="bg-slate-800/50 border-b border-slate-700">
+                <tr className="text-left text-sm font-semibold text-slate-300">
                   <th className="p-4">User</th>
                   <th className="p-4">Organization</th>
                   <th className="p-4">Org ID</th>
@@ -305,12 +302,12 @@ export default function UserManagementPage() {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-800">
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-12 text-center">
-                      <Users className="w-16 h-16 mx-auto text-gray-300 mb-3" />
-                      <p className="text-gray-500 font-medium">
+                      <Users className="w-16 h-16 mx-auto text-slate-700 mb-3" />
+                      <p className="text-slate-500 font-medium">
                         {searchQuery || roleFilter !== "all"
                           ? "No users match your filters"
                           : "No users found"}
@@ -321,7 +318,7 @@ export default function UserManagementPage() {
                   filteredUsers.map((u) => (
                     <tr
                       key={u.id}
-                      className="hover:bg-emerald-50/50 transition-colors"
+                      className="hover:bg-slate-800/30 transition-colors"
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-3">
@@ -329,7 +326,7 @@ export default function UserManagementPage() {
                             <Image
                               src={u.organization_logo}
                               alt="Logo"
-                              className="w-10 h-10 rounded-lg object-cover border-2 border-gray-200"
+                              className="w-10 h-10 rounded-lg object-cover border border-slate-700"
                             />
                           ) : (
                             <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg flex items-center justify-center border-2 border-emerald-200">
@@ -350,23 +347,23 @@ export default function UserManagementPage() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-slate-200">
                           {u.organization_name || u.full_name || "N/A"}
                         </p>
                       </td>
                       <td className="p-4">
-                        <span className="px-3 py-1 bg-purple-100 text-purple-700 font-mono text-sm rounded-full font-semibold">
+                        <span className="px-3 py-1 bg-primary/20 text-primary border border-primary/30 font-mono text-sm rounded-full font-semibold">
                           {u.org_id}
                         </span>
                       </td>
                       <td className="p-4">
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          className={`px-3 py-1 rounded-full text-sm font-semibold border ${
                             u.role === "admin"
-                              ? "bg-red-100 text-red-700"
-                              : u.role === "shop"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100 text-gray-700"
+                              ? "bg-red-500/20 text-red-400 border-red-500/30"
+                              : u.role === "user"
+                              ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                              : "bg-slate-700/50 text-slate-300 border-slate-600"
                           }`}
                         >
                           {u.role?.charAt(0).toUpperCase() + u.role?.slice(1)}
@@ -375,7 +372,7 @@ export default function UserManagementPage() {
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
                           <button
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:scale-110"
+                            className="p-2 text-primary hover:bg-primary/20 rounded-lg transition-all hover:scale-110"
                             title="Edit User"
                             onClick={() => setEditingUser(u)}
                           >
@@ -403,9 +400,9 @@ export default function UserManagementPage() {
         <div className="flex justify-center">
           <button
             onClick={() => router.back()}
-            className="group relative px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-800 transition-all duration-300 flex items-center gap-2 overflow-hidden"
+            className="group relative px-6 py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/40 hover:from-primary/90 hover:to-blue-600/90 transition-all duration-300 flex items-center gap-2 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-blue-500/50 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 
             <svg
               className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300"

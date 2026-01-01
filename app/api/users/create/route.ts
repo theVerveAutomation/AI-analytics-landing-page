@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -19,7 +19,11 @@ export async function POST(req: Request) {
     }
 
     const { data: authData, error: authError } =
-      await supabase.auth.signUp({ email, password });
+      await supabaseAdmin.auth.admin.createUser({ 
+        email, 
+        password,
+        email_confirm: true 
+      });
 
     if (authError || !authData.user) {
       return NextResponse.json(
@@ -30,7 +34,7 @@ export async function POST(req: Request) {
 
     const userId = authData.user.id;
 
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .insert({
         id: userId,
@@ -49,41 +53,28 @@ export async function POST(req: Request) {
       );
     }
 
+    // Assign selected features to the user
     const selectedServices: string[] =
       Array.isArray(services) ? services : [];
 
     if (selectedServices.length > 0) {
-      const { error: serviceError } = await supabase
-        .from("user_services")
+      const { error: featureError } = await supabaseAdmin
+        .from("user_features")
         .insert(
-          selectedServices.map((service) => ({
+          selectedServices.map((featureId) => ({
             user_id: userId,
-            service_key: service,
+            feature_id: featureId,
+            assigned_by: null, // Can be updated to track who assigned it
           }))
         );
 
-      if (serviceError) {
+      if (featureError) {
+        console.error("Error assigning features:", featureError);
         return NextResponse.json(
-          { error: serviceError.message },
+          { error: "User created but failed to assign features: " + featureError.message },
           { status: 500 }
         );
       }
-    }
-
-    const { error: serviceError } = await supabase
-      .from("user_services")
-      .insert(
-        selectedServices.map((service) => ({
-          user_id: userId,
-          service_key: service,
-        }))
-      );
-
-    if (serviceError) {
-      return NextResponse.json(
-        { error: serviceError.message },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

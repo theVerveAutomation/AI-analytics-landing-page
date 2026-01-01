@@ -1,20 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Package,
-  Upload,
-  ImageIcon,
-  Sparkles,
-  Plus,
-  Building2,
-  X,
-} from "lucide-react";
+import { Upload, Plus, Building2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image";
 
 interface AddProductFormProps {
-  orgId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -24,12 +16,9 @@ interface Org {
 }
 
 export default function AddProductForm({
-  orgId,
   onSuccess,
   onCancel,
 }: AddProductFormProps) {
-  const isAdminMode = !orgId;
-
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -37,11 +26,8 @@ export default function AddProductForm({
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [orgs, setOrgs] = useState<Org[]>([]);
-  const [selectedOrg, setSelectedOrg] = useState<string>("");
 
   useEffect(() => {
-    if (!isAdminMode) return;
-
     (async () => {
       const { data } = await supabase
         .from("profiles")
@@ -54,7 +40,7 @@ export default function AddProductForm({
 
       setOrgs(unique);
     })();
-  }, [isAdminMode]);
+  }, []);
 
   async function uploadProductImage(file: File) {
     const ext = file.name.split(".").pop();
@@ -68,6 +54,7 @@ export default function AddProductForm({
       });
 
     if (error) {
+      console.error("Image upload error:", error);
       throw new Error(error.message);
     }
 
@@ -103,13 +90,10 @@ export default function AddProductForm({
   };
 
   const handleSubmit = async () => {
-    const finalOrgId = orgId ?? selectedOrg;
-
-    if (!name || !description || !imageFile || !finalOrgId) {
+    if (!name || !description || !imageFile) {
       toast.error("All fields are required");
       return;
     }
-
     setLoading(true);
 
     try {
@@ -125,7 +109,6 @@ export default function AddProductForm({
           name,
           description,
           imageUrl,
-          orgId: finalOrgId,
         }),
       });
 
@@ -141,43 +124,24 @@ export default function AddProductForm({
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-xl border border-green-100 overflow-hidden max-h-[90vh] flex flex-col">
-      <div className="relative p-8 space-y-6 overflow-y-auto flex-1">
+    <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl shadow-xl border border-slate-800 overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative p-8 space-y-6 overflow-y-auto flex-1 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl">
+          <div className="p-3 bg-gradient-to-br from-primary to-blue-600 rounded-xl shadow-lg shadow-primary/20">
             <Plus className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-2xl font-bold">Add New Product</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            Add New Product
+          </h2>
         </div>
-
-        {isAdminMode && (
-          <div>
-            <label className="flex items-center gap-2 font-semibold text-gray-700 mb-2">
-              <Building2 className="w-4 h-4 text-green-600" />
-              Organization
-            </label>
-            <select
-              value={selectedOrg}
-              onChange={(e) => setSelectedOrg(e.target.value)}
-              className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-green-500 focus:outline-none transition-colors"
-            >
-              <option value="">Select organization</option>
-              {orgs.map((o) => (
-                <option key={o.org_id} value={o.org_id}>
-                  {o.org_id}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
 
         {/* NAME */}
         <div>
-          <label className="block font-semibold text-gray-700 mb-2">
+          <label className="block font-semibold text-slate-300 mb-2">
             Product Name
           </label>
           <input
-            className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-green-500 focus:outline-none transition-colors"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
             placeholder="Enter product name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -186,11 +150,11 @@ export default function AddProductForm({
 
         {/* DESCRIPTION */}
         <div>
-          <label className="block font-semibold text-gray-700 mb-2">
+          <label className="block font-semibold text-slate-300 mb-2">
             Description
           </label>
           <textarea
-            className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-green-500 focus:outline-none transition-colors resize-none"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none"
             rows={4}
             placeholder="Enter product description"
             value={description}
@@ -200,16 +164,18 @@ export default function AddProductForm({
 
         {/* IMAGE */}
         <div>
-          <label className="block font-semibold text-gray-700 mb-2">
+          <label className="block font-semibold text-slate-300 mb-2">
             Product Image
           </label>
 
           {imagePreview ? (
             <div className="relative group">
-              <img
+              <Image
                 src={imagePreview}
-                className="w-full h-64 object-contain rounded-xl border-2 border-gray-200 bg-gray-50"
+                className="w-full h-64 object-contain rounded-xl border border-slate-700 bg-slate-800/50"
                 alt="Product preview"
+                width={100}
+                height={100}
               />
               <button
                 onClick={handleRemoveImage}
@@ -223,8 +189,8 @@ export default function AddProductForm({
             <div
               className={`border-2 border-dashed rounded-xl p-8 transition-all ${
                 dragActive
-                  ? "border-green-600 bg-green-50"
-                  : "border-gray-300 hover:border-green-400 hover:bg-gray-50"
+                  ? "border-primary bg-primary/10"
+                  : "border-slate-700 hover:border-primary/50 hover:bg-slate-800/50"
               }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -232,11 +198,11 @@ export default function AddProductForm({
               onDrop={handleDrop}
             >
               <label className="cursor-pointer flex flex-col items-center">
-                <Upload className="w-12 h-12 text-green-600 mb-3" />
-                <span className="text-base font-semibold text-gray-700 mb-1">
+                <Upload className="w-12 h-12 text-primary mb-3" />
+                <span className="text-base font-semibold text-slate-300 mb-1">
                   Click to upload or drag and drop
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-slate-500">
                   PNG, JPG, GIF up to 10MB
                 </span>
                 <input
@@ -256,7 +222,7 @@ export default function AddProductForm({
             <button
               onClick={onCancel}
               type="button"
-              className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              className="flex-1 border border-slate-700 text-slate-300 py-3 rounded-xl font-semibold hover:bg-slate-800/50 transition-all"
             >
               Cancel
             </button>
@@ -266,7 +232,7 @@ export default function AddProductForm({
             onClick={handleSubmit}
             disabled={loading}
             type="button"
-            className="flex-1 bg-gradient-to-r from-green-600 to-emerald-700 text-white py-3 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+            className="flex-1 bg-gradient-to-r from-primary to-blue-600 text-white py-3 rounded-xl font-semibold hover:from-primary/90 hover:to-blue-600/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

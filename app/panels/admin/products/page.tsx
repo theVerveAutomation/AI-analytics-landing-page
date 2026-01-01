@@ -13,12 +13,8 @@ import {
   Image as ImageIcon,
   ArrowLeft,
 } from "lucide-react";
-
-interface Profile {
-  role: "admin" | "shop";
-  full_name: string;
-  organization_logo?: string | null;
-}
+import Image from "next/image";
+import { Profile } from "@/types";
 
 interface Product {
   id: string;
@@ -47,11 +43,11 @@ export default function AdminProductsPage() {
 
       const { data: prof } = await supabase
         .from("profiles")
-        .select("role, org_id, full_name, organization_logo")
+        .select("*")
         .eq("id", user.id)
         .single();
 
-      if (!prof || prof.role !== "admin") return router.replace("/login");
+      if (!prof) return router.replace("/login");
 
       setProfile(prof);
       const { data } = await supabase
@@ -75,10 +71,10 @@ export default function AdminProductsPage() {
 
   if (loading || !profile) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
+      <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <span className="text-lg text-gray-600 font-medium">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <span className="text-lg text-slate-300 font-medium">
             Loading product catalog...
           </span>
         </div>
@@ -87,7 +83,7 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 mt-20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 mt-20 relative overflow-hidden">
       <ShopNavbar
         fullName={profile.full_name}
         role={profile.role}
@@ -98,75 +94,82 @@ export default function AdminProductsPage() {
         {/* HEADER */}
         <div className="flex items-center gap-4 mb-8">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-blue-600 blur-lg opacity-30 rounded-2xl" />
-            <div className="relative p-4 bg-gradient-to-br from-emerald-600 to-blue-600 rounded-2xl shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-blue-600 blur-lg opacity-40 rounded-2xl" />
+            <div className="relative p-4 bg-gradient-to-br from-primary to-blue-600 rounded-2xl shadow-lg shadow-primary/20">
               <Package className="w-8 h-8 text-white" />
             </div>
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-700 via-green-600 to-blue-700 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
               Product Catalog
             </h1>
-            <p className="mt-1 text-gray-600">Admin view — all organizations</p>
+            <p className="mt-1 text-slate-400">
+              Admin view — all organizations
+            </p>
           </div>
         </div>
 
         {/* TABLE */}
-        <div className="bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-emerald-50 to-blue-50">
+              <thead className="bg-slate-800/50 border-b border-slate-700">
                 <tr>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase">
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Product
                   </th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase">
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Name
                   </th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase">
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Description
                   </th>
-                  <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase">
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Org ID
                   </th>
-                  <th className="p-4 text-center text-xs font-bold text-gray-700 uppercase">
+                  <th className="p-4 text-center text-xs font-bold text-slate-300 uppercase">
                     Actions
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-800">
                 {products.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-12 text-center">
-                      <ImageIcon className="w-10 h-10 mx-auto text-gray-400 mb-2" />
-                      <p className="text-gray-500">No products found</p>
+                      <ImageIcon className="w-10 h-10 mx-auto text-slate-600 mb-2" />
+                      <p className="text-slate-500">No products found</p>
                     </td>
                   </tr>
                 ) : (
                   products.map((p) => (
-                    <tr key={p.id} className="hover:bg-emerald-50/30">
+                    <tr
+                      key={p.id}
+                      className="hover:bg-slate-800/30 transition-colors"
+                    >
                       <td className="p-4">
-                        <img
+                        <Image
                           src={p.image_url}
                           alt={p.name}
-                          className="w-16 h-16 object-cover rounded-xl border"
+                          className="w-16 h-16 object-cover rounded-xl border border-slate-700"
+                          width={100}
+                          height={100}
                         />
                       </td>
-                      <td className="p-4 font-semibold text-gray-800">
+                      <td className="p-4 font-semibold text-slate-200">
                         {p.name}
                       </td>
-                      <td className="p-4 text-sm text-gray-600">
+                      <td className="p-4 text-sm text-slate-400">
                         {p.description}
                       </td>
-                      <td className="p-4 font-mono text-sm text-blue-700">
+                      <td className="p-4 font-mono text-sm text-primary">
                         {p.org_id}
                       </td>
                       <td className="p-4 text-center flex justify-center gap-2">
                         {/* EDIT */}
                         <button
                           onClick={() => setEditingProduct(p)}
-                          className="p-2 rounded-xl bg-blue-100 hover:bg-blue-200 border-2 border-blue-200"
+                          className="p-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 transition-colors"
                         >
                           ✏️
                         </button>
@@ -174,9 +177,9 @@ export default function AdminProductsPage() {
                         {/* DELETE */}
                         <button
                           onClick={() => deleteProduct(p.id)}
-                          className="p-2 rounded-xl bg-red-100 hover:bg-red-200 border-2 border-red-200"
+                          className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 transition-colors"
                         >
-                          <Trash2 className="w-4 h-4 text-red-700" />
+                          <Trash2 className="w-4 h-4 text-red-400" />
                         </button>
                       </td>
                     </tr>
@@ -193,8 +196,8 @@ export default function AdminProductsPage() {
         onClick={() => router.back()}
         className="fixed bottom-8 left-8 group z-40"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-600 blur-xl opacity-50 rounded-full group-hover:opacity-70 transition-opacity" />
-        <div className="relative bg-gradient-to-r from-emerald-600 to-green-600 text-white px-6 py-4 rounded-full shadow-2xl group-hover:shadow-3xl group-hover:scale-105 transition-all flex items-center gap-3">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary to-blue-600 blur-xl opacity-50 rounded-full group-hover:opacity-70 transition-opacity" />
+        <div className="relative bg-gradient-to-r from-primary to-blue-600 text-white px-6 py-4 rounded-full shadow-2xl shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all flex items-center gap-3">
           <ArrowLeft className="w-6 h-6" />
           <span className="font-semibold text-lg">Go Back</span>
         </div>
@@ -205,16 +208,16 @@ export default function AdminProductsPage() {
         onClick={() => setShowForm(true)}
         className="fixed bottom-8 right-8 group z-40"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-600 blur-xl opacity-50 rounded-full" />
-        <div className="relative bg-gradient-to-r from-emerald-600 to-green-600 text-white p-5 rounded-full shadow-2xl hover:from-emerald-700 hover:to-green-700 transition-all">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary to-blue-600 blur-xl opacity-50 rounded-full group-hover:opacity-70 transition-opacity" />
+        <div className="relative bg-gradient-to-r from-primary to-blue-600 text-white p-5 rounded-full shadow-2xl shadow-primary/20 hover:shadow-primary/40 hover:scale-105 transition-all">
           <Plus className="w-7 h-7" />
         </div>
       </button>
 
       {/* ADD PRODUCT MODAL */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg border-2 border-emerald-100">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-slate-900 rounded-2xl p-6 w-full max-w-lg border border-slate-800 shadow-2xl">
             <AddProductForm
               onSuccess={async () => {
                 const { data } = await supabase
@@ -232,8 +235,8 @@ export default function AdminProductsPage() {
       )}
 
       {editingProduct && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-lg border-2 border-blue-100">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-slate-900 rounded-2xl p-6 w-full max-w-lg border border-slate-800 shadow-2xl">
             <UpdateProductForm
               product={editingProduct}
               onSuccess={async () => {

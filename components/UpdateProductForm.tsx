@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Package, Upload, ImageIcon, Sparkles, Check } from "lucide-react";
+import { useState } from "react";
+import { Package, ImageIcon, Sparkles, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
+import { Product } from "@/types";
 
 interface UpdateProductFormProps {
-  product: any;
+  product: Product;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -100,30 +101,32 @@ export default function UpdateProductForm({
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-xl border border-green-100 max-h-[80vh] flex flex-col">
+    <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl shadow-xl border border-slate-800 max-h-[80vh] flex flex-col">
       {/* HEADER - Fixed at top */}
       <div className="flex items-center gap-3 p-8 pb-4">
-        <div className="p-3 bg-green-700 rounded-xl shadow-lg">
+        <div className="p-3 bg-gradient-to-br from-primary to-blue-600 rounded-xl shadow-lg shadow-primary/20">
           <Check className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Update Product</h2>
-          <p className="text-sm text-gray-600">Modify your product details</p>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            Update Product
+          </h2>
+          <p className="text-sm text-slate-400">Modify your product details</p>
         </div>
       </div>
 
       {/* SCROLLABLE CONTENT */}
-      <div className="overflow-y-auto px-8 pb-8 flex-1">
+      <div className="overflow-y-auto px-8 pb-8 flex-1 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="space-y-6">
           {/* NAME */}
           <div>
-            <label className="flex items-center gap-2 font-semibold text-gray-700 mb-2">
-              <Package className="w-4 h-4 text-green-600" />
+            <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
+              <Package className="w-4 h-4 text-primary" />
               Product Name
             </label>
             <input
               type="text"
-              className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-green-600"
+              className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -131,13 +134,13 @@ export default function UpdateProductForm({
 
           {/* DESCRIPTION */}
           <div>
-            <label className="flex items-center gap-2 font-semibold text-gray-700 mb-2">
-              <Sparkles className="w-4 h-4 text-green-600" />
+            <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
               Description
             </label>
             <textarea
               rows={4}
-              className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-green-600"
+              className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -145,8 +148,8 @@ export default function UpdateProductForm({
 
           {/* IMAGE UPLOAD */}
           <div>
-            <label className="flex items-center gap-2 font-semibold text-gray-700 mb-2">
-              <ImageIcon className="w-4 h-4 text-green-600" />
+            <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
+              <ImageIcon className="w-4 h-4 text-primary" />
               Product Image
             </label>
 
@@ -154,10 +157,10 @@ export default function UpdateProductForm({
               <div className="relative group">
                 <img
                   src={imagePreview}
-                  className="w-full h-48 object-cover rounded-lg"
+                  className="w-full h-48 object-cover rounded-xl border border-slate-700 bg-slate-800/50"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-lg">
-                  <label className="bg-white px-4 py-2 rounded-lg cursor-pointer">
+                <div className="absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-xl transition-opacity">
+                  <label className="bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer font-semibold shadow-lg hover:from-primary/90 hover:to-blue-600/90 transition-all">
                     Change Image
                     <input
                       type="file"
@@ -175,15 +178,22 @@ export default function UpdateProductForm({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:bg-green-800 transition"
+            className="w-full bg-gradient-to-r from-primary to-blue-600 text-white py-3 rounded-xl font-semibold hover:from-primary/90 hover:to-blue-600/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
           >
-            {loading ? "Saving..." : "Save Changes"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </span>
+            ) : (
+              "Save Changes"
+            )}
           </button>
 
           {onCancel && (
             <button
               onClick={onCancel}
-              className="mt-3 w-full text-gray-600 hover:underline text-sm"
+              className="mt-3 w-full text-slate-400 hover:text-slate-300 hover:underline text-sm transition-colors"
             >
               Cancel
             </button>

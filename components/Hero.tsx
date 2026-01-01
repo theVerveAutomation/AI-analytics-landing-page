@@ -2,16 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { Eye, Play } from "lucide-react";
 
-// Generate particles outside of component to avoid impure function calls during render
-const particles = [...Array(50)].map(() => ({
-  width: Math.random() * 4 + 1,
-  height: Math.random() * 4 + 1,
-  top: Math.random() * 100,
-  left: Math.random() * 100,
-  duration: Math.random() * 10 + 10,
-  delay: Math.random() * 5,
-}));
-
 const Hero = () => {
   const scrollToFeatures = () => {
     const element = document.getElementById("features");
@@ -29,24 +19,21 @@ const Hero = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-card to-background">
-        <div className="absolute inset-0 opacity-30">
-          {particles.map((particle, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full bg-primary/20"
-              style={{
-                width: particle.width + "px",
-                height: particle.height + "px",
-                top: particle.top + "%",
-                left: particle.left + "%",
-                animation: `float ${particle.duration}s linear infinite`,
-                animationDelay: particle.delay + "s",
-              }}
-            />
-          ))}
-        </div>
+      {/* Video Background */}
+      <div className="absolute inset-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+        >
+          <source
+            src="/AI_Video_Analytics_Platform_Landing_Page.mp4"
+            type="video/mp4"
+          />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-card/70 to-background/80" />
       </div>
 
       {/* Content */}
@@ -96,17 +83,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0) translateX(0);
-          }
-          50% {
-            transform: translateY(-20px) translateX(10px);
-          }
-        }
-      `}</style>
     </section>
   );
 };

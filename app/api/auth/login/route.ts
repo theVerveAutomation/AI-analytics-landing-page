@@ -13,6 +13,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { orgId, username, password, debug } = body;
+    console.log("Login attempt:", { orgId, username, password, debug });
 
     // -------- DEBUG OUTPUT --------
     if (debug === true) {
@@ -51,7 +52,15 @@ export async function POST(req: Request) {
     const profile = profiles?.[0];
 
     if (!profile) {
-      return withCors({ error: "Invalid credentials" }, 401);
+      return withCors({ 
+        error: "Invalid credentials", 
+        debug: {
+          searched_org_id: cleanOrgId,
+          searched_username: cleanUsername,
+          profiles_found: profiles?.length || 0,
+          hint: "User not found with this org_id and username combination"
+        }
+      }, 401);
     }
 
     // Login using email + password
