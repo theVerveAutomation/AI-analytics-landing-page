@@ -16,7 +16,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabaseClient";
-import { debug } from "console";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
