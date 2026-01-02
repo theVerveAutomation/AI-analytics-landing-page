@@ -5,7 +5,7 @@ import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface MobileHeaderProps {
-  profile: Profile;
+  profile?: Profile | null;
   setSidebarOpen: (open: boolean) => void;
 }
 
@@ -47,7 +47,7 @@ export default function MobileHeader({
             className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 
               flex items-center justify-center text-white font-bold text-sm shadow-md"
           >
-            {profile.username?.charAt(0).toUpperCase() || "U"}
+            {profile?.username?.charAt(0).toUpperCase() || "U"}
           </div>
         </div>
       </div>

@@ -22,7 +22,7 @@ interface SidebarProps {
   theme: string | undefined;
   setTheme: (theme: string) => void;
   setOpenEmployees?: (open: boolean) => void;
-  profile: Profile;
+  profile: Profile | null;
   features: Feature[];
   profileMenuOpen: boolean;
   setProfileMenuOpen: (open: boolean) => void;
@@ -247,14 +247,14 @@ export default function Sidebar({
             className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 
             flex items-center justify-center text-white font-bold text-sm shadow-md"
           >
-            {profile.full_name?.charAt(0).toUpperCase() || "U"}
+            {profile?.full_name?.charAt(0).toUpperCase() || "U"}
           </div>
           <div className="flex-1 text-left min-w-0">
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
-              {profile.full_name || "User"}
+              {profile?.full_name || "User"}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 capitalize truncate">
-              {profile.role || "Member"}
+              {profile?.role || "Member"}
             </p>
           </div>
           {profileMenuOpen ? (
