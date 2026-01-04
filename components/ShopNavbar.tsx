@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import vapLogo from "@/assets/vap-logo.jpeg";
 
-import { User, LogOut, KeyRound, ChevronDown } from "lucide-react";
+import { LogOut, KeyRound } from "lucide-react";
 
 interface ShopNavbarProps {
   fullName: string;
@@ -47,7 +47,7 @@ export default function ShopNavbar({
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.replace("/login");
+    router.replace("/Login");
   };
 
   return (

@@ -39,7 +39,7 @@ export default function AdminProductsPage() {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
-      if (!user) return router.replace("/login");
+      if (!user) return router.replace("/Login");
 
       const { data: prof } = await supabase
         .from("profiles")
@@ -47,7 +47,7 @@ export default function AdminProductsPage() {
         .eq("id", user.id)
         .single();
 
-      if (!prof) return router.replace("/login");
+      if (!prof) return router.replace("/Login");
 
       setProfile(prof);
       const { data } = await supabase

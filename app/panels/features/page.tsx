@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import { Profile, Feature } from "@/types";
+import { Profile } from "@/types";
 import { Users, UserCheck, UserX, CalendarClock } from "lucide-react";
 import {
   PieChart,
@@ -78,7 +78,7 @@ export default function DashboardPage() {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
-      if (!user) return router.replace("/login");
+      if (!user) return router.replace("/Login");
 
       const { data: prof } = await supabase
         .from("profiles")

@@ -22,7 +22,7 @@ export default function ChangePasswordPage() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) return router.replace("/login");
+      if (!data.user) return router.replace("/Login");
 
       console.log(data.user);
 
@@ -34,7 +34,7 @@ export default function ChangePasswordPage() {
 
       console.log(prof);
 
-      if (!prof) return router.replace("/login");
+      if (!prof) return router.replace("/Login");
 
       setProfile(prof);
       setLoading(false);

@@ -1,6 +1,4 @@
 import { redirect } from "next/navigation";
-import MobileHeader from "@/components/MobileHeader";
-import Sidebar from "@/components/SideBar";
 import { createServerSupabaseClient } from "@/lib/supabaseServer";
 import { Feature } from "@/types";
 import ClientLayout from "./ClientLayout";
@@ -20,7 +18,7 @@ export default async function AuthenticationLayout({
   const user = userData?.user;
 
   if (!user) {
-    redirect("/login");
+    redirect("/Login");
     return;
   }
 
@@ -31,7 +29,7 @@ export default async function AuthenticationLayout({
     .single();
 
   if (!profile) {
-    redirect("/login");
+    redirect("/Login");
     return;
   }
 

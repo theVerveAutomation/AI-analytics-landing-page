@@ -16,7 +16,7 @@ export default function EmployeeRegistrationPage() {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
-      if (!user) return router.replace("/login");
+      if (!user) return router.replace("/Login");
 
       const { data: prof } = await supabase
         .from("profiles")
@@ -25,7 +25,7 @@ export default function EmployeeRegistrationPage() {
         .single();
 
       if (!prof || prof.role !== "shop") {
-        return router.replace("/login");
+        return router.replace("/Login");
       }
 
       setProfile(prof);

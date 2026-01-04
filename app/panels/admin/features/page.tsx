@@ -86,7 +86,7 @@ export default function FeaturesPage() {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
-      if (!user) return router.replace("/login");
+      if (!user) return router.replace("/Login");
 
       const { data: prof } = await supabase
         .from("profiles")
@@ -96,7 +96,7 @@ export default function FeaturesPage() {
 
       if (!prof || prof.role !== "admin") {
         toast.error("Access denied");
-        return router.replace("/login");
+        return router.replace("/Login");
       }
 
       setProfile(prof);
