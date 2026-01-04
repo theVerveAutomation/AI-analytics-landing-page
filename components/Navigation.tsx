@@ -30,7 +30,7 @@ const Navigation = () => {
   };
 
   const handleDemoClick = () => {
-    router.push("bookdemo");
+    router.push("/BookDemo");
   };
 
   const handleLoginClick = () => {
