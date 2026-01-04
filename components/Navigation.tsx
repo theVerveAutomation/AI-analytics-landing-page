@@ -34,7 +34,7 @@ const Navigation = () => {
   };
 
   const handleLoginClick = () => {
-    router.push("/login");
+    router.push("/Login");
   };
 
   return (
