@@ -10,8 +10,13 @@ import { useRouter } from "next/navigation";
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +41,8 @@ const Navigation = () => {
   const handleLoginClick = () => {
     router.push("/Login");
   };
+
+  if (!mounted) return null;
 
   return (
     <nav

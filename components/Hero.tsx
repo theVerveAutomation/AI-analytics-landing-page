@@ -1,8 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Eye, Play } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 const Hero = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const scrollToFeatures = () => {
     const element = document.getElementById("features");
     if (element) {
@@ -17,15 +20,22 @@ const Hero = () => {
     }
   };
 
+  useEffect(() => {
+    videoRef.current?.load();
+  }, []);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Video Background */}
       <div className="absolute inset-0">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="none"
+          poster="/hero-poster.jpg"
           className="absolute inset-0 w-full h-full object-cover opacity-30"
         >
           <source
