@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { url } from "inspector";
 
 interface SidebarProps {
   openEmployees?: boolean;
@@ -193,18 +194,15 @@ export default function Sidebar({
           </button> */}
 
         {/* enabled feature links*/}
-        {features.map((feature) => (
-          <button
-            key={feature.id}
-            onClick={() => {
-              router.push(
-                `/panels/features/${feature.name
-                  .toLowerCase()
-                  .split(" ")
-                  .join("-")}`
-              );
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
+        {features.map((feature) => {
+          const url = feature.name.split(" ").join("").toLowerCase();
+          return (
+            <button
+              key={feature.id}
+              onClick={() => {
+                router.push(`/panels/features/${url}`);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
                 pathname ===
                 `/panels/features/${feature.name
@@ -214,10 +212,11 @@ export default function Sidebar({
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 scale-105"
                   : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
               }`}
-          >
-            <span>{feature.name}</span>
-          </button>
-        ))}
+            >
+              <span>{feature.name}</span>
+            </button>
+          );
+        })}
         {/* Camera Settings */}
         <button
           onClick={() => router.push("/panels/features/camera-settings")}
