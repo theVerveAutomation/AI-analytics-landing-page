@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Camera,
   Settings,
@@ -114,6 +114,12 @@ export default function CameraSettingPage() {
   const [cameras, setCameras] = useState<CameraConfig[]>(initialCameras);
   const [selectedCameraId, setSelectedCameraId] = useState<number>(1);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  // Map of cameraId -> MediaStream for each physical device
+  const [cameraStreams, setCameraStreams] = useState<Map<number, MediaStream>>(
+    new Map()
+  );
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
 
   const selectedCamera =
     cameras.find((c) => c.id === selectedCameraId) || cameras[0];
@@ -136,7 +142,7 @@ export default function CameraSettingPage() {
   };
 
   const handleReset = () => {
-    setCameras(initialCameras);
+    // setCameras(initialCameras);
     setHasChanges(false);
   };
 
@@ -166,6 +172,119 @@ export default function CameraSettingPage() {
     }
   };
 
+  // Start cameras - enumerate devices and create a stream for each
+  const startCameras = async () => {
+    try {
+      // First request permission with a generic call
+      const initialStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
+      // Stop the initial stream immediately (we just needed permission)
+      initialStream.getTracks().forEach((t) => t.stop());
+
+      // Enumerate all video input devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((d) => d.kind === "videoinput");
+      setVideoDevices(videoInputs);
+
+      // Create a stream for each physical device (1 device = 1 camera feed)
+      const streamsMap = new Map<number, MediaStream>();
+
+      // Only show as many cameras as we have physical devices
+      for (let i = 0; i < videoInputs.length; i++) {
+        const device = videoInputs[i];
+        const cameraId = i + 1; // Camera IDs start at 1
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: { exact: device.deviceId } },
+            audio: false,
+          });
+          streamsMap.set(cameraId, stream);
+        } catch (err) {
+          console.warn(`Could not open device ${device.label}:`, err);
+        }
+      }
+
+      // Update cameras list to only show detected devices
+      const detectedCameras: CameraConfig[] = videoInputs.map(
+        (device, index) => ({
+          id: index + 1,
+          name: device.label || `Cam ${index + 1}`,
+          status: "normal" as const,
+          detection: true,
+          alertSound: true,
+          frameRate: 30,
+          resolution: "1080p",
+          lastUpdated: "2s ago",
+        })
+      );
+
+      setCameras(detectedCameras);
+      if (detectedCameras.length > 0) {
+        setSelectedCameraId(1);
+      }
+
+      setCameraStreams(streamsMap);
+      setIsStreaming(true);
+    } catch (err) {
+      console.error("Camera access denied or not available:", err);
+      alert(
+        "Unable to access camera. Please grant permission or check your device."
+      );
+    }
+  };
+
+  // Auto-start cameras on mount
+  useEffect(() => {
+    startCameras();
+  }, []);
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cameraStreams.forEach((stream) => {
+        stream.getTracks().forEach((t) => t.stop());
+      });
+    };
+  }, [cameraStreams]);
+
+  // Small helper component to render a video element for a stream
+  function VideoPreview({
+    stream,
+    className,
+    poster,
+  }: {
+    stream: MediaStream | null;
+    className?: string;
+    poster?: React.ReactNode;
+  }) {
+    const ref = useRef<HTMLVideoElement | null>(null);
+
+    useEffect(() => {
+      const videoEl = ref.current;
+      if (!videoEl) return;
+      if (stream) {
+        videoEl.srcObject = stream;
+        const playPromise = videoEl.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise.catch(() => {
+            // autoplay may be blocked; ignore
+          });
+        }
+      } else {
+        videoEl.srcObject = null;
+      }
+    }, [stream]);
+
+    return stream ? (
+      <video ref={ref} className={className} playsInline muted />
+    ) : (
+      <div className={className}>{poster}</div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6 w-full">
       {/* Page Header */}
@@ -193,9 +312,14 @@ export default function CameraSettingPage() {
 
       {/* Camera Grid */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-          Connected Cameras
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+            Connected Cameras
+          </h2>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {cameras.length} camera{cameras.length !== 1 ? "s" : ""} detected
+          </span>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {cameras.map((camera) => (
             <button
@@ -208,14 +332,20 @@ export default function CameraSettingPage() {
               }`}
             >
               {/* Camera Preview Thumbnail */}
-              <div className="aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center">
+              <div className="aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
                 {camera.status === "offline" ? (
                   <WifiOff className="w-8 h-8 text-gray-500" />
                 ) : (
-                  <div className="text-gray-500 text-xs">
-                    <Camera className="w-8 h-8 mx-auto mb-1" />
-                    Live Feed
-                  </div>
+                  <VideoPreview
+                    stream={cameraStreams.get(camera.id) || null}
+                    className="w-full h-full object-cover"
+                    poster={
+                      <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+                        <Camera className="w-8 h-8 mb-1" />
+                        <span>Live Feed</span>
+                      </div>
+                    }
+                  />
                 )}
               </div>
               {/* Camera Info */}
@@ -277,13 +407,20 @@ export default function CameraSettingPage() {
                 <p>Camera Offline</p>
               </div>
             ) : (
-              <div className="text-gray-500 text-center">
-                <Camera className="w-16 h-16 mx-auto mb-2" />
-                <p>Live Camera Feed - {selectedCamera.name}</p>
-                <p className="text-sm mt-1">
-                  {selectedCamera.resolution} @ {selectedCamera.frameRate}fps
-                </p>
-              </div>
+              <VideoPreview
+                stream={cameraStreams.get(selectedCameraId) || null}
+                className="w-full h-full object-cover"
+                poster={
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    <Camera className="w-16 h-16 mb-2" />
+                    <p>Live Camera Feed - {selectedCamera.name}</p>
+                    <p className="text-sm mt-1">
+                      {selectedCamera.resolution} @ {selectedCamera.frameRate}
+                      fps
+                    </p>
+                  </div>
+                }
+              />
             )}
           </div>
 
