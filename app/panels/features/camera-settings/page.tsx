@@ -340,9 +340,9 @@ export default function CameraSettingPage() {
                     stream={cameraStreams.get(camera.id) || null}
                     className="w-full h-full object-cover"
                     poster={
-                      <div className="text-gray-500 text-xs">
-                        <Camera className="w-8 h-8 mx-auto mb-1" />
-                        Live Feed
+                      <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+                        <Camera className="w-8 h-8 mb-1" />
+                        <span>Live Feed</span>
                       </div>
                     }
                   />
@@ -411,8 +411,8 @@ export default function CameraSettingPage() {
                 stream={cameraStreams.get(selectedCameraId) || null}
                 className="w-full h-full object-cover"
                 poster={
-                  <div className="text-gray-500 text-center">
-                    <Camera className="w-16 h-16 mx-auto mb-2" />
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    <Camera className="w-16 h-16 mb-2" />
                     <p>Live Camera Feed - {selectedCamera.name}</p>
                     <p className="text-sm mt-1">
                       {selectedCamera.resolution} @ {selectedCamera.frameRate}

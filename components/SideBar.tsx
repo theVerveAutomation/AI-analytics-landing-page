@@ -289,16 +289,6 @@ export default function Sidebar({
             <span className="text-sm">Change Password</span>
           </button>
 
-          {/* Settings */}
-          <button
-            onClick={() => router.push("/panels/features/settings")}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 
-              hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 transition-all duration-200"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm">Settings</span>
-          </button>
-
           {/* Divider */}
           <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
 
