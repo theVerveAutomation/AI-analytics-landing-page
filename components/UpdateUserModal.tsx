@@ -1,19 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  X,
-  Save,
-  User,
-  Mail,
-  Shield,
-  Image as ImageIcon,
-  Upload,
-  Lock,
-} from "lucide-react";
+import { X, Save, User, Mail, Shield, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
-import Image from "next/image";
 import { Profile, Feature } from "@/types";
 
 interface UpdateUserModalProps {
@@ -69,11 +59,14 @@ export default function UpdateUserModal({
 
   async function loadUserFeatures() {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("user_features")
         .select("feature_id")
         .eq("user_id", user.id);
-
+      if (error) {
+        console.error("Error loading user features:", error);
+        return;
+      }
       setSelectedFeatures(data?.map((f) => f.feature_id) || []);
     } catch (err) {
       console.error("Error loading user features:", err);
@@ -88,36 +81,36 @@ export default function UpdateUserModal({
     );
   }
 
-  async function handleLogoUpload(file: File) {
-    setUploadingLogo(true);
+  // async function handleLogoUpload(file: File) {
+  //   setUploadingLogo(true);
 
-    try {
-      const ext = file.name.split(".").pop();
-      const fileName = `logos/${crypto.randomUUID()}.${ext}`;
+  //   try {
+  //     const ext = file.name.split(".").pop();
+  //     const fileName = `logos/${crypto.randomUUID()}.${ext}`;
 
-      const { error } = await supabase.storage
-        .from("products")
-        .upload(fileName, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+  //     const { error } = await supabase.storage
+  //       .from("products")
+  //       .upload(fileName, file, {
+  //         contentType: file.type,
+  //         upsert: false,
+  //       });
 
-      if (error) {
-        toast.error(error.message);
-        setUploadingLogo(false);
-        return;
-      }
+  //     if (error) {
+  //       toast.error(error.message);
+  //       setUploadingLogo(false);
+  //       return;
+  //     }
 
-      const { data } = supabase.storage.from("products").getPublicUrl(fileName);
+  //     const { data } = supabase.storage.from("products").getPublicUrl(fileName);
 
-      setOrganizationLogo(data.publicUrl);
-      toast.success("Logo uploaded successfully!");
-    } catch (err: unknown) {
-      toast.error("Failed to upload logo");
-    } finally {
-      setUploadingLogo(false);
-    }
-  }
+  //     setOrganizationLogo(data.publicUrl);
+  //     toast.success("Logo uploaded successfully!");
+  //   } catch (err: unknown) {
+  //     toast.error("Failed to upload logo");
+  //   } finally {
+  //     setUploadingLogo(false);
+  //   }
+  // }
 
   async function handleUpdate() {
     if (!username || !email || !role) {
@@ -177,7 +170,7 @@ export default function UpdateUserModal({
         {/* Body */}
         <div className="p-6 space-y-5">
           {/* Organization Logo Upload */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-primary" />
               Organization Logo
@@ -218,7 +211,7 @@ export default function UpdateUserModal({
                 )}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Username */}
           <div>

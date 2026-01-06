@@ -155,30 +155,30 @@ export default function UserRegistrationPage() {
     );
   }
 
-  async function handleLogoUpload(file: File) {
-    setUploadingLogo(true);
+  // async function handleLogoUpload(file: File) {
+  //   setUploadingLogo(true);
 
-    const ext = file.name.split(".").pop();
-    const fileName = `logos/${crypto.randomUUID()}.${ext}`;
+  //   const ext = file.name.split(".").pop();
+  //   const fileName = `logos/${crypto.randomUUID()}.${ext}`;
 
-    const { error } = await supabase.storage
-      .from("products")
-      .upload(fileName, file, {
-        contentType: file.type,
-        upsert: false,
-      });
+  //   const { error } = await supabase.storage
+  //     .from("products")
+  //     .upload(fileName, file, {
+  //       contentType: file.type,
+  //       upsert: false,
+  //     });
 
-    if (error) {
-      alert(error.message);
-      setUploadingLogo(false);
-      return;
-    }
+  //   if (error) {
+  //     alert(error.message);
+  //     setUploadingLogo(false);
+  //     return;
+  //   }
 
-    const { data } = supabase.storage.from("products").getPublicUrl(fileName);
+  //   const { data } = supabase.storage.from("products").getPublicUrl(fileName);
 
-    setOrganizationLogo(data.publicUrl);
-    setUploadingLogo(false);
-  }
+  //   setOrganizationLogo(data.publicUrl);
+  //   setUploadingLogo(false);
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 mt-20 relative overflow-auto">
@@ -242,7 +242,7 @@ export default function UserRegistrationPage() {
               </div>
 
               {/* Organization Logo */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
                   Organization Logo
                 </label>
@@ -270,7 +270,7 @@ export default function UserRegistrationPage() {
                     }}
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Email */}
               <div>

@@ -34,7 +34,7 @@ export default function UserManagementPage() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) return router.replace("/login");
+      if (!data.user) return router.replace("/Login");
 
       fetchUsers();
     })();
@@ -334,8 +334,8 @@ export default function UserManagementPage() {
                             </div>
                           )}
                           <div>
-                            <p className="font-semibold text-gray-900">
-                              {u.username}
+                            <p className="font-semibold text-white">
+                              {u.username || "N/A"}
                             </p>
                             {u.email && (
                               <p className="text-sm text-gray-500 flex items-center gap-1">
