@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Upload, Plus, Building2, X } from "lucide-react";
+import { Upload, Plus, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
@@ -130,7 +130,7 @@ export default function AddProductForm({
           <div className="p-3 bg-gradient-to-br from-primary to-blue-600 rounded-xl shadow-lg shadow-primary/20">
             <Plus className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent">
             Add New Product
           </h2>
         </div>

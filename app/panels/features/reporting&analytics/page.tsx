@@ -131,8 +131,8 @@ const metrics = [
     change: "100%",
     trend: "stable",
     icon: Camera,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-900/30",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-900/30",
   },
   {
     title: "Total Alerts",
@@ -165,7 +165,7 @@ export default function ReportingAnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-            <BarChart className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+            <BarChart className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             Reporting & Analytics
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -179,7 +179,7 @@ export default function ReportingAnalyticsPage() {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-              className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none appearance-none pr-10"
+              className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none pr-10"
             >
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
@@ -199,7 +199,7 @@ export default function ReportingAnalyticsPage() {
           </button>
 
           {/* Export Button */}
-          <button className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
             <Download className="w-4 h-4" />
             Export
           </button>
@@ -222,7 +222,7 @@ export default function ReportingAnalyticsPage() {
               <span
                 className={`text-sm font-medium px-2 py-1 rounded-full ${
                   metric.trend === "up"
-                    ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                     : metric.trend === "down"
                     ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
                     : "bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400"
@@ -254,7 +254,7 @@ export default function ReportingAnalyticsPage() {
                 Daily detection activity by type
               </p>
             </div>
-            <TrendingUp className="w-5 h-5 text-emerald-500" />
+            <TrendingUp className="w-5 h-5 text-blue-500" />
           </div>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={detectionTrendData}>
@@ -352,14 +352,14 @@ export default function ReportingAnalyticsPage() {
                 Detection activity by hour
               </p>
             </div>
-            <Activity className="w-5 h-5 text-blue-500" />
+            <Activity className="w-5 h-5 text-blue-600" />
           </div>
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart data={hourlyActivityData}>
               <defs>
                 <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -386,7 +386,7 @@ export default function ReportingAnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="activity"
-                stroke="#3b82f6"
+                stroke="#06b6d4"
                 fillOpacity={1}
                 fill="url(#colorActivity)"
               />
@@ -459,7 +459,7 @@ export default function ReportingAnalyticsPage() {
               Individual camera statistics and uptime
             </p>
           </div>
-          <Camera className="w-5 h-5 text-emerald-500" />
+          <Camera className="w-5 h-5 text-blue-500" />
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -497,7 +497,7 @@ export default function ReportingAnalyticsPage() {
                         <div
                           className={`h-full ${
                             camera.uptime >= 99
-                              ? "bg-emerald-500"
+                              ? "bg-blue-500"
                               : camera.uptime >= 95
                               ? "bg-amber-500"
                               : "bg-red-500"
@@ -520,7 +520,7 @@ export default function ReportingAnalyticsPage() {
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
                         camera.uptime >= 99
-                          ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
                       }`}
                     >
@@ -545,7 +545,7 @@ export default function ReportingAnalyticsPage() {
               Download previously generated reports
             </p>
           </div>
-          <button className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors">
+          <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
             Generate New Report
           </button>
         </div>
@@ -555,8 +555,8 @@ export default function ReportingAnalyticsPage() {
               key={report.id}
               className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
             >
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                <report.icon className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                <report.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-semibold text-gray-800 dark:text-white truncate">

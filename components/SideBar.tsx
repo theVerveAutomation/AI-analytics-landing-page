@@ -7,14 +7,12 @@ import {
   LayoutDashboard,
   LogOut,
   Moon,
-  Settings,
   Sun,
   User,
   X,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { url } from "inspector";
 
 interface SidebarProps {
   openEmployees?: boolean;
@@ -47,7 +45,7 @@ export default function Sidebar({
   return (
     <aside
       className={`
-        fixed lg:static inset-y-0 left-0 z-50
+        fixed inset-y-0 left-0 z-50
         w-72 lg:w-1/5 bg-white dark:bg-slate-900 shadow-xl border-r border-slate-200 dark:border-slate-700
         max-h-screen flex flex-col
         transform transition-transform duration-300 ease-in-out
@@ -55,11 +53,11 @@ export default function Sidebar({
       `}
     >
       {/* Logo & Header Section */}
-      <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800">
+      <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-slate-800 dark:to-slate-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-blue-700 to-blue-700 dark:from-blue-400 dark:to-blue-400 bg-clip-text text-transparent">
                 AI VAP
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -72,7 +70,7 @@ export default function Sidebar({
 
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="hidden lg:flex p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-slate-700 transition-colors"
+              className="hidden lg:flex p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-slate-700 transition-colors"
             >
               {theme === "dark" ? (
                 <Sun className="w-5 h-5 text-yellow-500" />
@@ -84,7 +82,7 @@ export default function Sidebar({
             {/* Close button for mobile */}
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-slate-700 transition-colors"
+              className="lg:hidden p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-slate-700 transition-colors"
             >
               <X className="w-5 h-5 text-slate-700 dark:text-slate-300" />
             </button>
@@ -100,7 +98,7 @@ export default function Sidebar({
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
                 pathname === "/panels/features"
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 scale-105"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105"
                   : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
               }`}
         >
@@ -115,7 +113,7 @@ export default function Sidebar({
             className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-all duration-200
                 ${
                   pathname.startsWith("/panels/features/employees")
-                    ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                     : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
           >
@@ -131,7 +129,7 @@ export default function Sidebar({
           </button>
           Dropdown Items
           <div
-            className={`ml-4 pl-4 border-l-2 border-emerald-200 dark:border-emerald-700 space-y-1 overflow-hidden transition-all duration-300 ${
+            className={`ml-4 pl-4 border-l-2 border-blue-200 dark:border-blue-700 space-y-1 overflow-hidden transition-all duration-300 ${
               openEmployees ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
@@ -141,7 +139,7 @@ export default function Sidebar({
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
                     pathname === "/panels/features/employees/register"
-                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 font-semibold shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
             >
@@ -156,7 +154,7 @@ export default function Sidebar({
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
                     pathname === "/panels/features/employees/attendance"
-                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 font-semibold shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
             >
@@ -169,7 +167,7 @@ export default function Sidebar({
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200
                   ${
                     pathname === "/panels/features/employees/reports"
-                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm"
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 font-semibold shadow-sm"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
                   }`}
             >
@@ -185,7 +183,7 @@ export default function Sidebar({
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
                 pathname === "/panels/features/schedule"
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 scale-105"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 scale-105"
                   : "text-slate-700 hover:bg-slate-100 hover:scale-105"
               }`}
           >
@@ -209,7 +207,7 @@ export default function Sidebar({
                   .toLowerCase()
                   .split(" ")
                   .join("-")}`
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 scale-105"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105"
                   : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
               }`}
             >
@@ -223,7 +221,7 @@ export default function Sidebar({
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
               ${
                 pathname === "/panels/features/camera-settings"
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 scale-105"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105"
                   : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
               }`}
         >
@@ -239,11 +237,11 @@ export default function Sidebar({
           onClick={() => setProfileMenuOpen(!profileMenuOpen)}
           className="group w-full flex items-center gap-3 px-4 py-3 rounded-xl 
             bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800 
-            hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30
-            border border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-700 transition-all duration-300"
+            hover:from-blue-50 hover:to-blue-50 dark:hover:from-blue-900/30 dark:hover:to-blue-900/30
+            border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-300"
         >
           <div
-            className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 
+            className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 
             flex items-center justify-center text-white font-bold text-sm shadow-md"
           >
             {profile.full_name?.charAt(0).toUpperCase() || "U"}

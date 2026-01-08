@@ -149,7 +149,7 @@ export default function CameraSettingPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "normal":
-        return "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30";
+        return "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30";
       case "warning":
         return "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30";
       case "offline":
@@ -291,7 +291,7 @@ export default function CameraSettingPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-            <Camera className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+            <Camera className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             Camera Settings
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -299,7 +299,7 @@ export default function CameraSettingPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
             <CheckCircle className="w-4 h-4" />
             {cameras.filter((c) => c.status === "normal").length} Online
           </span>
@@ -327,8 +327,8 @@ export default function CameraSettingPage() {
               onClick={() => setSelectedCameraId(camera.id)}
               className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${
                 selectedCameraId === camera.id
-                  ? "border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-200 dark:ring-emerald-800"
-                  : "border-gray-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-600"
+                  ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-200 dark:ring-blue-800"
+                  : "border-gray-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-600"
               }`}
             >
               {/* Camera Preview Thumbnail */}
@@ -364,7 +364,7 @@ export default function CameraSettingPage() {
               </div>
               {/* Selection Indicator */}
               {selectedCameraId === camera.id && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-4 h-4 text-white" />
                 </div>
               )}
@@ -388,7 +388,7 @@ export default function CameraSettingPage() {
               <select
                 value={selectedCameraId}
                 onChange={(e) => setSelectedCameraId(Number(e.target.value))}
-                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               >
                 {cameras.map((camera) => (
                   <option key={camera.id} value={camera.id}>
@@ -443,7 +443,7 @@ export default function CameraSettingPage() {
         {/* System Settings */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-700 p-6">
           <div className="flex items-center gap-2 mb-6">
-            <Settings className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
               System Settings
             </h2>
@@ -466,7 +466,7 @@ export default function CameraSettingPage() {
                   }
                   className={`relative w-12 h-6 rounded-full transition-colors ${
                     selectedCamera.detection
-                      ? "bg-emerald-500"
+                      ? "bg-blue-500"
                       : "bg-gray-300 dark:bg-slate-600"
                   }`}
                 >
@@ -479,7 +479,7 @@ export default function CameraSettingPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                 {selectedCamera.detection ? (
-                  <Eye className="w-4 h-4 text-emerald-500" />
+                  <Eye className="w-4 h-4 text-blue-500" />
                 ) : (
                   <EyeOff className="w-4 h-4" />
                 )}
@@ -507,7 +507,7 @@ export default function CameraSettingPage() {
                   }
                   className={`relative w-12 h-6 rounded-full transition-colors ${
                     selectedCamera.alertSound
-                      ? "bg-emerald-500"
+                      ? "bg-blue-500"
                       : "bg-gray-300 dark:bg-slate-600"
                   }`}
                 >
@@ -520,7 +520,7 @@ export default function CameraSettingPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                 {selectedCamera.alertSound ? (
-                  <Volume2 className="w-4 h-4 text-emerald-500" />
+                  <Volume2 className="w-4 h-4 text-blue-500" />
                 ) : (
                   <VolumeX className="w-4 h-4" />
                 )}
@@ -538,7 +538,7 @@ export default function CameraSettingPage() {
                 <label className="font-medium text-gray-800 dark:text-white">
                   Frame Rate
                 </label>
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span className="text-blue-600 dark:text-blue-400 font-semibold">
                   {selectedCamera.frameRate} fps
                 </span>
               </div>
@@ -555,7 +555,7 @@ export default function CameraSettingPage() {
                     Number(e.target.value)
                   )
                 }
-                className="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                className="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                 <span>5 fps</span>
@@ -581,7 +581,7 @@ export default function CameraSettingPage() {
                     e.target.value
                   )
                 }
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               >
                 <option value="480p">480p</option>
                 <option value="720p">720p</option>
@@ -597,7 +597,7 @@ export default function CameraSettingPage() {
                 disabled={!hasChanges}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all ${
                   hasChanges
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                    ? "bg-blue-500 hover:bg-blue-600 text-white"
                     : "bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                 }`}
               >

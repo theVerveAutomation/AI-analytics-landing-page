@@ -51,7 +51,7 @@ export default function AlertsPage() {
       description: "Alerts triggered when specific objects are detected",
       icon: <Eye className="w-5 h-5" />,
       alertCount: 24,
-      color: "emerald",
+      color: "blue",
       lastAlert: "2 min ago",
       recentAlerts: [
         {
@@ -89,7 +89,7 @@ export default function AlertsPage() {
       description: "Alerts triggered when motion is detected",
       icon: <Activity className="w-5 h-5" />,
       alertCount: 18,
-      color: "blue",
+      color: "cyan",
       lastAlert: "5 min ago",
       recentAlerts: [
         {
@@ -149,21 +149,21 @@ export default function AlertsPage() {
 
   const getColorClasses = (color: string) => {
     switch (color) {
-      case "emerald":
-        return {
-          bg: "bg-emerald-100 dark:bg-emerald-900/30",
-          icon: "text-emerald-600 dark:text-emerald-400",
-          border: "border-emerald-200 dark:border-emerald-700",
-          badge: "bg-emerald-500",
-          header: "from-emerald-500 to-teal-600",
-        };
       case "blue":
         return {
           bg: "bg-blue-100 dark:bg-blue-900/30",
           icon: "text-blue-600 dark:text-blue-400",
           border: "border-blue-200 dark:border-blue-700",
           badge: "bg-blue-500",
-          header: "from-blue-500 to-sky-600",
+          header: "from-blue-500 to-blue-600",
+        };
+      case "cyan":
+        return {
+          bg: "bg-cyan-100 dark:bg-cyan-900/30",
+          icon: "text-cyan-600 dark:text-cyan-400",
+          border: "border-cyan-200 dark:border-cyan-700",
+          badge: "bg-cyan-500",
+          header: "from-cyan-500 to-sky-600",
         };
       case "purple":
         return {
@@ -191,7 +191,7 @@ export default function AlertsPage() {
       {/* Hero Section */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
             <Bell className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -207,14 +207,14 @@ export default function AlertsPage() {
       </div>
 
       {/* Info Banner */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-5 mb-8">
+      <div className="bg-gradient-to-r from-cyan-50 to-indigo-50 dark:from-cyan-900/20 dark:to-indigo-900/20 border border-cyan-200 dark:border-cyan-800 rounded-2xl p-5 mb-8">
         <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+          <Sparkles className="w-5 h-5 text-cyan-600 dark:text-cyan-400 mt-0.5 flex-shrink-0" />
           <div>
-            <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+            <h3 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-1">
               Stay Connected
             </h3>
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+            <p className="text-sm text-cyan-700 dark:text-cyan-300">
               Get instant notifications when employees check in or out, helping
               you monitor attendance in real-time.
             </p>
@@ -412,13 +412,13 @@ export default function AlertsPage() {
           className={`relative cursor-pointer rounded-2xl border-2 p-6 transition-all duration-300 transform hover:-translate-y-1
             ${
               selectedChannel === "whatsapp"
-                ? "border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 shadow-xl"
-                : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-lg"
+                ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/30 shadow-xl"
+                : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg"
             }`}
         >
           {/* Selection Badge */}
           {selectedChannel === "whatsapp" && (
-            <div className="absolute top-4 right-4 w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+            <div className="absolute top-4 right-4 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
               <Check className="w-5 h-5 text-white" />
             </div>
           )}
@@ -429,7 +429,7 @@ export default function AlertsPage() {
               className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 shadow-lg
                 ${
                   selectedChannel === "whatsapp"
-                    ? "bg-gradient-to-br from-emerald-500 to-green-600"
+                    ? "bg-gradient-to-br from-blue-500 to-blue-600"
                     : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600"
                 }`}
             >
@@ -452,9 +452,9 @@ export default function AlertsPage() {
 
           {/* Active Status */}
           {selectedChannel === "whatsapp" && (
-            <div className="mt-5 pt-5 border-t border-emerald-200 dark:border-emerald-700">
-              <div className="flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-400 font-semibold">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <div className="mt-5 pt-5 border-t border-blue-200 dark:border-blue-700">
+              <div className="flex items-center justify-center gap-2 text-blue-700 dark:text-blue-400 font-semibold">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                 Active Channel
               </div>
             </div>
@@ -467,13 +467,13 @@ export default function AlertsPage() {
           className={`relative cursor-pointer rounded-2xl border-2 p-6 transition-all duration-300 transform hover:-translate-y-1
             ${
               selectedChannel === "telegram"
-                ? "border-blue-500 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-900/30 dark:to-sky-900/30 shadow-xl"
-                : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg"
+                ? "border-cyan-500 bg-gradient-to-br from-cyan-50 to-sky-50 dark:from-cyan-900/30 dark:to-sky-900/30 shadow-xl"
+                : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-cyan-300 dark:hover:border-cyan-600 hover:shadow-lg"
             }`}
         >
           {/* Selection Badge */}
           {selectedChannel === "telegram" && (
-            <div className="absolute top-4 right-4 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+            <div className="absolute top-4 right-4 w-8 h-8 bg-cyan-600 rounded-full flex items-center justify-center shadow-lg">
               <Check className="w-5 h-5 text-white" />
             </div>
           )}
@@ -484,7 +484,7 @@ export default function AlertsPage() {
               className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 shadow-lg
                 ${
                   selectedChannel === "telegram"
-                    ? "bg-gradient-to-br from-blue-500 to-sky-600"
+                    ? "bg-gradient-to-br from-cyan-500 to-sky-600"
                     : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600"
                 }`}
             >
@@ -507,9 +507,9 @@ export default function AlertsPage() {
 
           {/* Active Status */}
           {selectedChannel === "telegram" && (
-            <div className="mt-5 pt-5 border-t border-blue-200 dark:border-blue-700">
-              <div className="flex items-center justify-center gap-2 text-blue-700 dark:text-blue-400 font-semibold">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <div className="mt-5 pt-5 border-t border-cyan-200 dark:border-cyan-700">
+              <div className="flex items-center justify-center gap-2 text-cyan-700 dark:text-cyan-400 font-semibold">
+                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
                 Active Channel
               </div>
             </div>
@@ -520,7 +520,7 @@ export default function AlertsPage() {
       {/* Save Button */}
       {selectedChannel && (
         <div className="mt-6">
-          <button className="w-full md:w-auto px-8 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:from-emerald-600 hover:to-teal-700">
+          <button className="w-full md:w-auto px-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:from-blue-600 hover:to-blue-700">
             Save Alert Preferences
           </button>
         </div>

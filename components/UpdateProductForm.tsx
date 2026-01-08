@@ -5,6 +5,7 @@ import { Package, ImageIcon, Sparkles, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { Product } from "@/types";
+import Image from "next/image";
 
 interface UpdateProductFormProps {
   product: Product;
@@ -108,7 +109,7 @@ export default function UpdateProductForm({
           <Check className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent">
             Update Product
           </h2>
           <p className="text-sm text-slate-400">Modify your product details</p>
@@ -155,8 +156,9 @@ export default function UpdateProductForm({
 
             {imagePreview ? (
               <div className="relative group">
-                <img
+                <Image
                   src={imagePreview}
+                  alt="Product preview"
                   className="w-full h-48 object-cover rounded-xl border border-slate-700 bg-slate-800/50"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-xl transition-opacity">

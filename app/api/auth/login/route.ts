@@ -13,7 +13,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { orgId, username, password, debug } = body;
-    console.log("Login attempt:", { orgId, username, password, debug });
 
     // -------- DEBUG OUTPUT --------
     if (debug === true) {

@@ -1,6 +1,14 @@
 "use client";
 
-import { CheckCircle2, XCircle, ClipboardCheck, Users, Calendar, TrendingUp, Clock } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  ClipboardCheck,
+  Users,
+  Calendar,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
 
 export default function AttendancePage() {
   // Dummy data (replace with real data later)
@@ -16,16 +24,17 @@ export default function AttendancePage() {
     },
   ];
 
-  const presentCount = employees.filter(e => e.status === "present").length;
-  const absentCount = employees.filter(e => e.status === "absent").length;
+  const presentCount = employees.filter((e) => e.status === "present").length;
+  const absentCount = employees.filter((e) => e.status === "absent").length;
   const totalCount = employees.length;
-  const attendanceRate = totalCount > 0 ? ((presentCount / totalCount) * 100).toFixed(0) : 0;
+  const attendanceRate =
+    totalCount > 0 ? ((presentCount / totalCount) * 100).toFixed(0) : 0;
 
-  const today = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
@@ -33,7 +42,7 @@ export default function AttendancePage() {
       {/* Hero Section */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
             <ClipboardCheck className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -44,34 +53,34 @@ export default function AttendancePage() {
         </div>
         <div className="flex items-center gap-2 ml-15">
           <Calendar className="w-5 h-5 text-slate-500" />
-          <p className="text-slate-600 text-lg">
-            {today}
-          </p>
+          <p className="text-slate-600 text-lg">{today}</p>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Total Employees */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+        <div className="bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <Users className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-sm font-semibold text-slate-600 mb-1">Total Employees</p>
+          <p className="text-sm font-semibold text-slate-600 mb-1">
+            Total Employees
+          </p>
           <p className="text-3xl font-bold text-slate-800">{totalCount}</p>
         </div>
 
         {/* Present */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-50 border-2 border-blue-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
           </div>
           <p className="text-sm font-semibold text-slate-600 mb-1">Present</p>
-          <p className="text-3xl font-bold text-emerald-700">{presentCount}</p>
+          <p className="text-3xl font-bold text-blue-700">{presentCount}</p>
         </div>
 
         {/* Absent */}
@@ -92,8 +101,12 @@ export default function AttendancePage() {
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
           </div>
-          <p className="text-sm font-semibold text-slate-600 mb-1">Attendance Rate</p>
-          <p className="text-3xl font-bold text-purple-700">{attendanceRate}%</p>
+          <p className="text-sm font-semibold text-slate-600 mb-1">
+            Attendance Rate
+          </p>
+          <p className="text-3xl font-bold text-purple-700">
+            {attendanceRate}%
+          </p>
         </div>
       </div>
 
@@ -102,7 +115,7 @@ export default function AttendancePage() {
         <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                 <Users className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-slate-800">
@@ -112,7 +125,10 @@ export default function AttendancePage() {
             <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 shadow-sm">
               <Clock className="w-4 h-4 text-slate-500" />
               <span className="text-sm font-semibold text-slate-700">
-                {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                {new Date().toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
             </div>
           </div>
@@ -123,20 +139,20 @@ export default function AttendancePage() {
             <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-10 h-10 text-slate-400" />
             </div>
-            <p className="text-lg font-semibold text-slate-600 mb-2">No employees registered yet</p>
-            <p className="text-sm text-slate-500">Add employees to start tracking attendance</p>
+            <p className="text-lg font-semibold text-slate-600 mb-2">
+              No employees registered yet
+            </p>
+            <p className="text-sm text-slate-500">
+              Add employees to start tracking attendance
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-slate-50 text-left text-sm text-slate-600 border-b border-slate-200">
-                  <th className="p-4 font-semibold">
-                    Employee
-                  </th>
-                  <th className="p-4 font-semibold text-center">
-                    Attendance
-                  </th>
+                  <th className="p-4 font-semibold">Employee</th>
+                  <th className="p-4 font-semibold text-center">Attendance</th>
                 </tr>
               </thead>
 
@@ -156,7 +172,7 @@ export default function AttendancePage() {
                             className="w-14 h-14 rounded-full object-cover border-2 border-slate-200 shadow-md"
                           />
                           {emp.status === "present" && (
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
                               <CheckCircle2 className="w-3 h-3 text-white" />
                             </div>
                           )}
@@ -165,13 +181,11 @@ export default function AttendancePage() {
                           <p className="font-semibold text-slate-800 text-lg">
                             {emp.name}
                           </p>
-                          <p className="text-sm text-slate-500">
-                            {emp.role}
-                          </p>
+                          <p className="text-sm text-slate-500">{emp.role}</p>
                           {emp.status === "present" && emp.checkInTime && (
                             <div className="flex items-center gap-1 mt-1">
-                              <Clock className="w-3 h-3 text-emerald-600" />
-                              <p className="text-xs text-emerald-600 font-semibold">
+                              <Clock className="w-3 h-3 text-blue-600" />
+                              <p className="text-xs text-blue-600 font-semibold">
                                 Check-in: {emp.checkInTime}
                               </p>
                             </div>
@@ -183,7 +197,7 @@ export default function AttendancePage() {
                     {/* Attendance Status */}
                     <td className="p-5 text-center">
                       {emp.status === "present" ? (
-                        <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 rounded-full font-semibold shadow-sm border border-emerald-200">
+                        <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-100 to-blue-100 text-blue-700 rounded-full font-semibold shadow-sm border border-blue-200">
                           <CheckCircle2 className="w-5 h-5" />
                           Present
                         </span>
@@ -204,9 +218,15 @@ export default function AttendancePage() {
         {/* Table Footer */}
         {employees.length > 0 && (
           <div className="p-4 border-t border-slate-200 bg-slate-50 text-sm text-slate-600 text-center">
-            Showing {employees.length} employee{employees.length !== 1 ? 's' : ''} • 
-            <span className="text-emerald-600 font-semibold ml-1">{presentCount} Present</span> • 
-            <span className="text-red-600 font-semibold ml-1">{absentCount} Absent</span>
+            Showing {employees.length} employee
+            {employees.length !== 1 ? "s" : ""} •
+            <span className="text-blue-600 font-semibold ml-1">
+              {presentCount} Present
+            </span>{" "}
+            •
+            <span className="text-red-600 font-semibold ml-1">
+              {absentCount} Absent
+            </span>
           </div>
         )}
       </div>

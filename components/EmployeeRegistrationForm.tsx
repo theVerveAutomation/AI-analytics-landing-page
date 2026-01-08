@@ -183,7 +183,7 @@ export default function EmployeeRegistrationForm({ orgId }: { orgId: string }) {
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
                 placeholder="e.g., EMP-001"
-                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-emerald-500 focus:outline-none transition-colors"
+                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-blue-500 focus:outline-none transition-colors"
               />
             </div>
 
@@ -196,7 +196,7 @@ export default function EmployeeRegistrationForm({ orgId }: { orgId: string }) {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="e.g., John Doe"
-                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-emerald-500 focus:outline-none transition-colors"
+                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-blue-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -210,7 +210,7 @@ export default function EmployeeRegistrationForm({ orgId }: { orgId: string }) {
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-emerald-500 focus:outline-none transition-colors"
+                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-blue-500 focus:outline-none transition-colors"
               >
                 <option value="">Select Department</option>
                 <option value="IT">IT</option>
@@ -230,7 +230,7 @@ export default function EmployeeRegistrationForm({ orgId }: { orgId: string }) {
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 placeholder="e.g., Software Engineer"
-                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-emerald-500 focus:outline-none transition-colors"
+                className="w-full border-2 border-slate-200 rounded-xl p-3 focus:border-blue-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function EmployeeRegistrationForm({ orgId }: { orgId: string }) {
           className={`px-8 py-3 rounded-xl font-semibold flex items-center gap-2 ${
             employeeUUID
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700"
+              : "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700"
           }`}
         >
           <UserPlus className="w-5 h-5" />
@@ -263,9 +263,9 @@ export default function EmployeeRegistrationForm({ orgId }: { orgId: string }) {
 
       {/* Finger Vein Enrollment - Show after registration */}
       {employeeUUID && (
-        <div className="mt-8 p-6 border-2 border-dashed border-emerald-300 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50">
+        <div className="mt-8 p-6 border-2 border-dashed border-blue-300 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-50">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
               <Fingerprint className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
@@ -285,7 +285,7 @@ export default function EmployeeRegistrationForm({ orgId }: { orgId: string }) {
                 className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 ${
                   enrolled
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700"
+                    : "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700"
                 }`}
               >
                 <Fingerprint className="w-5 h-5" />

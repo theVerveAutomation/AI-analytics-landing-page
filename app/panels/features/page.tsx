@@ -11,7 +11,6 @@ import {
   Activity,
   UserCheck,
   Shield,
-  TrendingUp,
   Clock,
   AlertTriangle,
 } from "lucide-react";
@@ -35,9 +34,9 @@ const stats = [
     value: "12",
     subtitle: "of 14 total",
     icon: Camera,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-900/30",
-    border: "border-emerald-200 dark:border-emerald-800",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-900/30",
+    border: "border-blue-200 dark:border-blue-800",
   },
   {
     title: "Alerts Today",
@@ -158,7 +157,7 @@ export default function DashboardPage() {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <span className="text-lg text-slate-600 dark:text-slate-300 font-medium">
             Loading...
           </span>
@@ -174,7 +173,7 @@ export default function DashboardPage() {
       case "medium":
         return "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400";
       case "low":
-        return "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400";
+        return "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400";
       default:
         return "bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400";
     }
@@ -188,7 +187,7 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
-                AI Analytics Dashboard
+                Video Analytics Pro Dashboard
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Real-time video analytics and monitoring overview
@@ -335,7 +334,7 @@ export default function DashboardPage() {
                     Recent Alerts
                   </h3>
                 </div>
-                <button className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline">
+                <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                   View All
                 </button>
               </div>
@@ -382,7 +381,7 @@ export default function DashboardPage() {
             <div className="bg-white dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Camera className="w-5 h-5 text-emerald-500" />
+                  <Camera className="w-5 h-5 text-blue-500" />
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                     Camera Status
                   </h3>
@@ -403,7 +402,7 @@ export default function DashboardPage() {
                       <div
                         className={`w-2 h-2 rounded-full ${
                           camera.status === "online"
-                            ? "bg-emerald-500"
+                            ? "bg-blue-500"
                             : "bg-red-500"
                         }`}
                       />

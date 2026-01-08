@@ -4,17 +4,20 @@ const steps = [
   {
     icon: Cable,
     title: "Connect",
-    description: "Securely link any existing IP camera or VMS to our platform in minutes.",
+    description:
+      "Securely link any existing IP camera or VMS to our platform in minutes.",
   },
   {
     icon: Brain,
     title: "Analyze",
-    description: "Our AI models process streams 24/7 to detect events, objects, and patterns.",
+    description:
+      "Our AI models process streams 24/7 to detect events, objects, and patterns.",
   },
   {
     icon: Bell,
     title: "Alert",
-    description: "Receive instant, relevant alerts and access data-rich reports on any device.",
+    description:
+      "Receive instant, relevant alerts and access data-rich reports on any device.",
   },
 ];
 
@@ -48,8 +51,12 @@ const HowItWorks = () => {
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold mb-4 text-center">{step.title}</h3>
-              <p className="text-muted-foreground text-center leading-relaxed">{step.description}</p>
+              <h3 className="text-2xl font-bold mb-4 text-center">
+                {step.title}
+              </h3>
+              <p className="text-muted-foreground text-center leading-relaxed">
+                {step.description}
+              </p>
             </div>
           ))}
         </div>
