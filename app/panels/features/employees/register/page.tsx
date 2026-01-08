@@ -46,7 +46,7 @@ export default function EmployeeRegistrationPage() {
       {/* Hero Section */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
             <UserPlus className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -108,17 +108,17 @@ export default function EmployeeRegistrationPage() {
                 <td className="p-4 text-slate-600">IT</td>
                 <td className="p-4 text-slate-600">Software Engineer</td>
                 <td className="p-4">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
                     <CheckCircle2 className="w-4 h-4" />
                     Active
                   </span>
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
-                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                    <button className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                       <Edit className="w-4 h-4" />
                     </button>
                     <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -134,7 +134,7 @@ export default function EmployeeRegistrationPage() {
         {/* Table Footer */}
         <div className="p-4 border-t border-slate-200 bg-slate-50 text-sm text-slate-600 text-center">
           Showing 1 employee •{" "}
-          <span className="text-emerald-600 font-semibold">1 Active</span>
+          <span className="text-blue-600 font-semibold">1 Active</span>
         </div>
       </div>
     </div>

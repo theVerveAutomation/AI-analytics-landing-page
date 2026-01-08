@@ -148,7 +148,7 @@ export default function UserManagementPage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
       </div>
@@ -162,7 +162,7 @@ export default function UserManagementPage() {
                 <Users className="text-white w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent">
                   User Management
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">
@@ -174,7 +174,7 @@ export default function UserManagementPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => router.push("/panels/admin/user-registration")}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/50"
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-blue-500/50"
               >
                 <UserPlus className="w-4 h-4" />
                 Add User
@@ -210,9 +210,9 @@ export default function UserManagementPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/30 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-blue-600/10 to-blue-600/5 border border-blue-600/30 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg border border-blue-500/40">
+                <div className="p-2 bg-blue-600/20 rounded-lg border border-blue-600/40">
                   <Filter className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
@@ -226,10 +226,10 @@ export default function UserManagementPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 border border-cyan-500/30 rounded-xl p-4">
+            <div className="bg-gradient-to-br from-blue-600/10 to-blue-600/5 border border-blue-600/30 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-cyan-500/20 rounded-lg border border-cyan-500/40">
-                  <Building2 className="w-5 h-5 text-cyan-400" />
+                <div className="p-2 bg-blue-600/20 rounded-lg border border-blue-600/40">
+                  <Building2 className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-400 font-medium">
@@ -329,8 +329,8 @@ export default function UserManagementPage() {
                               className="w-10 h-10 rounded-lg object-cover border border-slate-700"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg flex items-center justify-center border-2 border-emerald-200">
-                              <Users className="w-5 h-5 text-emerald-600" />
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-100 rounded-lg flex items-center justify-center border-2 border-blue-200">
+                              <Users className="w-5 h-5 text-blue-600" />
                             </div>
                           )}
                           <div>
@@ -362,7 +362,7 @@ export default function UserManagementPage() {
                             u.role === "admin"
                               ? "bg-red-500/20 text-red-400 border-red-500/30"
                               : u.role === "user"
-                              ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                              ? "bg-blue-600/20 text-blue-400 border-blue-600/30"
                               : "bg-slate-700/50 text-slate-300 border-slate-600"
                           }`}
                         >
@@ -402,7 +402,7 @@ export default function UserManagementPage() {
             onClick={() => router.back()}
             className="group relative px-6 py-3 bg-gradient-to-r from-primary to-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/40 hover:from-primary/90 hover:to-blue-600/90 transition-all duration-300 flex items-center gap-2 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-blue-500/50 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-blue-600/50 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 
             <svg
               className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-300"

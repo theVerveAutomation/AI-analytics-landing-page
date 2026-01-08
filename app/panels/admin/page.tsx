@@ -48,11 +48,11 @@ export default function AdminHome() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-10 w-56 h-56 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-10 right-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-10 right-10 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
         <div
-          className="absolute top-1/3 left-1/2 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"
+          className="absolute top-1/3 left-1/2 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "2s" }}
         ></div>
       </div>
@@ -77,7 +77,7 @@ export default function AdminHome() {
             </div>
           </div>
 
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent">
             VAP Admin Panel
           </h1>
           <p className="text-slate-400 text-base max-w-xl mx-auto">
@@ -113,12 +113,12 @@ export default function AdminHome() {
           {/* Shop Management card */}
           <div className="group relative">
             <div
-              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-blue-500/5 hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1 hover:border-blue-500/50 cursor-pointer"
+              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-blue-600/5 hover:shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1 hover:border-blue-600/50 cursor-pointer"
               onClick={() => router.push("/panels/admin/products")}
             >
               <div className="mb-4 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-600 blur-lg opacity-30 rounded-full"></div>
-                <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-blue-500/20 to-cyan-600/20 rounded-2xl flex items-center justify-center border border-blue-500/40">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 blur-lg opacity-30 rounded-full"></div>
+                <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-blue-600/20 to-indigo-600/20 rounded-2xl flex items-center justify-center border border-blue-600/40">
                   <Video className="w-8 h-8 text-blue-400" />
                 </div>
               </div>
@@ -134,13 +134,13 @@ export default function AdminHome() {
           {/* Feature Management card */}
           <div className="group relative">
             <div
-              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-cyan-500/5 hover:shadow-xl hover:shadow-cyan-500/20 hover:-translate-y-1 hover:border-cyan-500/50 cursor-pointer"
+              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-blue-600/5 hover:shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1 hover:border-blue-600/50 cursor-pointer"
               onClick={() => router.push("/panels/admin/features")}
             >
               <div className="mb-4 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-emerald-600 blur-lg opacity-30 rounded-full"></div>
-                <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-cyan-500/20 to-emerald-600/20 rounded-2xl flex items-center justify-center border border-cyan-500/40">
-                  <Boxes className="w-8 h-8 text-cyan-400" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-600 blur-lg opacity-30 rounded-full"></div>
+                <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-blue-600/20 to-blue-600/20 rounded-2xl flex items-center justify-center border border-blue-600/40">
+                  <Boxes className="w-8 h-8 text-blue-400" />
                 </div>
               </div>
               <h3 className="text-xl font-bold text-white mb-2 text-center">

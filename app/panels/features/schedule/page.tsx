@@ -84,7 +84,7 @@ export default function SchedulePage() {
                   {/* Status */}
                   <td className="p-4 text-center">
                     {item.status === "completed" && (
-                      <span className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full font-semibold">
+                      <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full font-semibold">
                         <CheckCircle2 className="w-4 h-4" />
                         Checked Out
                       </span>

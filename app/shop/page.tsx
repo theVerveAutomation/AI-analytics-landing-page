@@ -58,7 +58,7 @@ export default function ShopPage() {
               <ShoppingBag className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-1">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent mb-1">
                 Product Catalog
               </h1>
               <p className="text-slate-400">

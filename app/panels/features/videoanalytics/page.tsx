@@ -4,8 +4,6 @@ import { useState } from "react";
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -13,7 +11,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import {
@@ -35,7 +32,6 @@ import {
   Download,
   Search,
   Filter,
-  Calendar,
   MapPin,
 } from "lucide-react";
 
@@ -53,8 +49,8 @@ const metrics = [
     value: "1,247",
     change: "+156 today",
     icon: Eye,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-900/30",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-900/30",
   },
   {
     title: "Active Events",
@@ -109,7 +105,7 @@ const recentEvents = [
     time: "2 min ago",
     severity: "low",
     icon: User,
-    color: "text-blue-500",
+    color: "text-cyan-500",
   },
   {
     id: 2,
@@ -118,7 +114,7 @@ const recentEvents = [
     time: "5 min ago",
     severity: "low",
     icon: Car,
-    color: "text-emerald-500",
+    color: "text-blue-500",
   },
   {
     id: 3,
@@ -176,7 +172,7 @@ export default function VideoAnalyticsPage() {
             <Filter className="w-4 h-4" />
             Filter
           </button>
-          <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
             <Download className="w-4 h-4" />
             Export
           </button>
@@ -257,7 +253,7 @@ export default function VideoAnalyticsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center transition-colors"
+                  className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition-colors"
                 >
                   {isPlaying ? (
                     <Pause className="w-5 h-5" />
@@ -288,7 +284,7 @@ export default function VideoAnalyticsPage() {
                   onClick={() => setSelectedCamera(camera.id)}
                   className={`relative aspect-video rounded-xl overflow-hidden transition-all ${
                     selectedCamera === camera.id
-                      ? "ring-2 ring-blue-500"
+                      ? "ring-2 ring-blue-600"
                       : "hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600"
                   }`}
                 >
@@ -303,7 +299,7 @@ export default function VideoAnalyticsPage() {
                       <span
                         className={`w-2 h-2 rounded-full ${
                           camera.status === "active"
-                            ? "bg-green-500"
+                            ? "bg-blue-500"
                             : "bg-gray-500"
                         }`}
                       ></span>
@@ -324,10 +320,10 @@ export default function VideoAnalyticsPage() {
                     Detection by Type
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Today's distribution
+                    Today&apos;s distribution
                   </p>
                 </div>
-                <TrendingUp className="w-5 h-5 text-blue-500" />
+                <TrendingUp className="w-5 h-5 text-blue-600" />
               </div>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -360,7 +356,7 @@ export default function VideoAnalyticsPage() {
                     Detection trends
                   </p>
                 </div>
-                <Activity className="w-5 h-5 text-emerald-500" />
+                <Activity className="w-5 h-5 text-blue-500" />
               </div>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={hourlyActivity}>
@@ -444,8 +440,8 @@ export default function VideoAnalyticsPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Today's Summary</h3>
+          <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Today&apos;s Summary</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm opacity-90">Total Events</span>

@@ -25,7 +25,7 @@ export default function MobileHeader({
           <Menu className="w-6 h-6 text-slate-700 dark:text-slate-300" />
         </button>
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold bg-gradient-to-r from-emerald-700 to-teal-700 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+          <h2 className="text-lg font-bold bg-gradient-to-r from-blue-700 to-blue-700 dark:from-blue-400 dark:to-blue-400 bg-clip-text text-transparent">
             AI VAP
           </h2>
         </div>
@@ -44,7 +44,7 @@ export default function MobileHeader({
           </button>
 
           <div
-            className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 
+            className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 
               flex items-center justify-center text-white font-bold text-sm shadow-md"
           >
             {profile.username?.charAt(0).toUpperCase() || "U"}

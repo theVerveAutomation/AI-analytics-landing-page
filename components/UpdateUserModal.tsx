@@ -155,7 +155,7 @@ export default function UpdateUserModal({
       <div className="bg-slate-900/95 backdrop-blur-md w-full max-w-md rounded-2xl shadow-2xl border border-slate-800 relative max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-slate-900/95 backdrop-blur-md flex items-center justify-between p-6 border-b border-slate-800 rounded-t-2xl z-10">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-2">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent flex items-center gap-2">
             <User className="w-5 h-5 text-primary" />
             Update User
           </h2>

@@ -100,7 +100,7 @@ export default function AdminProductsPage() {
             </div>
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent">
               Product Catalog
             </h1>
             <p className="mt-1 text-slate-400">
@@ -169,7 +169,7 @@ export default function AdminProductsPage() {
                         {/* EDIT */}
                         <button
                           onClick={() => setEditingProduct(p)}
-                          className="p-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 transition-colors"
+                          className="p-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-600/40 transition-colors"
                         >
                           ✏️
                         </button>

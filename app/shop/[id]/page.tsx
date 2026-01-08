@@ -103,7 +103,7 @@ export default function ProductDetailsPage() {
                 width={100}
                 height={100}
               />
-              <div className="absolute top-4 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-lg">
+              <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-lg">
                 <svg
                   className="w-5 h-5"
                   fill="currentColor"
@@ -135,7 +135,7 @@ export default function ProductDetailsPage() {
                   <span>Direct from trusted supplier</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-cyan-400 mt-1">✓</span>
+                  <span className="text-blue-400 mt-1">✓</span>
                   <span>Quality guaranteed</span>
                 </li>
               </ul>

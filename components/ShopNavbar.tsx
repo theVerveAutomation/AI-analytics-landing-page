@@ -82,7 +82,7 @@ export default function ShopNavbar({
         {/* ORGANIZATION NAME */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
           <div className="px-6 py-2.5 bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm rounded-2xl border border-primary/30 shadow-lg shadow-primary/10">
-            <span className="text-lg font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent whitespace-nowrap">
+            <span className="text-lg font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent whitespace-nowrap">
               {fullName}
             </span>
           </div>
