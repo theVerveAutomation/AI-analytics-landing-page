@@ -14,6 +14,8 @@ import {
   AlertCircle,
   Wifi,
   WifiOff,
+  Plus,
+  X,
 } from "lucide-react";
 
 interface CameraConfig {
@@ -25,6 +27,8 @@ interface CameraConfig {
   frameRate: number;
   resolution: string;
   lastUpdated: string;
+  url?: string; // Optional URL for RTSP/HTTP streams
+  isPhysicalDevice?: boolean; // True if it's a physical webcam
 }
 
 const initialCameras: CameraConfig[] = [
@@ -37,6 +41,7 @@ const initialCameras: CameraConfig[] = [
     frameRate: 15,
     resolution: "1080p",
     lastUpdated: "2s ago",
+    isPhysicalDevice: true,
   },
   {
     id: 2,
@@ -47,66 +52,7 @@ const initialCameras: CameraConfig[] = [
     frameRate: 30,
     resolution: "1080p",
     lastUpdated: "2s ago",
-  },
-  {
-    id: 3,
-    name: "Cam 3",
-    status: "warning",
-    detection: false,
-    alertSound: true,
-    frameRate: 15,
-    resolution: "720p",
-    lastUpdated: "5s ago",
-  },
-  {
-    id: 4,
-    name: "Cam 4",
-    status: "normal",
-    detection: true,
-    alertSound: true,
-    frameRate: 24,
-    resolution: "1080p",
-    lastUpdated: "2s ago",
-  },
-  {
-    id: 5,
-    name: "Cam 5",
-    status: "normal",
-    detection: true,
-    alertSound: true,
-    frameRate: 15,
-    resolution: "1080p",
-    lastUpdated: "2s ago",
-  },
-  {
-    id: 6,
-    name: "Cam 6",
-    status: "normal",
-    detection: true,
-    alertSound: false,
-    frameRate: 30,
-    resolution: "4K",
-    lastUpdated: "2s ago",
-  },
-  {
-    id: 7,
-    name: "Cam 7",
-    status: "normal",
-    detection: true,
-    alertSound: true,
-    frameRate: 15,
-    resolution: "1080p",
-    lastUpdated: "2s ago",
-  },
-  {
-    id: 8,
-    name: "Cam 8",
-    status: "offline",
-    detection: false,
-    alertSound: false,
-    frameRate: 15,
-    resolution: "1080p",
-    lastUpdated: "N/A",
+    isPhysicalDevice: true,
   },
 ];
 
@@ -115,6 +61,9 @@ export default function CameraSettingPage() {
   const [selectedCameraId, setSelectedCameraId] = useState<number>(1);
   const [hasChanges, setHasChanges] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showAddCameraModal, setShowAddCameraModal] = useState(false);
+  const [newCameraUrl, setNewCameraUrl] = useState("");
+  const [newCameraName, setNewCameraName] = useState("");
   // Map of cameraId -> MediaStream for each physical device
   const [cameraStreams, setCameraStreams] = useState<Map<number, MediaStream>>(
     new Map()
@@ -144,6 +93,32 @@ export default function CameraSettingPage() {
   const handleReset = () => {
     // setCameras(initialCameras);
     setHasChanges(false);
+  };
+
+  const handleAddCamera = () => {
+    if (!newCameraUrl.trim() || !newCameraName.trim()) {
+      alert("Please enter both camera name and URL");
+      return;
+    }
+
+    const newCamera: CameraConfig = {
+      id: cameras.length + 1,
+      name: newCameraName,
+      status: "normal",
+      detection: true,
+      alertSound: true,
+      frameRate: 30,
+      resolution: "1080p",
+      lastUpdated: "just now",
+      url: newCameraUrl,
+      isPhysicalDevice: false,
+    };
+
+    setCameras((prev) => [...prev, newCamera]);
+    setNewCameraUrl("");
+    setNewCameraName("");
+    setShowAddCameraModal(false);
+    alert(`Camera "${newCameraName}" added successfully!`);
   };
 
   const getStatusColor = (status: string) => {
@@ -285,6 +260,102 @@ export default function CameraSettingPage() {
     );
   }
 
+  // Helper component to render camera feed (physical device or URL-based)
+  function CameraFeed({
+    camera,
+    isThumbnail = false,
+  }: {
+    camera: CameraConfig;
+    isThumbnail?: boolean;
+  }) {
+    if (camera.status === "offline") {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+          <WifiOff className="w-8 h-8 mb-1" />
+          <span>Offline</span>
+        </div>
+      );
+    }
+
+    // If it's a URL-based camera, show iframe or image
+    if (camera.url && !camera.isPhysicalDevice) {
+      // Check if it's a YouTube URL and convert to embed format
+      if (
+        camera.url.includes("youtube.com") ||
+        camera.url.includes("youtu.be")
+      ) {
+        let videoId = "";
+
+        // Extract video ID from different YouTube URL formats
+        if (camera.url.includes("youtube.com/watch?v=")) {
+          const urlParams = new URLSearchParams(new URL(camera.url).search);
+          videoId = urlParams.get("v") || "";
+        } else if (camera.url.includes("youtube.com/embed/")) {
+          videoId = camera.url.split("/embed/")[1]?.split("?")[0] || "";
+        } else if (camera.url.includes("youtu.be/")) {
+          videoId = camera.url.split("youtu.be/")[1]?.split("?")[0] || "";
+        }
+
+        if (videoId) {
+          // Using nocookie domain and maximum branding reduction
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=0&modestbranding=1&rel=0&showinfo=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&fs=0&iv_load_policy=3&playsinline=1&disablekb=1&cc_load_policy=0&enablejsapi=0`;
+
+          // Apply more aggressive crop for thumbnails
+          const cropSettings = isThumbnail
+            ? { width: "160%", height: "160%", top: "-26%", left: "-25%" }
+            : { width: "100%", height: "130%", top: "-15%", left: "0%" };
+
+          return (
+            <div className="relative w-full h-full overflow-hidden">
+              <iframe
+                src={embedUrl}
+                className="absolute pointer-events-none"
+                style={{
+                  width: cropSettings.width,
+                  height: cropSettings.height,
+                  top: cropSettings.top,
+                  left: cropSettings.left,
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;"
+                title={camera.name}
+                frameBorder="0"
+              />
+            </div>
+          );
+        }
+      }
+
+      // For other URLs (RTSP converted to HLS or HTTP streams)
+      return (
+        <div className="relative w-full h-full bg-slate-900">
+          <iframe
+            src={camera.url}
+            className="w-full h-full pointer-events-none"
+            title={camera.name}
+          />
+          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+            External Stream
+          </div>
+        </div>
+      );
+    }
+
+    // Physical device - use MediaStream
+    const stream = cameraStreams.get(camera.id) || null;
+    return (
+      <VideoPreview
+        stream={stream}
+        className="w-full h-full object-cover"
+        poster={
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+            <Camera className="w-8 h-8 mb-1" />
+            <span>Live Feed</span>
+          </div>
+        }
+      />
+    );
+  }
+
   return (
     <div className="p-6 space-y-6 w-full">
       {/* Page Header */}
@@ -316,9 +387,18 @@ export default function CameraSettingPage() {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
             Connected Cameras
           </h2>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {cameras.length} camera{cameras.length !== 1 ? "s" : ""} detected
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {cameras.length} camera{cameras.length !== 1 ? "s" : ""} detected
+            </span>
+            <button
+              onClick={() => setShowAddCameraModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-all duration-200"
+            >
+              <Plus className="w-4 h-4" />
+              Add Camera
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {cameras.map((camera) => (
@@ -333,20 +413,7 @@ export default function CameraSettingPage() {
             >
               {/* Camera Preview Thumbnail */}
               <div className="aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
-                {camera.status === "offline" ? (
-                  <WifiOff className="w-8 h-8 text-gray-500" />
-                ) : (
-                  <VideoPreview
-                    stream={cameraStreams.get(camera.id) || null}
-                    className="w-full h-full object-cover"
-                    poster={
-                      <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
-                        <Camera className="w-8 h-8 mb-1" />
-                        <span>Live Feed</span>
-                      </div>
-                    }
-                  />
-                )}
+                <CameraFeed camera={camera} isThumbnail={true} />
               </div>
               {/* Camera Info */}
               <div className="p-3 bg-white dark:bg-slate-800 flex items-center justify-between">
@@ -401,27 +468,7 @@ export default function CameraSettingPage() {
 
           {/* Large Preview */}
           <div className="aspect-video bg-gray-900 dark:bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center mb-4">
-            {selectedCamera.status === "offline" ? (
-              <div className="text-center text-gray-500">
-                <WifiOff className="w-16 h-16 mx-auto mb-2" />
-                <p>Camera Offline</p>
-              </div>
-            ) : (
-              <VideoPreview
-                stream={cameraStreams.get(selectedCameraId) || null}
-                className="w-full h-full object-cover"
-                poster={
-                  <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                    <Camera className="w-16 h-16 mb-2" />
-                    <p>Live Camera Feed - {selectedCamera.name}</p>
-                    <p className="text-sm mt-1">
-                      {selectedCamera.resolution} @ {selectedCamera.frameRate}
-                      fps
-                    </p>
-                  </div>
-                }
-              />
-            )}
+            <CameraFeed camera={selectedCamera} />
           </div>
 
           {/* Status Bar */}
@@ -625,6 +672,84 @@ export default function CameraSettingPage() {
       <div className="text-right text-xs text-gray-400 dark:text-gray-500">
         v1.3.0
       </div>
+
+      {/* Add Camera Modal */}
+      {showAddCameraModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <Camera className="w-6 h-6 text-blue-500" />
+                Add New Camera
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAddCameraModal(false);
+                  setNewCameraUrl("");
+                  setNewCameraName("");
+                }}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Camera Name Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Camera Name
+                </label>
+                <input
+                  type="text"
+                  value={newCameraName}
+                  onChange={(e) => setNewCameraName(e.target.value)}
+                  placeholder="e.g., Front Door Camera"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+
+              {/* Camera URL Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Camera URL
+                </label>
+                <input
+                  type="text"
+                  value={newCameraUrl}
+                  onChange={(e) => setNewCameraUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=VIDEO_ID or rtsp://..."
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Enter URL, RTSP, or HTTP stream URL
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowAddCameraModal(false);
+                    setNewCameraUrl("");
+                    setNewCameraName("");
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-lg font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddCamera}
+                  className="flex-1 px-4 py-2.5 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Camera
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
