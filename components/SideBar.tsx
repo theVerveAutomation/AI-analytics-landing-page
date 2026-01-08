@@ -1,6 +1,8 @@
 "use client";
 import { Feature, Profile } from "@/types";
 import {
+  AlertCircle,
+  Book,
   Camera,
   ChevronDown,
   Key,
@@ -9,10 +11,12 @@ import {
   Moon,
   Sun,
   User,
+  Video,
   X,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image";
 
 interface SidebarProps {
   openEmployees?: boolean;
@@ -55,15 +59,20 @@ export default function Sidebar({
       {/* Logo & Header Section */}
       <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-slate-800 dark:to-slate-800">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-blue-700 to-blue-700 dark:from-blue-400 dark:to-blue-400 bg-clip-text text-transparent">
-                AI VAP
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                AI Video Analytics Platform
-              </p>
+          <div className="flex items-center justify-center gap-4">
+            <div className="flex justify-start">
+              <Image
+                src="/vap-logo.jpeg"
+                alt="Video Analytics Pro Logo"
+                className="h-14 w-14 object-contain rounded-xl"
+                width={56}
+                height={56}
+                priority
+              />
             </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+              AI Video Analytics
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {/* Theme Toggle - Desktop */}
@@ -192,7 +201,7 @@ export default function Sidebar({
           </button> */}
 
         {/* enabled feature links*/}
-        {features.map((feature) => {
+        {/* {features.map((feature) => {
           const url = feature.name.split(" ").join("").toLowerCase();
           return (
             <button
@@ -214,8 +223,32 @@ export default function Sidebar({
               <span>{feature.name}</span>
             </button>
           );
-        })}
+        })} */}
         {/* Camera Settings */}
+        <button
+          onClick={() => router.push("/panels/features/videoanalytics")}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
+              ${
+                pathname === "/panels/features/videoanalytics"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
+              }`}
+        >
+          <Video className="w-5 h-5" />
+          <span>Video Analytics</span>
+        </button>
+        <button
+          onClick={() => router.push("/panels/features/reporting&analytics")}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
+              ${
+                pathname === "/panels/features/reporting&analytics"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
+              }`}
+        >
+          <Book className="w-5 h-5" />
+          <span>Reports & Analytics</span>
+        </button>
         <button
           onClick={() => router.push("/panels/features/camera-settings")}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
@@ -227,6 +260,18 @@ export default function Sidebar({
         >
           <Camera className="w-5 h-5" />
           <span>Camera Settings</span>
+        </button>
+        <button
+          onClick={() => router.push("/panels/features/alertmanagement")}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200
+              ${
+                pathname === "/panels/features/alertmanagement"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
+              }`}
+        >
+          <AlertCircle className="w-5 h-5" />
+          <span>Alert Management</span>
         </button>
       </nav>
 
@@ -309,7 +354,7 @@ export default function Sidebar({
       <div className="flex-shrink-0 w-full p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
         <div className="text-xs text-slate-500 dark:text-slate-400 text-center">
           <p className="font-medium">Version 1.0.0</p>
-          <p className="mt-1">© 2025 AI VAP</p>
+          <p className="mt-1">© {new Date().getFullYear()} AI VAP</p>
         </div>
       </div>
     </aside>
