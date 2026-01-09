@@ -7,7 +7,9 @@ export async function GET(req: Request) {
 
   let query = supabase
     .from("profiles")
-    .select("*")
+    .select("*, organizations!inner(displayid)",
+
+    )
     .order("created_at", { ascending: false });
 
   if (orgId) {
@@ -27,7 +29,7 @@ export async function GET(req: Request) {
   const users = (data || []).map((u) => ({
     id: u.id,
     username: u.username,
-    org_id: u.org_id,
+    org_id: u.organizations?.displayid || "",
     organization_name: u.full_name,
     role: u.role,
     email: u.email,

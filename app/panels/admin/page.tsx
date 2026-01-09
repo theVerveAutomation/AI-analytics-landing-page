@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
-import { Users, Video, Boxes } from "lucide-react";
+import { Users, Video, Boxes, Building2 } from "lucide-react";
 import { Profile } from "@/types";
 
 export default function AdminHome() {
@@ -148,6 +148,27 @@ export default function AdminHome() {
               </h3>
               <p className="text-slate-400 mb-3 leading-relaxed text-sm text-center">
                 Configure and manage available features and services
+              </p>
+            </div>
+          </div>
+
+          {/* Organization Management card */}
+          <div className="group relative">
+            <div
+              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-emerald-600/5 hover:shadow-xl hover:shadow-emerald-600/20 hover:-translate-y-1 hover:border-emerald-600/50 cursor-pointer"
+              onClick={() => router.push("/panels/admin/organizations")}
+            >
+              <div className="mb-4 relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-teal-600 blur-lg opacity-30 rounded-full"></div>
+                <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-emerald-600/20 to-teal-600/20 rounded-2xl flex items-center justify-center border border-emerald-600/40">
+                  <Building2 className="w-8 h-8 text-emerald-400" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2 text-center">
+                Organization Management
+              </h3>
+              <p className="text-slate-400 mb-3 leading-relaxed text-sm text-center">
+                Manage organizations, settings, and business entities
               </p>
             </div>
           </div>

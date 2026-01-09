@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { withCors, corsOptions } from "@/lib/cors";
+import {createServerSupabaseClient} from '@/lib/supabaseServer'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -10,53 +10,62 @@ export function OPTIONS() {
 }
 
 export async function POST(req: Request) {
+  const supabase = await createServerSupabaseClient();
   try {
     const body = await req.json();
-    const { orgId, username, password, debug } = body;
+    const { orgDisplayid, username, password, debug } = body;
+
 
     // -------- DEBUG OUTPUT --------
     if (debug === true) {
       return withCors({
         debug: true,
-        received_orgId: orgId ?? null,
+        received_orgId: orgDisplayid ?? null,
         received_username: username ?? null,
         env_supabase_url: SUPABASE_URL ?? "undefined",
         env_anon_key: ANON_KEY ? "loaded" : "missing",
         profileUrl_example:
-          `${SUPABASE_URL}/rest/v1/profiles?org_id=eq.${orgId}&username=eq.${username}&select=*`
+          `${SUPABASE_URL}/rest/v1/profiles?organization_id=eq.${orgDisplayid}&username=eq.${username}&select=*`
       });
     }
     // ------------------------------
 
-    if (!orgId || !username || !password) {
+    if (!orgDisplayid || !username || !password) {
       return withCors({ error: "Missing fields" }, 400);
     }
 
-    const cleanOrgId = orgId.trim();
+    const cleanOrgDisplayid = orgDisplayid.trim();
+
+    const { data: orgData, error: orgError } = await supabase
+      .from("organizations")
+      .select("id")
+      .eq("displayid", cleanOrgDisplayid)
+      .single();
+
+    if (orgError || !orgData) {
+      return withCors({ 
+        error: "Invalid credentials",
+      }, 401);
+    }
+
     const cleanUsername = username.trim();
 
-    // Build URL using anon key (RLS OFF → permitted)
-    const profileUrl =
-      `${SUPABASE_URL}/rest/v1/profiles?org_id=eq.${encodeURIComponent(cleanOrgId)}` +
-      `&username=eq.${encodeURIComponent(cleanUsername)}&select=*`;
+    // Fetch profile using organization_id and username
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("organization_id", orgData.id)
+      .eq("username", cleanUsername)
+      .single();
 
-    const profileRes = await fetch(profileUrl, {
-      headers: {
-        apikey: ANON_KEY,
-        Authorization: `Bearer ${ANON_KEY}`,
-      },
-    });
 
-    const profiles = await profileRes.json();
-    const profile = profiles?.[0];
-
-    if (!profile) {
+    if (profileError || !profile) {
       return withCors({ 
         error: "Invalid credentials", 
         debug: {
-          searched_org_id: cleanOrgId,
+          searched_org_id: orgData.id,
           searched_username: cleanUsername,
-          profiles_found: profiles?.length || 0,
+          error_detail: profileError?.message,
           hint: "User not found with this org_id and username combination"
         }
       }, 401);

@@ -17,48 +17,16 @@ import {
   Plus,
   X,
 } from "lucide-react";
-
-interface CameraConfig {
-  id: number;
-  name: string;
-  status: "normal" | "warning" | "offline";
-  detection: boolean;
-  alertSound: boolean;
-  frameRate: number;
-  resolution: string;
-  lastUpdated: string;
-  url?: string; // Optional URL for RTSP/HTTP streams
-  isPhysicalDevice?: boolean; // True if it's a physical webcam
-}
-
-const initialCameras: CameraConfig[] = [
-  {
-    id: 1,
-    name: "Cam 1",
-    status: "normal",
-    detection: true,
-    alertSound: true,
-    frameRate: 15,
-    resolution: "1080p",
-    lastUpdated: "2s ago",
-    isPhysicalDevice: true,
-  },
-  {
-    id: 2,
-    name: "Cam 2",
-    status: "normal",
-    detection: true,
-    alertSound: false,
-    frameRate: 30,
-    resolution: "1080p",
-    lastUpdated: "2s ago",
-    isPhysicalDevice: true,
-  },
-];
+import { CameraConfig, Profile } from "@/types";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function CameraSettingPage() {
-  const [cameras, setCameras] = useState<CameraConfig[]>(initialCameras);
-  const [selectedCameraId, setSelectedCameraId] = useState<number>(1);
+  const router = useRouter();
+
+  const [cameras, setCameras] = useState<CameraConfig[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<number>();
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [showAddCameraModal, setShowAddCameraModal] = useState(false);
@@ -70,8 +38,72 @@ export default function CameraSettingPage() {
   );
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
 
-  const selectedCamera =
-    cameras.find((c) => c.id === selectedCameraId) || cameras[0];
+  useEffect(() => {
+    const fetchUserAndProfile = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
+      if (!user) {
+        router.push("/Login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile) {
+        router.push("/Login");
+        return;
+      }
+      setProfile(profile);
+    };
+    fetchUserAndProfile();
+  }, [router]);
+
+  // Start physical cameras once on mount
+  useEffect(() => {
+    startCameras();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch cameras from database when profile becomes available
+  useEffect(() => {
+    if (!profile) return;
+
+    const fetchCameras = async () => {
+      try {
+        const res = await fetch(
+          `/api/camera/fetch?organization_id=${encodeURIComponent(
+            profile.organization_id
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await res.json();
+        console.log("Fetched cameras:", data);
+        if (res.ok && Array.isArray(data.cameras)) {
+          setCameras(data.cameras);
+        } else {
+          console.error("Failed to fetch cameras:", data);
+        }
+      } catch (err) {
+        console.error("Error fetching cameras:", err);
+      }
+    };
+
+    fetchCameras();
+  }, [profile]);
+
+  function getSelectedCamera() {
+    return cameras.find((c: CameraConfig) => c.id === selectedCameraId);
+  }
 
   const updateCameraSetting = (
     cameraId: number,
@@ -95,30 +127,40 @@ export default function CameraSettingPage() {
     setHasChanges(false);
   };
 
-  const handleAddCamera = () => {
+  const handleAddCamera = async () => {
     if (!newCameraUrl.trim() || !newCameraName.trim()) {
       alert("Please enter both camera name and URL");
       return;
     }
 
-    const newCamera: CameraConfig = {
-      id: cameras.length + 1,
-      name: newCameraName,
-      status: "normal",
-      detection: true,
-      alertSound: true,
-      frameRate: 30,
-      resolution: "1080p",
-      lastUpdated: "just now",
-      url: newCameraUrl,
-      isPhysicalDevice: false,
-    };
-
-    setCameras((prev) => [...prev, newCamera]);
-    setNewCameraUrl("");
-    setNewCameraName("");
-    setShowAddCameraModal(false);
-    alert(`Camera "${newCameraName}" added successfully!`);
+    try {
+      const res = await fetch("/api/camera/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newCameraName,
+          url: newCameraUrl,
+          status: "normal",
+          detection: true,
+          alert_sound: true,
+          frame_rate: 30,
+          resolution: "1080p",
+          organization_id: profile?.organization_id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to add camera");
+        return;
+      }
+      setCameras((prev) => [...prev, data.camera]);
+      setNewCameraUrl("");
+      setNewCameraName("");
+      setShowAddCameraModal(false);
+      alert(`Camera "${newCameraName}" added successfully!`);
+    } catch (err) {
+      alert("Failed to add camera (network error)");
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -182,6 +224,8 @@ export default function CameraSettingPage() {
         }
       }
 
+      if (!profile) return;
+
       // Update cameras list to only show detected devices
       const detectedCameras: CameraConfig[] = videoInputs.map(
         (device, index) => ({
@@ -189,10 +233,11 @@ export default function CameraSettingPage() {
           name: device.label || `Cam ${index + 1}`,
           status: "normal" as const,
           detection: true,
-          alertSound: true,
-          frameRate: 30,
+          alert_sound: true,
+          frame_rate: 30,
           resolution: "1080p",
-          lastUpdated: "2s ago",
+          updated_at: "2s ago",
+          organization_id: profile.organization_id,
         })
       );
 
@@ -210,11 +255,6 @@ export default function CameraSettingPage() {
       );
     }
   };
-
-  // Auto-start cameras on mount
-  useEffect(() => {
-    startCameras();
-  }, []);
 
   // cleanup on unmount
   useEffect(() => {
@@ -265,9 +305,17 @@ export default function CameraSettingPage() {
     camera,
     isThumbnail = false,
   }: {
-    camera: CameraConfig;
+    camera?: CameraConfig;
     isThumbnail?: boolean;
   }) {
+    if (!camera) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+          <Camera className="w-8 h-8 mb-1" />
+          <span>No Camera Selected</span>
+        </div>
+      );
+    }
     if (camera.status === "offline") {
       return (
         <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
@@ -278,7 +326,7 @@ export default function CameraSettingPage() {
     }
 
     // If it's a URL-based camera, show iframe or image
-    if (camera.url && !camera.isPhysicalDevice) {
+    if (camera.url && !camera.is_physical_device) {
       // Check if it's a YouTube URL and convert to embed format
       if (
         camera.url.includes("youtube.com") ||
@@ -468,18 +516,18 @@ export default function CameraSettingPage() {
 
           {/* Large Preview */}
           <div className="aspect-video bg-gray-900 dark:bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center mb-4">
-            <CameraFeed camera={selectedCamera} />
+            <CameraFeed camera={getSelectedCamera()} />
           </div>
 
           {/* Status Bar */}
           <div className="flex items-center justify-between text-sm">
             <span
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full capitalize ${getStatusColor(
-                selectedCamera.status
+                getSelectedCamera()?.status || "unknown"
               )}`}
             >
-              {getStatusIcon(selectedCamera.status)}
-              {selectedCamera.status}
+              {getStatusIcon(getSelectedCamera()?.status || "unknown")}
+              {getSelectedCamera()?.status || "unknown"}
             </span>
             <span className="text-gray-500 dark:text-gray-400">
               Status updates every 2s
@@ -504,33 +552,37 @@ export default function CameraSettingPage() {
                   Detection
                 </label>
                 <button
-                  onClick={() =>
-                    updateCameraSetting(
-                      selectedCameraId,
-                      "detection",
-                      !selectedCamera.detection
-                    )
-                  }
+                  onClick={() => {
+                    const cam = getSelectedCamera();
+                    if (cam)
+                      updateCameraSetting(cam.id, "detection", !cam.detection);
+                  }}
                   className={`relative w-12 h-6 rounded-full transition-colors ${
-                    selectedCamera.detection
+                    getSelectedCamera()?.detection ?? false
                       ? "bg-blue-500"
                       : "bg-gray-300 dark:bg-slate-600"
                   }`}
                 >
                   <span
                     className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      selectedCamera.detection ? "left-7" : "left-1"
+                      getSelectedCamera()?.detection ?? false
+                        ? "left-7"
+                        : "left-1"
                     }`}
                   />
                 </button>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                {selectedCamera.detection ? (
+                {getSelectedCamera()?.detection ?? false ? (
                   <Eye className="w-4 h-4 text-blue-500" />
                 ) : (
                   <EyeOff className="w-4 h-4" />
                 )}
-                <span>{selectedCamera.detection ? "Enabled" : "Disabled"}</span>
+                <span>
+                  {getSelectedCamera()?.detection ?? false
+                    ? "Enabled"
+                    : "Disabled"}
+                </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Toggle to enable or disable model detection (server-side must
@@ -545,33 +597,39 @@ export default function CameraSettingPage() {
                   Alert Sound
                 </label>
                 <button
-                  onClick={() =>
-                    updateCameraSetting(
-                      selectedCameraId,
-                      "alertSound",
-                      !selectedCamera.alertSound
-                    )
-                  }
+                  onClick={() => {
+                    const cam = getSelectedCamera();
+                    if (cam)
+                      updateCameraSetting(
+                        cam.id,
+                        "alert_sound",
+                        !cam.alert_sound
+                      );
+                  }}
                   className={`relative w-12 h-6 rounded-full transition-colors ${
-                    selectedCamera.alertSound
+                    getSelectedCamera()?.alert_sound ?? false
                       ? "bg-blue-500"
                       : "bg-gray-300 dark:bg-slate-600"
                   }`}
                 >
                   <span
                     className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      selectedCamera.alertSound ? "left-7" : "left-1"
+                      getSelectedCamera()?.alert_sound ?? false
+                        ? "left-7"
+                        : "left-1"
                     }`}
                   />
                 </button>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                {selectedCamera.alertSound ? (
+                {getSelectedCamera()?.alert_sound ?? false ? (
                   <Volume2 className="w-4 h-4 text-blue-500" />
                 ) : (
                   <VolumeX className="w-4 h-4" />
                 )}
-                <span>{selectedCamera.alertSound ? "On" : "Off"}</span>
+                <span>
+                  {getSelectedCamera()?.alert_sound ?? false ? "On" : "Off"}
+                </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 When enabled, the UI will play a sound when a detection occurs
@@ -586,7 +644,7 @@ export default function CameraSettingPage() {
                   Frame Rate
                 </label>
                 <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                  {selectedCamera.frameRate} fps
+                  {getSelectedCamera()?.frame_rate ?? 30} fps
                 </span>
               </div>
               <input
@@ -594,14 +652,16 @@ export default function CameraSettingPage() {
                 min="5"
                 max="60"
                 step="5"
-                value={selectedCamera.frameRate}
-                onChange={(e) =>
-                  updateCameraSetting(
-                    selectedCameraId,
-                    "frameRate",
-                    Number(e.target.value)
-                  )
-                }
+                value={getSelectedCamera()?.frame_rate ?? 30}
+                onChange={(e) => {
+                  const cam = getSelectedCamera();
+                  if (cam)
+                    updateCameraSetting(
+                      cam.id,
+                      "frame_rate",
+                      Number(e.target.value)
+                    );
+                }}
                 className="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -620,14 +680,12 @@ export default function CameraSettingPage() {
                 Resolution
               </label>
               <select
-                value={selectedCamera.resolution}
-                onChange={(e) =>
-                  updateCameraSetting(
-                    selectedCameraId,
-                    "resolution",
-                    e.target.value
-                  )
-                }
+                value={getSelectedCamera()?.resolution ?? "1080p"}
+                onChange={(e) => {
+                  const cam = getSelectedCamera();
+                  if (cam)
+                    updateCameraSetting(cam.id, "resolution", e.target.value);
+                }}
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               >
                 <option value="480p">480p</option>
@@ -718,11 +776,11 @@ export default function CameraSettingPage() {
                   type="text"
                   value={newCameraUrl}
                   onChange={(e) => setNewCameraUrl(e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=VIDEO_ID or rtsp://..."
+                  placeholder="https://www.URL.com/ or rtsp://..."
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Enter URL, RTSP, or HTTP stream URL
+                  Enter RTSP, or HTTP stream URL
                 </p>
               </div>
 
