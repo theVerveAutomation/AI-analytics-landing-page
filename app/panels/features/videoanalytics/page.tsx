@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   BarChart,
   Bar,
@@ -33,7 +34,10 @@ import {
   Search,
   Filter,
   MapPin,
+  WifiOff,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { Profile, CameraConfig } from "@/types";
 
 const metrics = [
   {
@@ -88,15 +92,6 @@ const hourlyActivity = [
   { hour: "21:00", detections: 45 },
 ];
 
-const cameraFeeds = [
-  { id: 1, name: "Entrance", status: "active", detections: 45 },
-  { id: 2, name: "Parking Lot", status: "active", detections: 67 },
-  { id: 3, name: "Hallway A", status: "active", detections: 23 },
-  { id: 4, name: "Reception", status: "active", detections: 38 },
-  { id: 5, name: "Back Door", status: "inactive", detections: 0 },
-  { id: 6, name: "Storage", status: "active", detections: 12 },
-];
-
 const recentEvents = [
   {
     id: 1,
@@ -109,8 +104,8 @@ const recentEvents = [
   },
   {
     id: 2,
-    type: "Vehicle Detected",
-    camera: "Parking Lot",
+    type: "Object Detected",
+    camera: "Object Lot",
     time: "5 min ago",
     severity: "low",
     icon: Car,
@@ -146,8 +141,300 @@ const recentEvents = [
 ];
 
 export default function VideoAnalyticsPage() {
-  const [selectedCamera, setSelectedCamera] = useState(1);
+  const router = useRouter();
+  const [selectedCamera, setSelectedCamera] = useState<number | undefined>();
   const [isPlaying, setIsPlaying] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [cameras, setCameras] = useState<CameraConfig[]>([]);
+  const [cameraStreams, setCameraStreams] = useState<Map<number, MediaStream>>(
+    new Map()
+  );
+
+  // Fetch user profile
+  useEffect(() => {
+    const fetchUserAndProfile = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
+      if (!user) {
+        router.push("/Login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile) {
+        router.push("/Login");
+        return;
+      }
+      setProfile(profile);
+    };
+    fetchUserAndProfile();
+  }, [router]);
+
+  // Start physical cameras once on mount
+  useEffect(() => {
+    startCameras();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch cameras from database when profile becomes available
+  useEffect(() => {
+    if (!profile) return;
+
+    const fetchCameras = async () => {
+      try {
+        const res = await fetch(
+          `/api/camera/fetch?organization_id=${encodeURIComponent(
+            profile.organization_id
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.cameras)) {
+          const dbCameras: CameraConfig[] = data.cameras.map((cam: any) => ({
+            id: cam.id,
+            name: cam.name,
+            status: cam.status || "normal",
+            detection: cam.detection ?? true,
+            alert_sound: cam.alert_sound ?? true,
+            frame_rate: cam.frame_rate ?? 30,
+            resolution: cam.resolution || "1080p",
+            updated_at: cam.updated_at || "-",
+            url: cam.url,
+            is_physical_device: false,
+            organization_id: cam.organization_id,
+          }));
+          setCameras((prev) => {
+            const physicals = prev.filter((c) => c.is_physical_device);
+            const merged = [...physicals, ...dbCameras];
+            if (merged.length > 0 && !selectedCamera) {
+              setSelectedCamera(merged[0].id);
+            }
+            return merged;
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching cameras:", err);
+      }
+    };
+
+    fetchCameras();
+  }, [profile, selectedCamera]);
+
+  // Start physical cameras
+  const startCameras = async () => {
+    try {
+      const initialStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
+      initialStream.getTracks().forEach((t) => t.stop());
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((d) => d.kind === "videoinput");
+
+      const streamsMap = new Map<number, MediaStream>();
+
+      for (let i = 0; i < videoInputs.length; i++) {
+        const device = videoInputs[i];
+        const cameraId = -(i + 1); // Negative IDs for physical devices to avoid conflicts
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: { exact: device.deviceId } },
+            audio: false,
+          });
+          streamsMap.set(cameraId, stream);
+        } catch (err) {
+          console.warn(`Could not open device ${device.label}:`, err);
+        }
+      }
+
+      const detectedCameras: CameraConfig[] = videoInputs.map(
+        (device, index) => ({
+          id: -(index + 1),
+          name: device.label || `Webcam ${index + 1}`,
+          status: "normal" as const,
+          detection: true,
+          alert_sound: true,
+          frame_rate: 30,
+          resolution: "1080p",
+          updated_at: "just now",
+          is_physical_device: true,
+          organization_id: "",
+        })
+      );
+
+      setCameras((prev) => {
+        const nonPhysicals = prev.filter((c) => !c.is_physical_device);
+        const merged = [...detectedCameras, ...nonPhysicals];
+        if (merged.length > 0 && !selectedCamera) {
+          setSelectedCamera(merged[0].id);
+        }
+        return merged;
+      });
+
+      setCameraStreams(streamsMap);
+    } catch (err) {
+      console.error("Camera access denied or not available:", err);
+    }
+  };
+
+  // Cleanup streams on unmount
+  useEffect(() => {
+    return () => {
+      cameraStreams.forEach((stream) => {
+        stream.getTracks().forEach((t) => t.stop());
+      });
+    };
+  }, [cameraStreams]);
+
+  // Get selected camera
+  const getSelectedCamera = () => {
+    return cameras.find((c) => c.id === selectedCamera);
+  };
+
+  // Video preview component for physical cameras
+  function VideoPreview({
+    stream,
+    className,
+    poster,
+  }: {
+    stream: MediaStream | null;
+    className?: string;
+    poster?: React.ReactNode;
+  }) {
+    const ref = useRef<HTMLVideoElement | null>(null);
+
+    useEffect(() => {
+      const videoEl = ref.current;
+      if (!videoEl) return;
+      if (stream) {
+        videoEl.srcObject = stream;
+        const playPromise = videoEl.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise.catch(() => {});
+        }
+      } else {
+        videoEl.srcObject = null;
+      }
+    }, [stream]);
+
+    return stream ? (
+      <video ref={ref} className={className} playsInline muted />
+    ) : (
+      <div className={className}>{poster}</div>
+    );
+  }
+
+  // Camera feed component
+  function CameraFeed({
+    camera,
+    isThumbnail = false,
+  }: {
+    camera?: CameraConfig;
+    isThumbnail?: boolean;
+  }) {
+    if (!camera) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+          <Camera className="w-8 h-8 mb-1" />
+          <span>No Camera Selected</span>
+        </div>
+      );
+    }
+    if (camera.status === "offline") {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+          <WifiOff className="w-8 h-8 mb-1" />
+          <span>Offline</span>
+        </div>
+      );
+    }
+
+    // URL-based camera (YouTube, RTSP, HTTP)
+    if (camera.url && !camera.is_physical_device) {
+      if (
+        camera.url.includes("youtube.com") ||
+        camera.url.includes("youtu.be")
+      ) {
+        let videoId = "";
+
+        if (camera.url.includes("youtube.com/watch?v=")) {
+          const urlParams = new URLSearchParams(new URL(camera.url).search);
+          videoId = urlParams.get("v") || "";
+        } else if (camera.url.includes("youtube.com/embed/")) {
+          videoId = camera.url.split("/embed/")[1]?.split("?")[0] || "";
+        } else if (camera.url.includes("youtu.be/")) {
+          videoId = camera.url.split("youtu.be/")[1]?.split("?")[0] || "";
+        }
+
+        if (videoId) {
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=0&modestbranding=1&rel=0&showinfo=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&fs=0&iv_load_policy=3&playsinline=1&disablekb=1&cc_load_policy=0&enablejsapi=0`;
+
+          const cropSettings = isThumbnail
+            ? { width: "160%", height: "160%", top: "-26%", left: "-25%" }
+            : { width: "100%", height: "130%", top: "-15%", left: "0%" };
+
+          return (
+            <div className="relative w-full h-full overflow-hidden">
+              <iframe
+                src={embedUrl}
+                className="absolute pointer-events-none"
+                style={{
+                  width: cropSettings.width,
+                  height: cropSettings.height,
+                  top: cropSettings.top,
+                  left: cropSettings.left,
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;"
+                title={camera.name}
+                frameBorder="0"
+              />
+            </div>
+          );
+        }
+      }
+
+      return (
+        <div className="relative w-full h-full bg-slate-900">
+          <iframe
+            src={camera.url}
+            className="w-full h-full pointer-events-none"
+            title={camera.name}
+          />
+          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+            External Stream
+          </div>
+        </div>
+      );
+    }
+
+    // Physical device - use MediaStream
+    const stream = cameraStreams.get(camera.id) || null;
+    return (
+      <VideoPreview
+        stream={stream}
+        className="w-full h-full object-cover"
+        poster={
+          <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+            <Camera className="w-8 h-8 mb-1" />
+            <span>Live Feed</span>
+          </div>
+        }
+      />
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -215,11 +502,12 @@ export default function VideoAnalyticsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  Live Feed -{" "}
-                  {cameraFeeds.find((c) => c.id === selectedCamera)?.name}
+                  Live Feed - {getSelectedCamera()?.name || "No Camera"}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Camera {selectedCamera} • Real-time monitoring
+                  {getSelectedCamera()
+                    ? `Camera ${selectedCamera} • Real-time monitoring`
+                    : "Select a camera to view"}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -232,18 +520,16 @@ export default function VideoAnalyticsPage() {
 
             {/* Video Player */}
             <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden mb-4">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Camera className="w-16 h-16 text-gray-600" />
-              </div>
+              <CameraFeed camera={getSelectedCamera()} />
               {/* Overlay Info */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2">
+              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                 <div className="px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded-lg text-white text-sm">
                   <Clock className="w-3 h-3 inline mr-1" />
                   {new Date().toLocaleTimeString()}
                 </div>
                 <div className="px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded-lg text-white text-sm">
                   <MapPin className="w-3 h-3 inline mr-1" />
-                  Main Entrance
+                  {getSelectedCamera()?.name || "Unknown"}
                 </div>
               </div>
             </div>
@@ -267,7 +553,10 @@ export default function VideoAnalyticsPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Activity className="w-4 h-4" />
-                <span>45 detections today</span>
+                <span>
+                  {cameras.length} camera{cameras.length !== 1 ? "s" : ""}{" "}
+                  connected
+                </span>
               </div>
             </div>
           </div>
@@ -275,10 +564,10 @@ export default function VideoAnalyticsPage() {
           {/* Camera Grid */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-              Camera Feeds
+              Camera Feeds ({cameras.length})
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {cameraFeeds.map((camera) => (
+              {cameras.map((camera) => (
                 <button
                   key={camera.id}
                   onClick={() => setSelectedCamera(camera.id)}
@@ -288,18 +577,20 @@ export default function VideoAnalyticsPage() {
                       : "hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600"
                   }`}
                 >
-                  <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-gray-600" />
+                  <div className="absolute inset-0 bg-gray-900">
+                    <CameraFeed camera={camera} isThumbnail={true} />
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 z-10">
                     <div className="flex items-center justify-between">
                       <span className="text-white text-xs font-medium">
                         {camera.name}
                       </span>
                       <span
                         className={`w-2 h-2 rounded-full ${
-                          camera.status === "active"
+                          camera.status === "normal"
                             ? "bg-blue-500"
+                            : camera.status === "warning"
+                            ? "bg-amber-500"
                             : "bg-gray-500"
                         }`}
                       ></span>

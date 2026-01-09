@@ -29,7 +29,7 @@ export async function GET(req: Request) {
   const users = (data || []).map((u) => ({
     id: u.id,
     username: u.username,
-    org_id: u.organizations?.displayid || "",
+    display_orgId: u.organizations?.displayid || "",
     organization_name: u.full_name,
     role: u.role,
     email: u.email,
