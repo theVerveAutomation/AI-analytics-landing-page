@@ -1,13 +1,13 @@
 // Profile type matching the profiles table schema
 export interface Profile {
   id: string;
-  org_id: string;
   username: string;
   email: string;
   role: "admin" | "user";
   full_name: string;
   organization_logo?: string | null;
   organization_name?: string | null;
+  organization_id: string ;
   created_at?: string;
   updated_at?: string;
 }
@@ -30,4 +30,32 @@ export interface Product {
   image_url: string;
   org_id: string;
   created_at?: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  displayid?: string;
+  description?: string;
+  address?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  logo_url?: string;
+  created_at: string;
+  user_count?: number;
+}
+
+export interface CameraConfig {
+  id: number;
+  name: string;
+  status: "normal" | "warning" | "offline";
+  detection: boolean;
+  alert_sound: boolean;
+  frame_rate: number;
+  resolution: string;
+  updated_at: string;
+  url?: string; // Optional URL for RTSP/HTTP streams
+  is_physical_device?: boolean; // True if it's a physical webcam
+  created_at?: string;
+  organization_id: string | number;
 }

@@ -4,12 +4,12 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password, username, full_name, org_id, role = "shop" } = body;
+    const { email, password, username, full_name, organization_id, role = "user" } = body;
 
     // Validate required fields
-    if (!email || !password || !username || !full_name) {
+    if (!email || !password || !username || !full_name || !organization_id) {
       return NextResponse.json(
-        { error: "Email, password, username, and full name are required" },
+        { error: "Email, password, username, full name, and organization ID are required" },
         { status: 400 }
       );
     }
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       id: authData.user.id,
       username,
       full_name,
-      org_id: org_id || null,
+      organization_id:  organization_id ,
       role: role,
       email: email,
     });
@@ -83,6 +83,8 @@ export async function POST(req: NextRequest) {
           email: authData.user.email,
           username,
           full_name,
+          organization_id,
+          role,
         },
       },
       { status: 201 }

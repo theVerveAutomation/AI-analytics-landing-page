@@ -9,12 +9,13 @@ export async function POST(req: Request) {
       full_name,
       logo_url,
       username,
-      org_id,
+      organization_id,
       role,
       services, // NEW
     } = await req.json();
 
-    if (!email || !password || !full_name || !username || !org_id || !role) {
+
+    if (!email || !password || !full_name || !username || !organization_id || !role) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
         email,
         full_name,
         username,
-        org_id,
+        organization_id,
         role,
         organization_logo: logo_url,
       });

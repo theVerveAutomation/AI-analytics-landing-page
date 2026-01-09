@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { UserPlus, Lock, Building2, Mail } from "lucide-react";
-import { Feature, Profile } from "@/types";
+import { Feature, Organization, Profile } from "@/types";
 
 export default function UserRegistrationPage() {
   const router = useRouter();
@@ -14,9 +14,13 @@ export default function UserRegistrationPage() {
   const [loading, setLoading] = useState(true);
 
   const [orgId, setOrgId] = useState("");
+  const [organizations, setOrganizations] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [organizationName, setOrganizationName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [organizationLogo, setOrganizationLogo] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [password, setPassword] = useState("");
@@ -56,6 +60,23 @@ export default function UserRegistrationPage() {
       setProfile(prof);
       setOrgId("");
       await loadFeatures();
+      // Fetch organizations for dropdown
+      try {
+        const res = await fetch("/api/organizations/fetch");
+        const data = await res.json();
+        if (res.ok && data.organizations) {
+          setOrganizations(
+            data.organizations.map((o: Organization) => ({
+              id: o.id,
+              name: o.name,
+            }))
+          );
+        } else {
+          setOrganizations([]);
+        }
+      } catch {
+        setOrganizations([]);
+      }
       setLoading(false);
     })();
   }, []);
@@ -86,16 +107,12 @@ export default function UserRegistrationPage() {
     if (
       !email ||
       !username ||
-      !organizationName ||
+      !orgId ||
       !password ||
-      !confirmPassword
+      !confirmPassword ||
+      !fullName
     ) {
       alert("Please fill all fields.");
-      return;
-    }
-
-    if (!orgId) {
-      alert("Organization ID is required.");
       return;
     }
 
@@ -103,16 +120,15 @@ export default function UserRegistrationPage() {
       alert("Passwords do not match.");
       return;
     }
-
     const res = await fetch("/api/users/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email,
         password,
-        full_name: organizationName,
+        full_name: fullName,
         username,
-        org_id: orgId,
+        organization_id: orgId,
         role: "user",
         services: selectedServices,
       }),
@@ -129,9 +145,11 @@ export default function UserRegistrationPage() {
     alert("User created successfully!");
 
     // Reset form
+
     setOrgId("");
     setEmail("");
     setUsername("");
+    setFullName("");
     setOrganizationName("");
     setPassword("");
     setConfirmPassword("");
@@ -213,22 +231,28 @@ export default function UserRegistrationPage() {
           {/* Form */}
           <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 p-8">
             <form className="space-y-4">
-              {/* Organization ID */}
+              {/* Organization Dropdown */}
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-primary" />
-                  Organization ID
+                  Organization
                 </label>
-                <input
-                  type="text"
+                <select
                   value={orgId}
                   onChange={(e) => setOrgId(e.target.value)}
-                  className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none font-mono text-sm"
-                />
+                  className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none text-sm"
+                >
+                  <option value="">Select organization...</option>
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Organization Name */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
                   Organization Name
                 </label>
@@ -238,7 +262,7 @@ export default function UserRegistrationPage() {
                   onChange={(e) => setOrganizationName(e.target.value)}
                   className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
-              </div>
+              </div> */}
 
               {/* Organization Logo */}
               {/* <div>
@@ -270,6 +294,19 @@ export default function UserRegistrationPage() {
                   />
                 </div>
               </div> */}
+
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
+                />
+              </div>
 
               {/* Email */}
               <div>

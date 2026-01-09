@@ -357,7 +357,7 @@ export default function ProfilePage() {
                   Organization ID
                 </label>
                 <div className="px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-slate-700/50 text-gray-600 dark:text-gray-400 font-mono text-xs">
-                  {profile.org_id}
+                  {profile.organization_id || "N/A"}
                 </div>
               </div>
             </div>
