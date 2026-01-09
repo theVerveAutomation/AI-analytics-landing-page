@@ -55,6 +55,7 @@ export default function UserManagementPage() {
         return;
       }
 
+      console.log("Fetched users:", data);
       setUsers(data.users);
     } catch {
       toast.error("Failed to fetch users");
@@ -348,12 +349,12 @@ export default function UserManagementPage() {
                       </td>
                       <td className="p-4">
                         <p className="font-medium text-slate-200">
-                          {u.organization_name || u.full_name || "N/A"}
+                          {u.organization_name || "N/A"}
                         </p>
                       </td>
                       <td className="p-4">
                         <span className="px-3 py-1 bg-primary/20 text-primary border border-primary/30 font-mono text-sm rounded-full font-semibold">
-                          {u.organization_id || "N/A"}
+                          {u.display_orgId || "N/A"}
                         </span>
                       </td>
                       <td className="p-4">

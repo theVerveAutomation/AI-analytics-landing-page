@@ -10,6 +10,8 @@ export interface Profile {
   organization_id: string ;
   created_at?: string;
   updated_at?: string;
+  display_orgId?: string;
+  Organizations?: Organization
 }
 
 // Feature type matching the features table schema
