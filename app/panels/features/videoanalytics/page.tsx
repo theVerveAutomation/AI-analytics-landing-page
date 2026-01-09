@@ -104,8 +104,8 @@ const recentEvents = [
   },
   {
     id: 2,
-    type: "Vehicle Detected",
-    camera: "Parking Lot",
+    type: "Object Detected",
+    camera: "Object Lot",
     time: "5 min ago",
     severity: "low",
     icon: Car,

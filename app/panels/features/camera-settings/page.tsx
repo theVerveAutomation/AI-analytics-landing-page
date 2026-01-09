@@ -16,6 +16,8 @@ import {
   WifiOff,
   Plus,
   X,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { CameraConfig, Profile } from "@/types";
 import { supabase } from "@/lib/supabaseClient";
@@ -32,6 +34,9 @@ export default function CameraSettingPage() {
   const [showAddCameraModal, setShowAddCameraModal] = useState(false);
   const [newCameraUrl, setNewCameraUrl] = useState("");
   const [newCameraName, setNewCameraName] = useState("");
+  const [editingCamera, setEditingCamera] = useState<CameraConfig | null>(null);
+  const [editCameraName, setEditCameraName] = useState("");
+  const [editCameraUrl, setEditCameraUrl] = useState("");
   // Map of cameraId -> MediaStream for each physical device
   const [cameraStreams, setCameraStreams] = useState<Map<number, MediaStream>>(
     new Map()
@@ -160,6 +165,70 @@ export default function CameraSettingPage() {
       alert(`Camera "${newCameraName}" added successfully!`);
     } catch (err) {
       alert("Failed to add camera (network error)");
+    }
+  };
+
+  const handleDeleteCamera = async (cameraId: number) => {
+    if (!confirm("Are you sure you want to delete this camera?")) return;
+
+    try {
+      const res = await fetch("/api/camera/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: cameraId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to delete camera");
+        return;
+      }
+      setCameras((prev) => prev.filter((c) => c.id !== cameraId));
+      if (selectedCameraId === cameraId) {
+        setSelectedCameraId(cameras.find((c) => c.id !== cameraId)?.id);
+      }
+      alert("Camera deleted successfully!");
+    } catch (err) {
+      alert("Failed to delete camera (network error)");
+    }
+  };
+
+  const handleEditCamera = (camera: CameraConfig) => {
+    setEditingCamera(camera);
+    setEditCameraName(camera.name);
+    setEditCameraUrl(camera.url || "");
+  };
+
+  const handleUpdateCamera = async () => {
+    if (!editingCamera) return;
+    if (!editCameraName.trim()) {
+      alert("Please enter a camera name");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/camera/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingCamera.id,
+          name: editCameraName,
+          url: editCameraUrl || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to update camera");
+        return;
+      }
+      setCameras((prev) =>
+        prev.map((c) => (c.id === editingCamera.id ? data.camera : c))
+      );
+      setEditingCamera(null);
+      setEditCameraName("");
+      setEditCameraUrl("");
+      alert("Camera updated successfully!");
+    } catch (err) {
+      alert("Failed to update camera (network error)");
     }
   };
 
@@ -450,9 +519,8 @@ export default function CameraSettingPage() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {cameras.map((camera) => (
-            <button
+            <div
               key={camera.id}
-              onClick={() => setSelectedCameraId(camera.id)}
               className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${
                 selectedCameraId === camera.id
                   ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-200 dark:ring-blue-800"
@@ -460,12 +528,15 @@ export default function CameraSettingPage() {
               }`}
             >
               {/* Camera Preview Thumbnail */}
-              <div className="aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
+              <button
+                onClick={() => setSelectedCameraId(camera.id)}
+                className="w-full aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden"
+              >
                 <CameraFeed camera={camera} isThumbnail={true} />
-              </div>
+              </button>
               {/* Camera Info */}
               <div className="p-3 bg-white dark:bg-slate-800 flex items-center justify-between">
-                <span className="font-medium text-gray-800 dark:text-white text-sm">
+                <span className="font-medium text-gray-800 dark:text-white text-sm truncate">
                   {camera.name}
                 </span>
                 <span
@@ -477,13 +548,40 @@ export default function CameraSettingPage() {
                   {camera.status}
                 </span>
               </div>
+              {/* Edit/Delete Buttons - Show on hover */}
+              <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {!camera.is_physical_device && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditCamera(camera);
+                      }}
+                      className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg hover:bg-blue-500 hover:text-white transition-colors shadow-sm"
+                      title="Edit Camera"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCamera(camera.id);
+                      }}
+                      className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"
+                      title="Delete Camera"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
               {/* Selection Indicator */}
               {selectedCameraId === camera.id && (
                 <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-4 h-4 text-white" />
                 </div>
               )}
-            </button>
+            </div>
           ))}
         </div>
       </div>
@@ -802,6 +900,84 @@ export default function CameraSettingPage() {
                 >
                   <Plus className="w-4 h-4" />
                   Add Camera
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Camera Modal */}
+      {editingCamera && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <Pencil className="w-6 h-6 text-blue-500" />
+                Edit Camera
+              </h3>
+              <button
+                onClick={() => {
+                  setEditingCamera(null);
+                  setEditCameraName("");
+                  setEditCameraUrl("");
+                }}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Camera Name Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Camera Name
+                </label>
+                <input
+                  type="text"
+                  value={editCameraName}
+                  onChange={(e) => setEditCameraName(e.target.value)}
+                  placeholder="e.g., Front Door Camera"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+
+              {/* Camera URL Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Camera URL
+                </label>
+                <input
+                  type="text"
+                  value={editCameraUrl}
+                  onChange={(e) => setEditCameraUrl(e.target.value)}
+                  placeholder="https://www.URL.com/ or rtsp://..."
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Enter RTSP, or HTTP stream URL
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setEditingCamera(null);
+                    setEditCameraName("");
+                    setEditCameraUrl("");
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-lg font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateCamera}
+                  className="flex-1 px-4 py-2.5 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Changes
                 </button>
               </div>
             </div>
