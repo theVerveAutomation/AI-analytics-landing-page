@@ -59,7 +59,8 @@ const Navigation = () => {
             <Image
               src={vapLogo}
               alt="VAP Logo"
-              className="h-12 w-auto rounded-md"
+              className="h-16 w-auto rounded-md cursor-pointer"
+              onClick={() => router.push("/")}
             />
           </div>
 
