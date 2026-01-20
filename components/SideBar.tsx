@@ -289,6 +289,18 @@ export default function Sidebar({
           <LucideFileVideoCamera className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
           <span className="truncate">Recordings</span>
         </button>
+        <button
+          onClick={() => router.push("/panels/features/snapshots")}
+          className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base transition-all duration-200
+              ${
+                pathname === "/panels/features/snapshots"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30 scale-105"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
+              }`}
+        >
+          <CameraIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span className="truncate">Snapshots</span>
+        </button>
       </nav>
 
       {/* Profile Section */}
