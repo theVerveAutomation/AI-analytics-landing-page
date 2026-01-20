@@ -22,17 +22,14 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 import { Profile, CameraConfig } from "@/types";
 
-// Snapshot type definition
+// Snapshot type definition (matches camera_snaps table)
 interface Snapshot {
   id: string;
   camera_id: number;
   camera_name: string;
-  captured_at: string;
-  file_size: number; // in KB
-  file_url: string;
-  file_path: string;
-  has_detections: boolean;
-  detection_count: number;
+  url: string;
+  organization_id: string;
+  created_at: string;
 }
 
 export default function SnapshotPage() {
@@ -108,77 +105,37 @@ export default function SnapshotPage() {
     fetchCameras();
   }, [profile]);
 
-  // Fetch snapshots from Supabase bucket
+  // Fetch snapshots from API (camera_snaps table)
   useEffect(() => {
-    if (!profile || cameras.length === 0) return;
+    if (!profile) return;
 
     const fetchSnapshots = async () => {
       setLoading(true);
       try {
-        // Fetch files from the snapshots bucket for this organization
-        const bucketName = "snapshots";
-        const folderPath = `${profile.organization_id}`;
+        const res = await fetch(
+          `/api/snapshots/fetch?organization_id=${encodeURIComponent(
+            profile.organization_id
+          )}`
+        );
+        const data = await res.json();
 
-        const { data: files, error } = await supabase.storage
-          .from(bucketName)
-          .list(folderPath, {
-            limit: 1000,
-            sortBy: { column: "created_at", order: "desc" },
-          });
-
-        if (error) {
-          console.error("Error fetching snapshots:", error);
-          setLoading(false);
-          return;
-        }
-
-        // Process files into snapshot objects
-        const snapshotList: Snapshot[] = [];
-
-        for (const file of files || []) {
-          // Skip folders
-          if (!file.name || file.id === null) continue;
-
-          // Parse filename to extract camera info
-          // Expected format: cameraId_timestamp.jpg or cameraName_timestamp.jpg
-          const nameParts = file.name.split("_");
-          const cameraIdentifier = nameParts[0];
-
-          // Find matching camera
-          const matchingCamera = cameras.find(
-            (cam) =>
-              cam.id.toString() === cameraIdentifier ||
-              cam.name.toLowerCase().replace(/\s+/g, "-") ===
-                cameraIdentifier.toLowerCase()
+        if (res.ok && Array.isArray(data.snapshots)) {
+          // Map camera names from cameras array
+          const snapshotList: Snapshot[] = data.snapshots.map(
+            (snap: Snapshot) => {
+              const matchingCamera = cameras.find(
+                (cam) => cam.id === snap.camera_id
+              );
+              return {
+                ...snap,
+                camera_name: matchingCamera?.name || `Camera ${snap.camera_id}`,
+              };
+            }
           );
 
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from(bucketName)
-            .getPublicUrl(`${folderPath}/${file.name}`);
-
-          snapshotList.push({
-            id: file.id || file.name,
-            camera_id: matchingCamera?.id || 0,
-            camera_name: matchingCamera?.name || cameraIdentifier,
-            captured_at: file.created_at || new Date().toISOString(),
-            file_size: Math.round((file.metadata?.size || 0) / 1024), // Convert to KB
-            file_url: urlData?.publicUrl || "",
-            file_path: `${folderPath}/${file.name}`,
-            has_detections: false, // Can be enhanced with metadata
-            detection_count: 0,
-          });
+          setSnapshots(snapshotList);
+          setFilteredSnapshots(snapshotList);
         }
-
-        // Sort by captured time descending
-        snapshotList.sort(
-          (a, b) =>
-            new Date(b.captured_at).getTime() -
-            new Date(a.captured_at).getTime()
-        );
-
-        setSnapshots(snapshotList);
-        setFilteredSnapshots(snapshotList);
       } catch (err) {
         console.error("Error fetching snapshots:", err);
       } finally {
@@ -210,20 +167,12 @@ export default function SnapshotPage() {
 
     // Date filter
     if (dateFilter) {
-      filtered = filtered.filter((s) => s.captured_at.startsWith(dateFilter));
+      filtered = filtered.filter((s) => s.created_at.startsWith(dateFilter));
     }
 
     setFilteredSnapshots(filtered);
     setCurrentPage(1);
   }, [snapshots, selectedCameraId, searchQuery, dateFilter]);
-
-  // Format file size
-  const formatFileSize = (kb: number) => {
-    if (kb >= 1024) {
-      return `${(kb / 1024).toFixed(2)} MB`;
-    }
-    return `${kb} KB`;
-  };
 
   // Format date/time
   const formatDateTime = (isoString: string) => {
@@ -244,17 +193,16 @@ export default function SnapshotPage() {
     currentPage * snapshotsPerPage
   );
 
-  // Total storage used
-  const totalStorage = snapshots.reduce((acc, s) => acc + s.file_size, 0);
-
   // Delete snapshot handler
   const handleDeleteSnapshot = async (snapshot: Snapshot) => {
     if (!confirm("Are you sure you want to delete this snapshot?")) return;
 
     try {
-      const { error } = await supabase.storage
-        .from("snapshots")
-        .remove([snapshot.file_path]);
+      // Delete from camera_snaps table
+      const { error } = await supabase
+        .from("camera_snaps")
+        .delete()
+        .eq("id", snapshot.id);
 
       if (error) {
         console.error("Error deleting snapshot:", error);
@@ -276,24 +224,14 @@ export default function SnapshotPage() {
   // Download snapshot
   const handleDownload = async (snapshot: Snapshot) => {
     try {
-      const { data, error } = await supabase.storage
-        .from("snapshots")
-        .download(snapshot.file_path);
-
-      if (error || !data) {
-        console.error("Error downloading snapshot:", error);
-        return;
-      }
-
-      // Create download link
-      const url = URL.createObjectURL(data);
+      // Open URL in new tab or trigger download
       const link = document.createElement("a");
-      link.href = url;
-      link.download = snapshot.file_path.split("/").pop() || "snapshot.jpg";
+      link.href = snapshot.url;
+      link.download = `snapshot_${snapshot.camera_id}_${snapshot.created_at}.jpg`;
+      link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Error downloading snapshot:", err);
     }
@@ -331,10 +269,6 @@ export default function SnapshotPage() {
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
             <ImageIcon className="w-4 h-4" />
             {snapshots.length} Snapshots
-          </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
-            <HardDrive className="w-4 h-4" />
-            {formatFileSize(totalStorage)}
           </span>
         </div>
       </div>
@@ -443,9 +377,9 @@ export default function SnapshotPage() {
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-video bg-gray-900 rounded-t-xl overflow-hidden">
-                    {snapshot.file_url ? (
+                    {snapshot.url ? (
                       <img
-                        src={snapshot.file_url}
+                        src={snapshot.url}
                         alt={`Snapshot from ${snapshot.camera_name}`}
                         className="w-full h-full object-cover"
                         loading="lazy"
@@ -453,17 +387,6 @@ export default function SnapshotPage() {
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Camera className="w-10 h-10 text-gray-600" />
-                      </div>
-                    )}
-                    {/* File size badge */}
-                    <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 rounded text-white text-xs">
-                      {formatFileSize(snapshot.file_size)}
-                    </div>
-                    {/* Detection badge */}
-                    {snapshot.has_detections && (
-                      <div className="absolute top-2 left-2 px-2 py-1 bg-amber-500/90 rounded text-white text-xs flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {snapshot.detection_count}
                       </div>
                     )}
                     {/* Zoom overlay */}
@@ -490,7 +413,7 @@ export default function SnapshotPage() {
                         </h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {formatDateTime(snapshot.captured_at)}
+                          {formatDateTime(snapshot.created_at)}
                         </p>
                       </div>
                     </div>
@@ -588,9 +511,9 @@ export default function SnapshotPage() {
                   className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden cursor-pointer"
                   onClick={() => setIsLightboxOpen(true)}
                 >
-                  {selectedSnapshot.file_url ? (
+                  {selectedSnapshot.url ? (
                     <img
-                      src={selectedSnapshot.file_url}
+                      src={selectedSnapshot.url}
                       alt={`Snapshot from ${selectedSnapshot.camera_name}`}
                       className="w-full h-full object-contain"
                     />
@@ -617,23 +540,9 @@ export default function SnapshotPage() {
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Captured</span>
                     <span className="font-medium text-gray-800 dark:text-white">
-                      {formatDateTime(selectedSnapshot.captured_at)}
+                      {formatDateTime(selectedSnapshot.created_at)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                    <span>File Size</span>
-                    <span className="font-medium text-gray-800 dark:text-white">
-                      {formatFileSize(selectedSnapshot.file_size)}
-                    </span>
-                  </div>
-                  {selectedSnapshot.has_detections && (
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Detections</span>
-                      <span className="font-medium text-amber-600 dark:text-amber-400">
-                        {selectedSnapshot.detection_count} events
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Download Button */}
@@ -655,11 +564,11 @@ export default function SnapshotPage() {
             )}
           </div>
 
-          {/* Storage Summary */}
+          {/* Summary */}
           <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-5 text-white shadow-lg">
             <h3 className="font-semibold mb-4 flex items-center gap-2">
               <HardDrive className="w-5 h-5" />
-              Storage Summary
+              Summary
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
@@ -667,20 +576,8 @@ export default function SnapshotPage() {
                 <span className="font-bold">{snapshots.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm opacity-90">Storage Used</span>
-                <span className="font-bold">
-                  {formatFileSize(totalStorage)}
-                </span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-sm opacity-90">Cameras</span>
                 <span className="font-bold">{cameras.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm opacity-90">With Detections</span>
-                <span className="font-bold">
-                  {snapshots.filter((s) => s.has_detections).length}
-                </span>
               </div>
             </div>
           </div>
@@ -700,14 +597,14 @@ export default function SnapshotPage() {
             <XCircle className="w-8 h-8 text-white" />
           </button>
           <img
-            src={selectedSnapshot.file_url}
+            src={selectedSnapshot.url}
             alt={`Snapshot from ${selectedSnapshot.camera_name}`}
             className="max-w-full max-h-full object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
           />
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-4 py-2 rounded-lg text-white text-sm">
             {selectedSnapshot.camera_name} •{" "}
-            {formatDateTime(selectedSnapshot.captured_at)}
+            {formatDateTime(selectedSnapshot.created_at)}
           </div>
         </div>
       )}
