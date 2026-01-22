@@ -51,7 +51,7 @@ export default function ClientLayout({
       />
 
       {/* Main content */}
-      <main className="flex-1 flex overflow-auto pt-16 lg:pt-0 lg:pl-[20%]">
+      <main className="flex-1 flex overflow-auto pt-16 lg:pt-0 lg:pl-[17%]">
         {children}
       </main>
     </div>

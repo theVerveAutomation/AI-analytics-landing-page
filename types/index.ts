@@ -57,7 +57,6 @@ export interface CameraConfig {
   resolution: string;
   updated_at: string;
   url?: string; // Optional URL for RTSP/HTTP streams
-  is_physical_device?: boolean; // True if it's a physical webcam
   created_at?: string;
   organization_id: string | number;
 }
