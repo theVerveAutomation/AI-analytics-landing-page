@@ -146,8 +146,8 @@ export default function CameraSettingPage() {
           name: newCameraName,
           url: newCameraUrl,
           status: "normal",
-          detection: true,
-          alert_sound: true,
+          detection: false,
+          alert_sound: false,
           frame_rate: 30,
           resolution: "1080p",
           organization_id: profile?.organization_id,
@@ -164,7 +164,7 @@ export default function CameraSettingPage() {
       setShowAddCameraModal(false);
       alert(`Camera "${newCameraName}" added successfully!`);
     } catch (err) {
-      alert("Failed to add camera (network error)");
+      alert(`Failed to add camera "${newCameraName}" - ${err}`);
     }
   };
 
@@ -505,9 +505,6 @@ export default function CameraSettingPage() {
             Connected Cameras
           </h2>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {cameras.length} camera{cameras.length !== 1 ? "s" : ""} detected
-            </span>
             <button
               onClick={() => setShowAddCameraModal(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-all duration-200"
@@ -831,7 +828,7 @@ export default function CameraSettingPage() {
 
       {/* Add Camera Modal */}
       {showAddCameraModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
