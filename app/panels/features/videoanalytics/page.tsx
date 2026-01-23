@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BarChart,
@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { Profile, CameraConfig } from "@/types";
+import CameraFeed from "@/components/CameraFeed";
 
 const metrics = [
   {
@@ -146,9 +147,6 @@ export default function VideoAnalyticsPage() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
-  const [cameraStreams, setCameraStreams] = useState<Map<number, MediaStream>>(
-    new Map()
-  );
 
   // Fetch user profile
   useEffect(() => {
@@ -176,12 +174,6 @@ export default function VideoAnalyticsPage() {
     fetchUserAndProfile();
   }, [router]);
 
-  // Start physical cameras once on mount
-  useEffect(() => {
-    startCameras();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Fetch cameras from database when profile becomes available
   useEffect(() => {
     if (!profile) return;
@@ -201,27 +193,24 @@ export default function VideoAnalyticsPage() {
         );
         const data = await res.json();
         if (res.ok && Array.isArray(data.cameras)) {
-          const dbCameras: CameraConfig[] = data.cameras.map((cam: any) => ({
-            id: cam.id,
-            name: cam.name,
-            status: cam.status || "normal",
-            detection: cam.detection ?? true,
-            alert_sound: cam.alert_sound ?? true,
-            frame_rate: cam.frame_rate ?? 30,
-            resolution: cam.resolution || "1080p",
-            updated_at: cam.updated_at || "-",
-            url: cam.url,
-            is_physical_device: false,
-            organization_id: cam.organization_id,
-          }));
-          setCameras((prev) => {
-            const physicals = prev.filter((c) => c.is_physical_device);
-            const merged = [...physicals, ...dbCameras];
-            if (merged.length > 0 && !selectedCamera) {
-              setSelectedCamera(merged[0].id);
-            }
-            return merged;
-          });
+          const dbCameras: CameraConfig[] = data.cameras.map(
+            (cam: CameraConfig) => ({
+              id: cam.id,
+              name: cam.name,
+              status: cam.status || "normal",
+              detection: cam.detection ?? true,
+              alert_sound: cam.alert_sound ?? true,
+              frame_rate: cam.frame_rate ?? 30,
+              resolution: cam.resolution || "1080p",
+              updated_at: cam.updated_at || "-",
+              url: cam.url,
+              organization_id: cam.organization_id,
+            })
+          );
+          setCameras(dbCameras);
+          if (dbCameras.length > 0 && !selectedCamera) {
+            setSelectedCamera(dbCameras[0].id);
+          }
         }
       } catch (err) {
         console.error("Error fetching cameras:", err);
@@ -231,210 +220,10 @@ export default function VideoAnalyticsPage() {
     fetchCameras();
   }, [profile, selectedCamera]);
 
-  // Start physical cameras
-  const startCameras = async () => {
-    try {
-      const initialStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      });
-      initialStream.getTracks().forEach((t) => t.stop());
-
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoInputs = devices.filter((d) => d.kind === "videoinput");
-
-      const streamsMap = new Map<number, MediaStream>();
-
-      for (let i = 0; i < videoInputs.length; i++) {
-        const device = videoInputs[i];
-        const cameraId = -(i + 1); // Negative IDs for physical devices to avoid conflicts
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { deviceId: { exact: device.deviceId } },
-            audio: false,
-          });
-          streamsMap.set(cameraId, stream);
-        } catch (err) {
-          console.warn(`Could not open device ${device.label}:`, err);
-        }
-      }
-
-      const detectedCameras: CameraConfig[] = videoInputs.map(
-        (device, index) => ({
-          id: -(index + 1),
-          name: device.label || `Webcam ${index + 1}`,
-          status: "normal" as const,
-          detection: true,
-          alert_sound: true,
-          frame_rate: 30,
-          resolution: "1080p",
-          updated_at: "just now",
-          is_physical_device: true,
-          organization_id: "",
-        })
-      );
-
-      setCameras((prev) => {
-        const nonPhysicals = prev.filter((c) => !c.is_physical_device);
-        const merged = [...detectedCameras, ...nonPhysicals];
-        if (merged.length > 0 && !selectedCamera) {
-          setSelectedCamera(merged[0].id);
-        }
-        return merged;
-      });
-
-      setCameraStreams(streamsMap);
-    } catch (err) {
-      console.error("Camera access denied or not available:", err);
-    }
-  };
-
-  // Cleanup streams on unmount
-  useEffect(() => {
-    return () => {
-      cameraStreams.forEach((stream) => {
-        stream.getTracks().forEach((t) => t.stop());
-      });
-    };
-  }, [cameraStreams]);
-
   // Get selected camera
   const getSelectedCamera = () => {
     return cameras.find((c) => c.id === selectedCamera);
   };
-
-  // Video preview component for physical cameras
-  function VideoPreview({
-    stream,
-    className,
-    poster,
-  }: {
-    stream: MediaStream | null;
-    className?: string;
-    poster?: React.ReactNode;
-  }) {
-    const ref = useRef<HTMLVideoElement | null>(null);
-
-    useEffect(() => {
-      const videoEl = ref.current;
-      if (!videoEl) return;
-      if (stream) {
-        videoEl.srcObject = stream;
-        const playPromise = videoEl.play();
-        if (playPromise && typeof playPromise.then === "function") {
-          playPromise.catch(() => {});
-        }
-      } else {
-        videoEl.srcObject = null;
-      }
-    }, [stream]);
-
-    return stream ? (
-      <video ref={ref} className={className} playsInline muted />
-    ) : (
-      <div className={className}>{poster}</div>
-    );
-  }
-
-  // Camera feed component
-  function CameraFeed({
-    camera,
-    isThumbnail = false,
-  }: {
-    camera?: CameraConfig;
-    isThumbnail?: boolean;
-  }) {
-    if (!camera) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
-          <Camera className="w-8 h-8 mb-1" />
-          <span>No Camera Selected</span>
-        </div>
-      );
-    }
-    if (camera.status === "offline") {
-      return (
-        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
-          <WifiOff className="w-8 h-8 mb-1" />
-          <span>Offline</span>
-        </div>
-      );
-    }
-
-    // URL-based camera (YouTube, RTSP, HTTP)
-    if (camera.url && !camera.is_physical_device) {
-      if (
-        camera.url.includes("youtube.com") ||
-        camera.url.includes("youtu.be")
-      ) {
-        let videoId = "";
-
-        if (camera.url.includes("youtube.com/watch?v=")) {
-          const urlParams = new URLSearchParams(new URL(camera.url).search);
-          videoId = urlParams.get("v") || "";
-        } else if (camera.url.includes("youtube.com/embed/")) {
-          videoId = camera.url.split("/embed/")[1]?.split("?")[0] || "";
-        } else if (camera.url.includes("youtu.be/")) {
-          videoId = camera.url.split("youtu.be/")[1]?.split("?")[0] || "";
-        }
-
-        if (videoId) {
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=0&modestbranding=1&rel=0&showinfo=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&fs=0&iv_load_policy=3&playsinline=1&disablekb=1&cc_load_policy=0&enablejsapi=0`;
-
-          const cropSettings = isThumbnail
-            ? { width: "160%", height: "160%", top: "-26%", left: "-25%" }
-            : { width: "100%", height: "130%", top: "-15%", left: "0%" };
-
-          return (
-            <div className="relative w-full h-full overflow-hidden">
-              <iframe
-                src={embedUrl}
-                className="absolute pointer-events-none"
-                style={{
-                  width: cropSettings.width,
-                  height: cropSettings.height,
-                  top: cropSettings.top,
-                  left: cropSettings.left,
-                }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;"
-                title={camera.name}
-                frameBorder="0"
-              />
-            </div>
-          );
-        }
-      }
-
-      return (
-        <div className="relative w-full h-full bg-slate-900">
-          <iframe
-            src={camera.url}
-            className="w-full h-full pointer-events-none"
-            title={camera.name}
-          />
-          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-            External Stream
-          </div>
-        </div>
-      );
-    }
-
-    // Physical device - use MediaStream
-    const stream = cameraStreams.get(camera.id) || null;
-    return (
-      <VideoPreview
-        stream={stream}
-        className="w-full h-full object-cover"
-        poster={
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
-            <Camera className="w-8 h-8 mb-1" />
-            <span>Live Feed</span>
-          </div>
-        }
-      />
-    );
-  }
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -578,7 +367,7 @@ export default function VideoAnalyticsPage() {
                   }`}
                 >
                   <div className="absolute inset-0 bg-gray-900">
-                    <CameraFeed camera={camera} isThumbnail={true} />
+                    <CameraFeed camera={camera} />
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 z-10">
                     <div className="flex items-center justify-between">

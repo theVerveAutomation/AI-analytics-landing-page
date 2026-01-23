@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import io from "socket.io-client";
 import {
   Camera,
   Settings,
@@ -18,30 +19,31 @@ import {
   X,
   Pencil,
   Trash2,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { CameraConfig, Profile } from "@/types";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import CameraFeed from "@/components/CameraFeed";
 
 export default function CameraSettingPage() {
   const router = useRouter();
+  const socket = io(
+    process.env.NEXT_PUBLIC_CLOUD_URL || "http://localhost:3001"
+  );
 
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<number>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
   const [showAddCameraModal, setShowAddCameraModal] = useState(false);
   const [newCameraUrl, setNewCameraUrl] = useState("");
   const [newCameraName, setNewCameraName] = useState("");
   const [editingCamera, setEditingCamera] = useState<CameraConfig | null>(null);
   const [editCameraName, setEditCameraName] = useState("");
   const [editCameraUrl, setEditCameraUrl] = useState("");
-  // Map of cameraId -> MediaStream for each physical device
-  const [cameraStreams, setCameraStreams] = useState<Map<number, MediaStream>>(
-    new Map()
-  );
-  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
@@ -55,7 +57,7 @@ export default function CameraSettingPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, organizations!inner(displayid)")
         .eq("id", user.id)
         .single();
 
@@ -63,16 +65,11 @@ export default function CameraSettingPage() {
         router.push("/Login");
         return;
       }
+      console.log("Fetched profile:", profile);
       setProfile(profile);
     };
     fetchUserAndProfile();
   }, [router]);
-
-  // Start physical cameras once on mount
-  useEffect(() => {
-    startCameras();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Fetch cameras from database when profile becomes available
   useEffect(() => {
@@ -106,6 +103,45 @@ export default function CameraSettingPage() {
     fetchCameras();
   }, [profile]);
 
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to Cloud server via Socket.io");
+    });
+    for (const camera of cameras) {
+      socket.emit("start_relay", {
+        targetEdgeId: profile?.organizations?.displayid || "000",
+        camId: camera.name,
+      });
+
+      socket.on(
+        "relay_info",
+        (relay_info: { success: boolean; data: string }) => {
+          console.log("Received relay data:", relay_info.data);
+          if (relay_info.success) {
+            console.log("Relay data success:", relay_info.data);
+            const { CameraId, url } = JSON.parse(relay_info.data);
+            const camera = cameras.find((c) => c.id.toString() === CameraId);
+            if (camera) {
+              camera.stream_url = url;
+              console.log(`Camera ${CameraId} URL: ${url}`);
+            }
+            console.log("Relay data processed successfully");
+          } else {
+            console.error(`Failed to receive relay data: ${relay_info.data}`); // Error message
+          }
+        }
+      );
+    }
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from Cloud server");
+    });
+
+    return () => {
+      socket.emit("stop_relay", { targetEdgeId: "org08", camId: "camera1" });
+    };
+  }, [cameras, socket]);
+
   function getSelectedCamera() {
     return cameras.find((c: CameraConfig) => c.id === selectedCameraId);
   }
@@ -113,7 +149,7 @@ export default function CameraSettingPage() {
   const updateCameraSetting = (
     cameraId: number,
     key: keyof CameraConfig,
-    value: any
+    value: number | string | boolean
   ) => {
     setCameras((prev) =>
       prev.map((cam) => (cam.id === cameraId ? { ...cam, [key]: value } : cam))
@@ -258,221 +294,6 @@ export default function CameraSettingPage() {
     }
   };
 
-  // Start cameras - enumerate devices and create a stream for each
-  const startCameras = async () => {
-    try {
-      // First request permission with a generic call
-      const initialStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      });
-      // Stop the initial stream immediately (we just needed permission)
-      initialStream.getTracks().forEach((t) => t.stop());
-
-      // Enumerate all video input devices
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoInputs = devices.filter((d) => d.kind === "videoinput");
-      setVideoDevices(videoInputs);
-
-      // Create a stream for each physical device (1 device = 1 camera feed)
-      const streamsMap = new Map<number, MediaStream>();
-
-      // Only show as many cameras as we have physical devices
-      for (let i = 0; i < videoInputs.length; i++) {
-        const device = videoInputs[i];
-        const cameraId = i + 1; // Camera IDs start at 1
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { deviceId: { exact: device.deviceId } },
-            audio: false,
-          });
-          streamsMap.set(cameraId, stream);
-        } catch (err) {
-          console.warn(`Could not open device ${device.label}:`, err);
-        }
-      }
-
-      if (!profile) return;
-
-      // Update cameras list to only show detected devices
-      const detectedCameras: CameraConfig[] = videoInputs.map(
-        (device, index) => ({
-          id: index + 1,
-          name: device.label || `Cam ${index + 1}`,
-          status: "normal" as const,
-          detection: true,
-          alert_sound: true,
-          frame_rate: 30,
-          resolution: "1080p",
-          updated_at: "2s ago",
-          organization_id: profile.organization_id,
-        })
-      );
-
-      setCameras(detectedCameras);
-      if (detectedCameras.length > 0) {
-        setSelectedCameraId(1);
-      }
-
-      setCameraStreams(streamsMap);
-      setIsStreaming(true);
-    } catch (err) {
-      console.error("Camera access denied or not available:", err);
-      alert(
-        "Unable to access camera. Please grant permission or check your device."
-      );
-    }
-  };
-
-  // cleanup on unmount
-  useEffect(() => {
-    return () => {
-      cameraStreams.forEach((stream) => {
-        stream.getTracks().forEach((t) => t.stop());
-      });
-    };
-  }, [cameraStreams]);
-
-  // Small helper component to render a video element for a stream
-  function VideoPreview({
-    stream,
-    className,
-    poster,
-  }: {
-    stream: MediaStream | null;
-    className?: string;
-    poster?: React.ReactNode;
-  }) {
-    const ref = useRef<HTMLVideoElement | null>(null);
-
-    useEffect(() => {
-      const videoEl = ref.current;
-      if (!videoEl) return;
-      if (stream) {
-        videoEl.srcObject = stream;
-        const playPromise = videoEl.play();
-        if (playPromise && typeof playPromise.then === "function") {
-          playPromise.catch(() => {
-            // autoplay may be blocked; ignore
-          });
-        }
-      } else {
-        videoEl.srcObject = null;
-      }
-    }, [stream]);
-
-    return stream ? (
-      <video ref={ref} className={className} playsInline muted />
-    ) : (
-      <div className={className}>{poster}</div>
-    );
-  }
-
-  // Helper component to render camera feed (physical device or URL-based)
-  function CameraFeed({
-    camera,
-    isThumbnail = false,
-  }: {
-    camera?: CameraConfig;
-    isThumbnail?: boolean;
-  }) {
-    if (!camera) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
-          <Camera className="w-8 h-8 mb-1" />
-          <span>No Camera Selected</span>
-        </div>
-      );
-    }
-    if (camera.status === "offline") {
-      return (
-        <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
-          <WifiOff className="w-8 h-8 mb-1" />
-          <span>Offline</span>
-        </div>
-      );
-    }
-
-    // If it's a URL-based camera, show iframe or image
-    if (camera.url && !camera.is_physical_device) {
-      // Check if it's a YouTube URL and convert to embed format
-      if (
-        camera.url.includes("youtube.com") ||
-        camera.url.includes("youtu.be")
-      ) {
-        let videoId = "";
-
-        // Extract video ID from different YouTube URL formats
-        if (camera.url.includes("youtube.com/watch?v=")) {
-          const urlParams = new URLSearchParams(new URL(camera.url).search);
-          videoId = urlParams.get("v") || "";
-        } else if (camera.url.includes("youtube.com/embed/")) {
-          videoId = camera.url.split("/embed/")[1]?.split("?")[0] || "";
-        } else if (camera.url.includes("youtu.be/")) {
-          videoId = camera.url.split("youtu.be/")[1]?.split("?")[0] || "";
-        }
-
-        if (videoId) {
-          // Using nocookie domain and maximum branding reduction
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=0&modestbranding=1&rel=0&showinfo=0&autoplay=1&mute=1&loop=1&playlist=${videoId}&fs=0&iv_load_policy=3&playsinline=1&disablekb=1&cc_load_policy=0&enablejsapi=0`;
-
-          // Apply more aggressive crop for thumbnails
-          const cropSettings = isThumbnail
-            ? { width: "160%", height: "160%", top: "-26%", left: "-25%" }
-            : { width: "100%", height: "130%", top: "-15%", left: "0%" };
-
-          return (
-            <div className="relative w-full h-full overflow-hidden">
-              <iframe
-                src={embedUrl}
-                className="absolute pointer-events-none"
-                style={{
-                  width: cropSettings.width,
-                  height: cropSettings.height,
-                  top: cropSettings.top,
-                  left: cropSettings.left,
-                }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;"
-                title={camera.name}
-                frameBorder="0"
-              />
-            </div>
-          );
-        }
-      }
-
-      // For other URLs (RTSP converted to HLS or HTTP streams)
-      return (
-        <div className="relative w-full h-full bg-slate-900">
-          <iframe
-            src={camera.url}
-            className="w-full h-full pointer-events-none"
-            title={camera.name}
-          />
-          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-            External Stream
-          </div>
-        </div>
-      );
-    }
-
-    // Physical device - use MediaStream
-    const stream = cameraStreams.get(camera.id) || null;
-    return (
-      <VideoPreview
-        stream={stream}
-        className="w-full h-full object-cover"
-        poster={
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
-            <Camera className="w-8 h-8 mb-1" />
-            <span>Live Feed</span>
-          </div>
-        }
-      />
-    );
-  }
-
   return (
     <div className="p-6 space-y-6 w-full">
       {/* Page Header */}
@@ -529,8 +350,9 @@ export default function CameraSettingPage() {
                 onClick={() => setSelectedCameraId(camera.id)}
                 className="w-full aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden"
               >
-                <CameraFeed camera={camera} isThumbnail={true} />
+                <CameraFeed camera={camera} />
               </button>
+
               {/* Camera Info */}
               <div className="p-3 bg-white dark:bg-slate-800 flex items-center justify-between">
                 <span className="font-medium text-gray-800 dark:text-white text-sm truncate">
@@ -545,32 +367,31 @@ export default function CameraSettingPage() {
                   {camera.status}
                 </span>
               </div>
+
               {/* Edit/Delete Buttons - Show on hover */}
               <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {!camera.is_physical_device && (
-                  <>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditCamera(camera);
-                      }}
-                      className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg hover:bg-blue-500 hover:text-white transition-colors shadow-sm"
-                      title="Edit Camera"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteCamera(camera.id);
-                      }}
-                      className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"
-                      title="Delete Camera"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </>
-                )}
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditCamera(camera);
+                    }}
+                    className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg hover:bg-blue-500 hover:text-white transition-colors shadow-sm"
+                    title="Edit Camera"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCamera(camera.id);
+                    }}
+                    className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"
+                    title="Delete Camera"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </>
               </div>
               {/* Selection Indicator */}
               {selectedCameraId === camera.id && (
@@ -591,22 +412,15 @@ export default function CameraSettingPage() {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
               Selected Camera Preview
             </h2>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600 dark:text-gray-400">
-                Select Camera:
-              </label>
-              <select
-                value={selectedCameraId}
-                onChange={(e) => setSelectedCameraId(Number(e.target.value))}
-                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            {getSelectedCamera() && (
+              <button
+                onClick={() => setIsFullscreen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-all text-sm font-medium"
               >
-                {cameras.map((camera) => (
-                  <option key={camera.id} value={camera.id}>
-                    {camera.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <Maximize2 className="w-4 h-4" />
+                Fullscreen
+              </button>
+            )}
           </div>
 
           {/* Large Preview */}
@@ -812,19 +626,45 @@ export default function CameraSettingPage() {
                 Reset
               </button>
             </div>
-
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              Note: Server-side must respect Detection ON/OFF and frame rate
-              settings for them to be effective.
-            </p>
           </div>
         </div>
       </div>
 
-      {/* Version Footer */}
-      <div className="text-right text-xs text-gray-400 dark:text-gray-500">
-        v1.3.0
-      </div>
+      {/* Fullscreen Camera Modal */}
+      {isFullscreen && getSelectedCamera() && (
+        <div className="fixed inset-0 bg-black z-50 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 bg-black/80">
+            <div className="flex items-center gap-3">
+              <Camera className="w-6 h-6 text-blue-400" />
+              <span className="text-white font-semibold text-lg">
+                {getSelectedCamera()?.name}
+              </span>
+              <span
+                className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full capitalize ${getStatusColor(
+                  getSelectedCamera()?.status || "unknown"
+                )}`}
+              >
+                {getStatusIcon(getSelectedCamera()?.status || "unknown")}
+                {getSelectedCamera()?.status}
+              </span>
+            </div>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
+            >
+              <Minimize2 className="w-5 h-5" />
+              Exit Fullscreen
+            </button>
+          </div>
+          {/* Camera Feed */}
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="w-full h-full max-w-7xl rounded-xl overflow-hidden bg-gray-900">
+              <CameraFeed camera={getSelectedCamera()} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Camera Modal */}
       {showAddCameraModal && (
