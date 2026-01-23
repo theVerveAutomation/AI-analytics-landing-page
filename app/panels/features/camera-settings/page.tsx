@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import {
   Camera,
@@ -104,6 +104,8 @@ export default function CameraSettingPage() {
   }, [profile]);
 
   useEffect(() => {
+    if (!profile || cameras.length === 0) return;
+
     socket.on("connect", () => {
       console.log("Connected to Cloud server via Socket.io");
     });
@@ -112,35 +114,34 @@ export default function CameraSettingPage() {
         targetEdgeId: profile?.organizations?.displayid || "000",
         camId: camera.name,
       });
-
-      socket.on(
-        "relay_info",
-        (relay_info: { success: boolean; data: string }) => {
-          console.log("Received relay data:", relay_info.data);
-          if (relay_info.success) {
-            console.log("Relay data success:", relay_info.data);
-            const { CameraId, url } = JSON.parse(relay_info.data);
-            const camera = cameras.find((c) => c.id.toString() === CameraId);
-            if (camera) {
-              camera.stream_url = url;
-              console.log(`Camera ${CameraId} URL: ${url}`);
-            }
-            console.log("Relay data processed successfully");
-          } else {
-            console.error(`Failed to receive relay data: ${relay_info.data}`); // Error message
-          }
-        }
-      );
     }
+    // socket.on(
+    //   "relay_info",
+    //   (relay_info: { success: boolean; data: string }) => {
+    //     console.log("Received relay data:", relay_info.data);
+    //     if (relay_info.success) {
+    //       console.log("Relay data success:", relay_info.data);
+    //       const { CameraId, url } = JSON.parse(relay_info.data);
+    //       const camera = cameras.find((c) => c.id.toString() === CameraId);
+    //       if (camera) {
+    //         camera.stream_url = url;
+    //         console.log(`Camera ${CameraId} URL: ${url}`);
+    //       }
+    //       console.log("Relay data processed successfully");
+    //     } else {
+    //       console.error(`Failed to receive relay data: ${relay_info.data}`); // Error message
+    //     }
+    //   }
+    // );
 
     socket.on("disconnect", () => {
       console.log("Disconnected from Cloud server");
     });
 
-    return () => {
-      socket.emit("stop_relay", { targetEdgeId: "org08", camId: "camera1" });
-    };
-  }, [cameras, socket]);
+    // return () => {
+    //   socket.emit("stop_relay", { targetEdgeId: "org08", camId: "camera1" });
+    // };
+  }, [cameras, socket, profile]);
 
   function getSelectedCamera() {
     return cameras.find((c: CameraConfig) => c.id === selectedCameraId);
@@ -350,7 +351,10 @@ export default function CameraSettingPage() {
                 onClick={() => setSelectedCameraId(camera.id)}
                 className="w-full aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden"
               >
-                <CameraFeed camera={camera} />
+                <CameraFeed
+                  camera={camera}
+                  orgDisplayId={profile?.organizations?.displayid}
+                />
               </button>
 
               {/* Camera Info */}
@@ -425,7 +429,10 @@ export default function CameraSettingPage() {
 
           {/* Large Preview */}
           <div className="aspect-video bg-gray-900 dark:bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center mb-4">
-            <CameraFeed camera={getSelectedCamera()} />
+            <CameraFeed
+              camera={getSelectedCamera()}
+              orgDisplayId={profile?.organizations?.displayid}
+            />
           </div>
 
           {/* Status Bar */}
@@ -660,7 +667,10 @@ export default function CameraSettingPage() {
           {/* Camera Feed */}
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="w-full h-full max-w-7xl rounded-xl overflow-hidden bg-gray-900">
-              <CameraFeed camera={getSelectedCamera()} />
+              <CameraFeed
+                camera={getSelectedCamera()}
+                orgDisplayId={profile?.organizations?.displayid}
+              />
             </div>
           </div>
         </div>
