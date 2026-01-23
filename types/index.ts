@@ -59,4 +59,5 @@ export interface CameraConfig {
   url?: string; // Optional URL for RTSP/HTTP streams
   created_at?: string;
   organization_id: string | number;
+  stream_url?: string;
 }

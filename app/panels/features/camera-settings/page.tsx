@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import io from "socket.io-client";
 import {
   Camera,
   Settings,
@@ -28,6 +29,9 @@ import CameraFeed from "@/components/CameraFeed";
 
 export default function CameraSettingPage() {
   const router = useRouter();
+  const socket = io(
+    process.env.NEXT_PUBLIC_CLOUD_URL || "http://localhost:3001"
+  );
 
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<number>();
@@ -97,6 +101,40 @@ export default function CameraSettingPage() {
 
     fetchCameras();
   }, [profile]);
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to Cloud server via Socket.io");
+    });
+    socket.emit("start_relay", { targetEdgeId: "org08", camId: "camera1" });
+
+    socket.on(
+      "relay_info",
+      (relay_info: { success: boolean; data: string }) => {
+        console.log("Received relay data:", relay_info.data);
+        if (relay_info.success) {
+          console.log("Relay data success:", relay_info.data);
+          const { CameraId, url } = JSON.parse(relay_info.data);
+          const camera = cameras.find((c) => c.id.toString() === CameraId);
+          if (camera) {
+            camera.stream_url = url;
+            console.log(`Camera ${CameraId} URL: ${url}`);
+          }
+          console.log("Relay data processed successfully");
+        } else {
+          console.error(`Failed to receive relay data: ${relay_info.data}`); // Error message
+        }
+      }
+    );
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from Cloud server");
+    });
+
+    return () => {
+      socket.emit("stop_relay", { targetEdgeId: "org08", camId: "camera1" });
+    };
+  }, [cameras, socket]);
 
   function getSelectedCamera() {
     return cameras.find((c: CameraConfig) => c.id === selectedCameraId);

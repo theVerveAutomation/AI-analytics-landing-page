@@ -20,12 +20,12 @@ export default function CameraFeed({ camera }: { camera?: CameraConfig }) {
   }
 
   // If it's a URL-based camera, show iframe or image
-  if (camera.url) {
+  if (camera.stream_url) {
     // For all URLs (RTSP converted to HLS or HTTP streams, or others)
     return (
       <div className="relative w-full h-full bg-slate-900">
         <iframe
-          src={camera.url}
+          src={camera.stream_url}
           className="w-full h-full pointer-events-none"
           title={camera.name}
         />
