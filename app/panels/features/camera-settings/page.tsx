@@ -57,7 +57,7 @@ export default function CameraSettingPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, organizations!inner(displayid)")
         .eq("id", user.id)
         .single();
 
@@ -65,6 +65,7 @@ export default function CameraSettingPage() {
         router.push("/Login");
         return;
       }
+      console.log("Fetched profile:", profile);
       setProfile(profile);
     };
     fetchUserAndProfile();
@@ -106,26 +107,31 @@ export default function CameraSettingPage() {
     socket.on("connect", () => {
       console.log("Connected to Cloud server via Socket.io");
     });
-    socket.emit("start_relay", { targetEdgeId: "org08", camId: "camera1" });
+    for (const camera of cameras) {
+      socket.emit("start_relay", {
+        targetEdgeId: profile?.organizations?.displayid || "000",
+        camId: camera.name,
+      });
 
-    socket.on(
-      "relay_info",
-      (relay_info: { success: boolean; data: string }) => {
-        console.log("Received relay data:", relay_info.data);
-        if (relay_info.success) {
-          console.log("Relay data success:", relay_info.data);
-          const { CameraId, url } = JSON.parse(relay_info.data);
-          const camera = cameras.find((c) => c.id.toString() === CameraId);
-          if (camera) {
-            camera.stream_url = url;
-            console.log(`Camera ${CameraId} URL: ${url}`);
+      socket.on(
+        "relay_info",
+        (relay_info: { success: boolean; data: string }) => {
+          console.log("Received relay data:", relay_info.data);
+          if (relay_info.success) {
+            console.log("Relay data success:", relay_info.data);
+            const { CameraId, url } = JSON.parse(relay_info.data);
+            const camera = cameras.find((c) => c.id.toString() === CameraId);
+            if (camera) {
+              camera.stream_url = url;
+              console.log(`Camera ${CameraId} URL: ${url}`);
+            }
+            console.log("Relay data processed successfully");
+          } else {
+            console.error(`Failed to receive relay data: ${relay_info.data}`); // Error message
           }
-          console.log("Relay data processed successfully");
-        } else {
-          console.error(`Failed to receive relay data: ${relay_info.data}`); // Error message
         }
-      }
-    );
+      );
+    }
 
     socket.on("disconnect", () => {
       console.log("Disconnected from Cloud server");
