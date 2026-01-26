@@ -33,8 +33,6 @@ import {
   Download,
   Search,
   Filter,
-  MapPin,
-  WifiOff,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { Profile, CameraConfig } from "@/types";
@@ -143,10 +141,36 @@ const recentEvents = [
 
 export default function VideoAnalyticsPage() {
   const router = useRouter();
-  const [selectedCamera, setSelectedCamera] = useState<number | undefined>();
+  const [selectedCamera, setSelectedCamera] = useState<number | undefined>(
+    () => {
+      try {
+        if (typeof window === "undefined") return undefined;
+        const saved = localStorage.getItem("videoAnalytics:selectedCamera");
+        if (!saved) return undefined;
+        const parsed = Number(saved);
+        return Number.isNaN(parsed) ? undefined : parsed;
+      } catch {
+        return undefined;
+      }
+    }
+  );
   const [isPlaying, setIsPlaying] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
+
+  // Persist selection
+  useEffect(() => {
+    try {
+      if (selectedCamera != null) {
+        localStorage.setItem(
+          "videoAnalytics:selectedCamera",
+          String(selectedCamera)
+        );
+      }
+    } catch {
+      // ignore
+    }
+  }, [selectedCamera]);
 
   // Fetch user profile
   useEffect(() => {
@@ -161,7 +185,7 @@ export default function VideoAnalyticsPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, organizations!inner(displayid)")
         .eq("id", user.id)
         .single();
 
@@ -208,9 +232,15 @@ export default function VideoAnalyticsPage() {
             })
           );
           setCameras(dbCameras);
-          if (dbCameras.length > 0 && !selectedCamera) {
-            setSelectedCamera(dbCameras[0].id);
-          }
+          setSelectedCamera((prev) => {
+            if (
+              prev != null &&
+              dbCameras.some((c: CameraConfig) => c.id === prev)
+            ) {
+              return prev;
+            }
+            return dbCameras[0]?.id;
+          });
         }
       } catch (err) {
         console.error("Error fetching cameras:", err);
@@ -218,7 +248,7 @@ export default function VideoAnalyticsPage() {
     };
 
     fetchCameras();
-  }, [profile, selectedCamera]);
+  }, [profile]);
 
   // Get selected camera
   const getSelectedCamera = () => {
@@ -309,22 +339,33 @@ export default function VideoAnalyticsPage() {
 
             {/* Video Player */}
             <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden mb-4">
-              <CameraFeed camera={getSelectedCamera()} />
-              {/* Overlay Info */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                <div className="px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded-lg text-white text-sm">
-                  <Clock className="w-3 h-3 inline mr-1" />
-                  {new Date().toLocaleTimeString()}
-                </div>
-                <div className="px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded-lg text-white text-sm">
-                  <MapPin className="w-3 h-3 inline mr-1" />
-                  {getSelectedCamera()?.name || "Unknown"}
-                </div>
-              </div>
+              {cameras.length === 0 ? (
+                <CameraFeed
+                  camera={undefined}
+                  orgDisplayId={profile?.organizations?.displayid}
+                />
+              ) : (
+                cameras.map((camera) => (
+                  <div
+                    key={camera.id}
+                    className={`absolute inset-0 transition-opacity duration-150 ${
+                      selectedCamera === camera.id
+                        ? "opacity-100"
+                        : "opacity-0 pointer-events-none"
+                    }`}
+                    aria-hidden={selectedCamera !== camera.id}
+                  >
+                    <CameraFeed
+                      camera={camera}
+                      orgDisplayId={profile?.organizations?.displayid}
+                    />
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Video Controls */}
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsPlaying(!isPlaying)}
@@ -347,7 +388,7 @@ export default function VideoAnalyticsPage() {
                   connected
                 </span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Camera Grid */}
@@ -367,7 +408,10 @@ export default function VideoAnalyticsPage() {
                   }`}
                 >
                   <div className="absolute inset-0 bg-gray-900">
-                    <CameraFeed camera={camera} />
+                    <CameraFeed
+                      camera={camera}
+                      orgDisplayId={profile?.organizations?.displayid}
+                    />
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 z-10">
                     <div className="flex items-center justify-between">
