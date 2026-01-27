@@ -61,3 +61,18 @@ export interface CameraConfig {
   organization_id: string | number;
   stream_url?: string;
 }
+
+export interface Snapshot {
+  id: string;
+  camera_id: number;
+  camera_name: string;
+  url: string;
+  organization_id: string;
+  created_at: string;
+}
+
+export interface CameraFolder {
+  camera: CameraConfig;
+  snapshotCount: number;
+  latestSnapshot?: Snapshot;
+}

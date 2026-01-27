@@ -30,8 +30,7 @@ export default function CameraFeed({
 
   // If it's a URL-based camera, show iframe or image
   if (camera.name) {
-    const stream_path = `${orgDisplayId}_${camera.name}`;
-    console.log("Stream path:", stream_path);
+    const stream_path = `${orgDisplayId ?? "000"}_${camera.name}`;
     // For all URLs (RTSP converted to HLS or HTTP streams, or others)
     return (
       <div className="relative w-full h-full bg-slate-900">

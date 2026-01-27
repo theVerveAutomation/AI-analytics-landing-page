@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import io from "socket.io-client";
 import {
   Camera,
@@ -29,12 +29,29 @@ import CameraFeed from "@/components/CameraFeed";
 
 export default function CameraSettingPage() {
   const router = useRouter();
-  const socket = io(
-    process.env.NEXT_PUBLIC_CLOUD_URL || "http://localhost:3001"
+  const socket = useMemo(
+    () =>
+      io(process.env.NEXT_PUBLIC_CLOUD_URL || "http://localhost:3001", {
+        transports: ["websocket"],
+        autoConnect: true,
+      }),
+    []
   );
 
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
-  const [selectedCameraId, setSelectedCameraId] = useState<number>();
+  const [selectedCameraId, setSelectedCameraId] = useState<number | undefined>(
+    () => {
+      try {
+        if (typeof window === "undefined") return undefined;
+        const saved = localStorage.getItem("cameraSettings:selectedCameraId");
+        if (!saved) return undefined;
+        const parsed = Number(saved);
+        return Number.isNaN(parsed) ? undefined : parsed;
+      } catch {
+        return undefined;
+      }
+    }
+  );
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showAddCameraModal, setShowAddCameraModal] = useState(false);
@@ -44,6 +61,20 @@ export default function CameraSettingPage() {
   const [editCameraName, setEditCameraName] = useState("");
   const [editCameraUrl, setEditCameraUrl] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Persist selection
+  useEffect(() => {
+    try {
+      if (selectedCameraId != null) {
+        localStorage.setItem(
+          "cameraSettings:selectedCameraId",
+          String(selectedCameraId)
+        );
+      }
+    } catch {
+      // ignore
+    }
+  }, [selectedCameraId]);
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
@@ -92,6 +123,15 @@ export default function CameraSettingPage() {
         console.log("Fetched cameras:", data);
         if (res.ok && Array.isArray(data.cameras)) {
           setCameras(data.cameras);
+          setSelectedCameraId((prev) => {
+            if (
+              prev != null &&
+              data.cameras.some((c: CameraConfig) => c.id === prev)
+            ) {
+              return prev;
+            }
+            return data.cameras[0]?.id;
+          });
         } else {
           console.error("Failed to fetch cameras:", data);
         }
@@ -106,9 +146,16 @@ export default function CameraSettingPage() {
   useEffect(() => {
     if (!profile || cameras.length === 0) return;
 
-    socket.on("connect", () => {
+    const handleConnect = () => {
       console.log("Connected to Cloud server via Socket.io");
-    });
+    };
+    const handleDisconnect = () => {
+      console.log("Disconnected from Cloud server");
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+
     for (const camera of cameras) {
       socket.emit("start_relay", {
         targetEdgeId: profile?.organizations?.displayid || "000",
@@ -134,13 +181,10 @@ export default function CameraSettingPage() {
     //   }
     // );
 
-    socket.on("disconnect", () => {
-      console.log("Disconnected from Cloud server");
-    });
-
-    // return () => {
-    //   socket.emit("stop_relay", { targetEdgeId: "org08", camId: "camera1" });
-    // };
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+    };
   }, [cameras, socket, profile]);
 
   function getSelectedCamera() {
@@ -219,12 +263,15 @@ export default function CameraSettingPage() {
         alert(data.error || "Failed to delete camera");
         return;
       }
-      setCameras((prev) => prev.filter((c) => c.id !== cameraId));
-      if (selectedCameraId === cameraId) {
-        setSelectedCameraId(cameras.find((c) => c.id !== cameraId)?.id);
-      }
+      setCameras((prev) => {
+        const next = prev.filter((c) => c.id !== cameraId);
+        if (selectedCameraId === cameraId) {
+          setSelectedCameraId(next[0]?.id);
+        }
+        return next;
+      });
       alert("Camera deleted successfully!");
-    } catch (err) {
+    } catch {
       alert("Failed to delete camera (network error)");
     }
   };
@@ -264,7 +311,7 @@ export default function CameraSettingPage() {
       setEditCameraName("");
       setEditCameraUrl("");
       alert("Camera updated successfully!");
-    } catch (err) {
+    } catch {
       alert("Failed to update camera (network error)");
     }
   };
@@ -428,11 +475,30 @@ export default function CameraSettingPage() {
           </div>
 
           {/* Large Preview */}
-          <div className="aspect-video bg-gray-900 dark:bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center mb-4">
-            <CameraFeed
-              camera={getSelectedCamera()}
-              orgDisplayId={profile?.organizations?.displayid}
-            />
+          <div className="aspect-video bg-gray-900 dark:bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center mb-4 relative">
+            {cameras.length === 0 ? (
+              <CameraFeed
+                camera={undefined}
+                orgDisplayId={profile?.organizations?.displayid}
+              />
+            ) : (
+              cameras.map((camera) => (
+                <div
+                  key={camera.id}
+                  className={`absolute inset-0 transition-opacity duration-150 ${
+                    selectedCameraId === camera.id
+                      ? "opacity-100"
+                      : "opacity-0 pointer-events-none"
+                  }`}
+                  aria-hidden={selectedCameraId !== camera.id}
+                >
+                  <CameraFeed
+                    camera={camera}
+                    orgDisplayId={profile?.organizations?.displayid}
+                  />
+                </div>
+              ))
+            )}
           </div>
 
           {/* Status Bar */}
@@ -640,8 +706,8 @@ export default function CameraSettingPage() {
       {/* Fullscreen Camera Modal */}
       {isFullscreen && getSelectedCamera() && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 bg-black/80">
+          {/* Header - absolute positioned over video */}
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent z-10">
             <div className="flex items-center gap-3">
               <Camera className="w-6 h-6 text-blue-400" />
               <span className="text-white font-semibold text-lg">
@@ -664,14 +730,24 @@ export default function CameraSettingPage() {
               Exit Fullscreen
             </button>
           </div>
-          {/* Camera Feed */}
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="w-full h-full max-w-7xl rounded-xl overflow-hidden bg-gray-900">
-              <CameraFeed
-                camera={getSelectedCamera()}
-                orgDisplayId={profile?.organizations?.displayid}
-              />
-            </div>
+          {/* Camera Feed - fills entire screen */}
+          <div className="absolute inset-0 w-full h-full">
+            {cameras.map((camera) => (
+              <div
+                key={camera.id}
+                className={`absolute inset-0 w-full h-full transition-opacity duration-150 ${
+                  selectedCameraId === camera.id
+                    ? "opacity-100"
+                    : "opacity-0 pointer-events-none"
+                }`}
+                aria-hidden={selectedCameraId !== camera.id}
+              >
+                <CameraFeed
+                  camera={camera}
+                  orgDisplayId={profile?.organizations?.displayid}
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}
