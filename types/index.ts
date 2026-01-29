@@ -69,6 +69,7 @@ export interface Snapshot {
   url: string;
   organization_id: string;
   created_at: string;
+  capture_method?: "time" | "door_crossing";
 }
 
 export interface CameraFolder {
