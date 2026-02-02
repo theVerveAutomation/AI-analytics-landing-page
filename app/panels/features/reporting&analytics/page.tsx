@@ -127,7 +127,7 @@ const metrics = [
   },
   {
     title: "Active Cameras",
-    value: "14/14",
+    value: "3/3",
     change: "100%",
     trend: "stable",
     icon: Camera,

@@ -114,7 +114,7 @@ export default function AlertsPage() {
     },
     {
       id: "face-recognition",
-      name: "Face Recognition",
+      name: "Human Recognition",
       description: "Alerts triggered when faces are recognized",
       icon: <UserCheck className="w-5 h-5" />,
       alertCount: 7,

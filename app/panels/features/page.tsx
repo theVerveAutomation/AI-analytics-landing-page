@@ -31,8 +31,8 @@ import {
 const stats = [
   {
     title: "Cameras Online",
-    value: "12",
-    subtitle: "of 14 total",
+    value: "3",
+    subtitle: "of 3 total",
     icon: Camera,
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-50 dark:bg-blue-900/30",
@@ -40,8 +40,8 @@ const stats = [
   },
   {
     title: "Alerts Today",
-    value: "47",
-    subtitle: "+12 from yesterday",
+    value: "0",
+    subtitle: "+0 from yesterday",
     icon: Bell,
     color: "text-amber-600 dark:text-amber-400",
     bg: "bg-amber-50 dark:bg-amber-900/30",
@@ -70,16 +70,16 @@ const stats = [
 const detectionsByType = [
   { name: "Object", value: 524, color: "#10b981" },
   { name: "Motion", value: 412, color: "#3b82f6" },
-  { name: "Face", value: 348, color: "#8b5cf6" },
+  { name: "Staff", value: 348, color: "#8b5cf6" },
 ];
 
 const hourlyDetections = [
-  { hour: "6AM", object: 12, motion: 8, face: 5 },
-  { hour: "9AM", object: 45, motion: 32, face: 28 },
-  { hour: "12PM", object: 78, motion: 65, face: 42 },
-  { hour: "3PM", object: 92, motion: 71, face: 55 },
-  { hour: "6PM", object: 68, motion: 52, face: 38 },
-  { hour: "9PM", object: 25, motion: 18, face: 12 },
+  { hour: "6AM", object: 0, motion: 0, Staff: 0 },
+  { hour: "9AM", object: 45, motion: 32, Staff: 28 },
+  { hour: "12PM", object: 78, motion: 65, Staff: 42 },
+  { hour: "3PM", object: 92, motion: 71, Staff: 55 },
+  { hour: "6PM", object: 68, motion: 52, Staff: 38 },
+  { hour: "9PM", object: 0, motion: 0, Staff: 0 },
 ];
 
 const recentAlerts = [
@@ -103,7 +103,7 @@ const recentAlerts = [
   },
   {
     id: 3,
-    type: "Face Recognition",
+    type: "Staff Recognition",
     message: "Unknown person identified at entrance",
     camera: "Cam 2",
     time: "15 min ago",
@@ -313,8 +313,8 @@ export default function DashboardPage() {
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
-                    dataKey="face"
-                    name="Face"
+                    dataKey="Staff"
+                    name="Staff"
                     fill="#8b5cf6"
                     radius={[4, 4, 0, 0]}
                   />
