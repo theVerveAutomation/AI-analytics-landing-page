@@ -41,16 +41,16 @@ import CameraFeed from "@/components/CameraFeed";
 const metrics = [
   {
     title: "Active Video Feeds",
-    value: "12/14",
-    change: "+2 today",
+    value: "3/3",
+    change: "+0 today",
     icon: Video,
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-50 dark:bg-blue-900/30",
   },
   {
     title: "Total Detections",
-    value: "1,247",
-    change: "+156 today",
+    value: "0",
+    change: "+0 today",
     icon: Eye,
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-50 dark:bg-blue-900/30",
