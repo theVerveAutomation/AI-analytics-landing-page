@@ -113,36 +113,6 @@ export const featureCategories: FeatureCategory[] = [
     ],
   },
   {
-    id: "vehicle",
-    name: "Vehicle & Traffic Management",
-    features: [
-      {
-        title: "License Plate Recognition (LPR/ANPR)",
-        useCase: "Validate vehicles in reserved parking or link vehicles to incidents.",
-      },
-      {
-        title: "License Plate Validation & Gate Control",
-        useCase: "Gate opens only for registered vendors or customers.",
-      },
-      {
-        title: "Parking Space Detection",
-        useCase: "Feed to digital signage for 'spaces available.'",
-      },
-      {
-        title: "Speed Detection",
-        useCase: "Detect speeding in a drive-through or parking lot.",
-      },
-      {
-        title: "Direction Detection",
-        useCase: "Detect shoppers leaving via an entrance-only door.",
-      },
-      {
-        title: "Vehicle Classification",
-        useCase: "Separate delivery trucks from customer cars.",
-      },
-    ],
-  },
-  {
     id: "safety",
     name: "Safety & Identity",
     features: [

@@ -84,19 +84,10 @@ const hourlyDetections = [
 
 const recentAlerts = [
   {
-    id: 1,
-    type: "Object Detection",
-    message: "Unauthorized vehicle detected at Main Gate",
-    camera: "Cam 1",
-    time: "2 min ago",
-    severity: "high",
-    icon: Eye,
-  },
-  {
     id: 2,
     type: "Motion Detection",
     message: "Movement detected in restricted area",
-    camera: "Cam 4",
+    camera: "Cam 1",
     time: "8 min ago",
     severity: "medium",
     icon: Activity,
@@ -114,7 +105,7 @@ const recentAlerts = [
     id: 4,
     type: "Motion Detection",
     message: "Activity detected after hours",
-    camera: "Cam 7",
+    camera: "Cam 3",
     time: "32 min ago",
     severity: "low",
     icon: Activity,
@@ -123,11 +114,8 @@ const recentAlerts = [
 
 const cameraStatus = [
   { id: 1, name: "Main Entrance", status: "online", detections: 145 },
-  { id: 2, name: "Parking Lot A", status: "online", detections: 89 },
-  { id: 3, name: "Server Room", status: "online", detections: 23 },
-  { id: 4, name: "Back Gate", status: "offline", detections: 0 },
-  { id: 5, name: "Warehouse", status: "online", detections: 67 },
-  { id: 6, name: "Reception", status: "online", detections: 234 },
+  { id: 2, name: "Server Room", status: "online", detections: 23 },
+  { id: 3, name: "Office Area", status: "online", detections: 0 },
 ];
 
 export default function DashboardPage() {

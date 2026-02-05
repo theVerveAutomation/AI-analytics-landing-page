@@ -57,9 +57,6 @@ const cameraPerformance = [
   { camera: "Cam 1", uptime: 99.8, detections: 234, alerts: 12 },
   { camera: "Cam 2", uptime: 98.5, detections: 189, alerts: 8 },
   { camera: "Cam 3", uptime: 100, detections: 156, alerts: 5 },
-  { camera: "Cam 4", uptime: 97.2, detections: 201, alerts: 15 },
-  { camera: "Cam 5", uptime: 99.1, detections: 178, alerts: 9 },
-  { camera: "Cam 6", uptime: 99.6, detections: 212, alerts: 11 },
 ];
 
 const hourlyActivityData = [

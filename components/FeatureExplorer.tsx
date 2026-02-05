@@ -4,7 +4,7 @@ import {
   Shield,
   ShoppingCart,
   AlertTriangle,
-  Car,
+  // ...existing code...
   UserCheck,
 } from "lucide-react";
 import FeatureCard from "./FeatureCard";
@@ -14,7 +14,7 @@ const categoryIcons = {
   security: Shield,
   retail: ShoppingCart,
   theft: AlertTriangle,
-  vehicle: Car,
+  // ...existing code...
   safety: UserCheck,
 };
 

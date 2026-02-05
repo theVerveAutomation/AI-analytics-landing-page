@@ -59,8 +59,7 @@ export default function AlertsPage() {
           timestamp: "2 min ago",
           camera: "Cam 1 - Main Entrance",
           location: "Building A - Front Gate",
-          description:
-            "Unauthorized vehicle detected in restricted zone. A white sedan was identified entering the premises without proper authorization badge.",
+          description: "Suspicious package detected near entrance.",
           imageUrl: "/placeholder-alert-1.jpg",
         },
         {
