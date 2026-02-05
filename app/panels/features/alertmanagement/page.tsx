@@ -16,131 +16,114 @@ import {
   Camera,
   MapPin,
 } from "lucide-react";
+import { FeatureAlert } from "@/types";
 
 type AlertChannel = "whatsapp" | "telegram" | null;
 
-interface AlertDetail {
-  id: string;
-  timestamp: string;
-  camera: string;
-  location: string;
-  description: string;
-  imageUrl: string;
-}
-
-interface FeatureAlert {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  alertCount: number;
-  color: string;
-  lastAlert: string;
-  recentAlerts: AlertDetail[];
-}
+const featureAlertsData: FeatureAlert[] = [
+  {
+    id: "object-detection",
+    name: "Object Detection",
+    description: "Alerts triggered when specific objects are detected",
+    icon: <Eye className="w-5 h-5" />,
+    alertCount: 24,
+    color: "blue",
+    lastAlert: "2 min ago",
+    recentAlerts: [
+      {
+        id: "od-1",
+        timestamp: "2 min ago",
+        camera: "Cam 1 - Main Entrance",
+        location: "Building A - Front Gate",
+        description: "Suspicious package detected near entrance.",
+        imageUrl: "/placeholder-alert-1.jpg",
+      },
+      {
+        id: "od-2",
+        timestamp: "15 min ago",
+        camera: "Cam 3 - Parking Lot",
+        location: "Building A - Parking Area",
+        description:
+          "Unattended package detected near entrance. Security team has been notified for inspection.",
+        imageUrl: "/placeholder-alert-2.jpg",
+      },
+      {
+        id: "od-3",
+        timestamp: "1 hour ago",
+        camera: "Cam 5 - Warehouse",
+        location: "Building B - Storage",
+        description:
+          "Forklift operating in restricted hours. Equipment movement detected outside scheduled time.",
+        imageUrl: "/placeholder-alert-3.jpg",
+      },
+    ],
+  },
+  {
+    id: "motion-detection",
+    name: "Motion Detection",
+    description: "Alerts triggered when motion is detected",
+    icon: <Activity className="w-5 h-5" />,
+    alertCount: 18,
+    color: "cyan",
+    lastAlert: "5 min ago",
+    recentAlerts: [
+      {
+        id: "md-1",
+        timestamp: "5 min ago",
+        camera: "Cam 2 - Back Door",
+        location: "Building A - Rear Exit",
+        description:
+          "Motion detected in restricted area after hours. Movement pattern suggests human activity near emergency exit.",
+        imageUrl: "/placeholder-alert-4.jpg",
+      },
+      {
+        id: "md-2",
+        timestamp: "20 min ago",
+        camera: "Cam 4 - Server Room",
+        location: "Building C - IT Department",
+        description:
+          "Unexpected motion in server room. Access log shows no scheduled maintenance.",
+        imageUrl: "/placeholder-alert-5.jpg",
+      },
+    ],
+  },
+  {
+    id: "face-recognition",
+    name: "Human Recognition",
+    description: "Alerts triggered when faces are recognized",
+    icon: <UserCheck className="w-5 h-5" />,
+    alertCount: 7,
+    color: "purple",
+    lastAlert: "12 min ago",
+    recentAlerts: [
+      {
+        id: "fr-1",
+        timestamp: "12 min ago",
+        camera: "Cam 1 - Main Entrance",
+        location: "Building A - Reception",
+        description:
+          "Unknown person detected attempting entry. Face not matching any registered employee or visitor database.",
+        imageUrl: "/placeholder-alert-6.jpg",
+      },
+      {
+        id: "fr-2",
+        timestamp: "45 min ago",
+        camera: "Cam 6 - Executive Floor",
+        location: "Building A - Floor 5",
+        description:
+          "Employee John Smith recognized outside authorized hours. Last scheduled shift ended at 6:00 PM.",
+        imageUrl: "/placeholder-alert-7.jpg",
+      },
+    ],
+  },
+];
 
 export default function AlertsPage() {
   const [selectedChannel, setSelectedChannel] = useState<AlertChannel>(null);
   const [selectedFeature, setSelectedFeature] = useState<FeatureAlert | null>(
     null
   );
-  const [featureAlerts] = useState<FeatureAlert[]>([
-    {
-      id: "object-detection",
-      name: "Object Detection",
-      description: "Alerts triggered when specific objects are detected",
-      icon: <Eye className="w-5 h-5" />,
-      alertCount: 24,
-      color: "blue",
-      lastAlert: "2 min ago",
-      recentAlerts: [
-        {
-          id: "od-1",
-          timestamp: "2 min ago",
-          camera: "Cam 1 - Main Entrance",
-          location: "Building A - Front Gate",
-          description: "Suspicious package detected near entrance.",
-          imageUrl: "/placeholder-alert-1.jpg",
-        },
-        {
-          id: "od-2",
-          timestamp: "15 min ago",
-          camera: "Cam 3 - Parking Lot",
-          location: "Building A - Parking Area",
-          description:
-            "Unattended package detected near entrance. Security team has been notified for inspection.",
-          imageUrl: "/placeholder-alert-2.jpg",
-        },
-        {
-          id: "od-3",
-          timestamp: "1 hour ago",
-          camera: "Cam 5 - Warehouse",
-          location: "Building B - Storage",
-          description:
-            "Forklift operating in restricted hours. Equipment movement detected outside scheduled time.",
-          imageUrl: "/placeholder-alert-3.jpg",
-        },
-      ],
-    },
-    {
-      id: "motion-detection",
-      name: "Motion Detection",
-      description: "Alerts triggered when motion is detected",
-      icon: <Activity className="w-5 h-5" />,
-      alertCount: 18,
-      color: "cyan",
-      lastAlert: "5 min ago",
-      recentAlerts: [
-        {
-          id: "md-1",
-          timestamp: "5 min ago",
-          camera: "Cam 2 - Back Door",
-          location: "Building A - Rear Exit",
-          description:
-            "Motion detected in restricted area after hours. Movement pattern suggests human activity near emergency exit.",
-          imageUrl: "/placeholder-alert-4.jpg",
-        },
-        {
-          id: "md-2",
-          timestamp: "20 min ago",
-          camera: "Cam 4 - Server Room",
-          location: "Building C - IT Department",
-          description:
-            "Unexpected motion in server room. Access log shows no scheduled maintenance.",
-          imageUrl: "/placeholder-alert-5.jpg",
-        },
-      ],
-    },
-    {
-      id: "face-recognition",
-      name: "Human Recognition",
-      description: "Alerts triggered when faces are recognized",
-      icon: <UserCheck className="w-5 h-5" />,
-      alertCount: 7,
-      color: "purple",
-      lastAlert: "12 min ago",
-      recentAlerts: [
-        {
-          id: "fr-1",
-          timestamp: "12 min ago",
-          camera: "Cam 1 - Main Entrance",
-          location: "Building A - Reception",
-          description:
-            "Unknown person detected attempting entry. Face not matching any registered employee or visitor database.",
-          imageUrl: "/placeholder-alert-6.jpg",
-        },
-        {
-          id: "fr-2",
-          timestamp: "45 min ago",
-          camera: "Cam 6 - Executive Floor",
-          location: "Building A - Floor 5",
-          description:
-            "Employee John Smith recognized outside authorized hours. Last scheduled shift ended at 6:00 PM.",
-          imageUrl: "/placeholder-alert-7.jpg",
-        },
-      ],
-    },
-  ]);
+  const [featureAlerts] = useState<FeatureAlert[]>(featureAlertsData);
 
   function selectChannel(channel: AlertChannel) {
     setSelectedChannel(channel);
@@ -200,25 +183,8 @@ export default function AlertsPage() {
           </div>
         </div>
         <p className="text-gray-600 dark:text-gray-400 ml-15">
-          Configure how you want to receive real-time authentication
-          notifications
+          Configure how you want to receive real-time notifications
         </p>
-      </div>
-
-      {/* Info Banner */}
-      <div className="bg-gradient-to-r from-cyan-50 to-indigo-50 dark:from-cyan-900/20 dark:to-indigo-900/20 border border-cyan-200 dark:border-cyan-800 rounded-2xl p-5 mb-8">
-        <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-cyan-600 dark:text-cyan-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <h3 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-1">
-              Stay Connected
-            </h3>
-            <p className="text-sm text-cyan-700 dark:text-cyan-300">
-              Get instant notifications when employees check in or out, helping
-              you monitor attendance in real-time.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Feature Alerts Section */}

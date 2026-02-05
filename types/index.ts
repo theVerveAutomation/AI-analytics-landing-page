@@ -77,3 +77,23 @@ export interface CameraFolder {
   snapshotCount: number;
   latestSnapshot?: Snapshot;
 }
+
+export interface AlertDetail {
+  id: string;
+  timestamp: string;
+  camera: string;
+  location: string;
+  description: string;
+  imageUrl: string;
+}
+
+export interface FeatureAlert {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  alertCount: number;
+  color: string;
+  lastAlert: string;
+  recentAlerts: AlertDetail[];
+}
