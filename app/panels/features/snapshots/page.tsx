@@ -21,6 +21,7 @@ import {
   Folder,
   FolderOpen,
   ArrowLeft,
+  Filter,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { Profile, CameraConfig, Snapshot, CameraFolder } from "@/types";
@@ -48,6 +49,9 @@ export default function SnapshotPage() {
   // Filters (only for snapshots view)
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<
+    "all" | "time" | "door_crossing"
+  >("all");
 
   // Preview
   const [selectedSnapshot, setSelectedSnapshot] = useState<Snapshot | null>(
@@ -188,12 +192,17 @@ export default function SnapshotPage() {
       filtered = filtered.filter((s) => s.created_at.startsWith(dateFilter));
     }
 
+    // Type filter
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((s) => s.capture_method === typeFilter);
+    }
+
     // Sort by date (newest first)
     return filtered.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  }, [snapshots, selectedCameraId, searchQuery, dateFilter]);
+  }, [snapshots, selectedCameraId, searchQuery, dateFilter, typeFilter]);
 
   // Get selected camera name
   const selectedCameraName = useMemo(() => {
@@ -230,6 +239,7 @@ export default function SnapshotPage() {
     setSelectedFolder(null);
     setSearchQuery("");
     setDateFilter("");
+    setTypeFilter("all");
   };
 
   // Go back to folders view
@@ -240,6 +250,7 @@ export default function SnapshotPage() {
     setSelectedFolder(null);
     setSearchQuery("");
     setDateFilter("");
+    setTypeFilter("all");
   };
 
   // Delete snapshot handler
@@ -450,10 +461,12 @@ export default function SnapshotPage() {
                       Latest Snapshot
                     </p>
                     <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-900">
-                      <img
+                      <Image
                         src={selectedFolder.latestSnapshot.url}
                         alt="Latest snapshot preview"
                         className="w-full h-full object-cover"
+                        width={640}
+                        height={360}
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                         <p className="text-white text-xs flex items-center gap-1">
@@ -576,12 +589,31 @@ export default function SnapshotPage() {
                 />
               </div>
 
+              {/* Type Filter */}
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-gray-400" />
+                <select
+                  value={typeFilter}
+                  onChange={(e) =>
+                    setTypeFilter(
+                      e.target.value as "all" | "time" | "door_crossing"
+                    )
+                  }
+                  className="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                >
+                  <option value="all">All Types</option>
+                  <option value="time">Time</option>
+                  <option value="door_crossing">Door Crossing</option>
+                </select>
+              </div>
+
               {/* Clear Filters */}
-              {(searchQuery || dateFilter) && (
+              {(searchQuery || dateFilter || typeFilter !== "all") && (
                 <button
                   onClick={() => {
                     setSearchQuery("");
                     setDateFilter("");
+                    setTypeFilter("all");
                   }}
                   className="px-4 py-2.5 rounded-lg bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
                 >
