@@ -36,16 +36,19 @@ export interface Product {
 
 export interface Organization {
   id: string;
-  name: string;
+  name?: string;
   displayid?: string;
-  description?: string;
   address?: string;
-  contact_email?: string;
+  email?: string;
   contact_phone?: string;
   logo_url?: string;
   created_at: string;
   user_count?: number;
+  alerts?: AlertType[];
 }
+
+// Alert types for organization notifications
+export type AlertType = "SMS" | "WHATSAPP" | "WECHAT" | "TELEGRAM";
 
 export interface CameraConfig {
   id: number;
@@ -76,4 +79,24 @@ export interface CameraFolder {
   camera: CameraConfig;
   snapshotCount: number;
   latestSnapshot?: Snapshot;
+}
+
+export interface AlertDetail {
+  id: string;
+  timestamp: string;
+  camera: string;
+  location: string;
+  description: string;
+  imageUrl: string;
+}
+
+export interface FeatureAlert {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  alertCount: number;
+  color: string;
+  lastAlert: string;
+  recentAlerts: AlertDetail[];
 }

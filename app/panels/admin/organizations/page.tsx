@@ -88,11 +88,10 @@ export default function OrganizationManagementPage() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (org) =>
+        (org: Organization) =>
           org.name?.toLowerCase().includes(query) ||
           org.displayid?.toLowerCase().includes(query) ||
-          org.contact_email?.toLowerCase().includes(query) ||
-          org.description?.toLowerCase().includes(query)
+          org.email?.toLowerCase().includes(query)
       );
     }
 
@@ -124,6 +123,7 @@ export default function OrganizationManagementPage() {
     setOrganizations((prev) => prev.filter((o) => o.id !== id));
   }
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex justify-center items-center">
@@ -230,7 +230,7 @@ export default function OrganizationManagementPage() {
                     With Contact Info
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    {organizations.filter((o) => o.contact_email).length}
+                    {organizations.filter((o) => o.email).length}
                   </p>
                 </div>
               </div>
@@ -261,10 +261,11 @@ export default function OrganizationManagementPage() {
             <table className="w-full">
               <thead className="bg-slate-800/50 border-b border-slate-700">
                 <tr className="text-left text-sm font-semibold text-slate-300">
-                  <th className="p-4">Organization</th>
                   <th className="p-4">Display ID</th>
+                  <th className="p-4">Organization</th>
                   <th className="p-4">Contact</th>
                   <th className="p-4">Users</th>
+                  <th className="p-4">Alerts</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -282,39 +283,32 @@ export default function OrganizationManagementPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredOrgs.map((org) => (
+                  filteredOrgs.map((org: Organization) => (
                     <tr
                       key={org.id}
                       className="hover:bg-slate-800/30 transition-colors"
                     >
                       <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-100 rounded-lg flex items-center justify-center border-2 border-blue-200">
-                            <Building2 className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-white">
-                              {org.name}
-                            </p>
-                            {org.description && (
-                              <p className="text-sm text-slate-400 truncate max-w-xs">
-                                {org.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="px-3 py-1 bg-primary/20 text-primary border border-primary/30 font-mono text-sm rounded-full font-semibold">
+                        <span className="px-3 py-1 text-primary font-mono text-sm rounded-full font-semibold">
                           {org.displayid || "N/A"}
                         </span>
                       </td>
                       <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <p className="font-semibold text-white">
+                              {org.name}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="p-4">
                         <div className="space-y-1">
-                          {org.contact_email && (
+                          {org.email && (
                             <p className="text-sm text-slate-300 flex items-center gap-1">
                               <Mail className="w-3 h-3" />
-                              {org.contact_email}
+                              {org.email}
                             </p>
                           )}
                           {org.contact_phone && (
@@ -329,13 +323,11 @@ export default function OrganizationManagementPage() {
                               {org.address}
                             </p>
                           )}
-                          {!org.contact_email &&
-                            !org.contact_phone &&
-                            !org.address && (
-                              <p className="text-sm text-slate-500">
-                                No contact info
-                              </p>
-                            )}
+                          {!org.email && !org.contact_phone && !org.address && (
+                            <p className="text-sm text-slate-500">
+                              No contact info
+                            </p>
+                          )}
                         </div>
                       </td>
                       <td className="p-4">
@@ -343,6 +335,12 @@ export default function OrganizationManagementPage() {
                           {org.user_count || 0} users
                         </span>
                       </td>
+                      <td className="p-4">
+                        <span className="px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded-full text-sm font-semibold">
+                          {org.alerts?.length || 0} Alerts enabled
+                        </span>
+                      </td>
+
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
                           <button
@@ -356,7 +354,7 @@ export default function OrganizationManagementPage() {
                           <button
                             className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:scale-110"
                             title="Delete Organization"
-                            onClick={() => deleteOrganization(org.id)}
+                            onClick={() => org.id && deleteOrganization(org.id)}
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>

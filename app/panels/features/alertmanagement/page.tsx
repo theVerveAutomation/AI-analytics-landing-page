@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MessageCircle,
   Send,
@@ -16,135 +16,249 @@ import {
   Camera,
   MapPin,
 } from "lucide-react";
+import { FeatureAlert, AlertType, Profile } from "@/types";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
+import PhoneNumberManager from "@/components/PhoneNumberManager";
 
 type AlertChannel = "whatsapp" | "telegram" | null;
 
-interface AlertDetail {
-  id: string;
-  timestamp: string;
-  camera: string;
-  location: string;
-  description: string;
-  imageUrl: string;
-}
-
-interface FeatureAlert {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  alertCount: number;
-  color: string;
-  lastAlert: string;
-  recentAlerts: AlertDetail[];
-}
+const featureAlertsData: FeatureAlert[] = [
+  {
+    id: "object-detection",
+    name: "Object Detection",
+    description: "Alerts triggered when specific objects are detected",
+    icon: <Eye className="w-5 h-5" />,
+    alertCount: 24,
+    color: "blue",
+    lastAlert: "2 min ago",
+    recentAlerts: [
+      {
+        id: "od-1",
+        timestamp: "2 min ago",
+        camera: "Cam 1 - Main Entrance",
+        location: "Building A - Front Gate",
+        description: "Suspicious package detected near entrance.",
+        imageUrl: "/placeholder-alert-1.jpg",
+      },
+      {
+        id: "od-2",
+        timestamp: "15 min ago",
+        camera: "Cam 3 - Parking Lot",
+        location: "Building A - Parking Area",
+        description:
+          "Unattended package detected near entrance. Security team has been notified for inspection.",
+        imageUrl: "/placeholder-alert-2.jpg",
+      },
+      {
+        id: "od-3",
+        timestamp: "1 hour ago",
+        camera: "Cam 5 - Warehouse",
+        location: "Building B - Storage",
+        description:
+          "Forklift operating in restricted hours. Equipment movement detected outside scheduled time.",
+        imageUrl: "/placeholder-alert-3.jpg",
+      },
+    ],
+  },
+  {
+    id: "motion-detection",
+    name: "Motion Detection",
+    description: "Alerts triggered when motion is detected",
+    icon: <Activity className="w-5 h-5" />,
+    alertCount: 18,
+    color: "cyan",
+    lastAlert: "5 min ago",
+    recentAlerts: [
+      {
+        id: "md-1",
+        timestamp: "5 min ago",
+        camera: "Cam 2 - Back Door",
+        location: "Building A - Rear Exit",
+        description:
+          "Motion detected in restricted area after hours. Movement pattern suggests human activity near emergency exit.",
+        imageUrl: "/placeholder-alert-4.jpg",
+      },
+      {
+        id: "md-2",
+        timestamp: "20 min ago",
+        camera: "Cam 4 - Server Room",
+        location: "Building C - IT Department",
+        description:
+          "Unexpected motion in server room. Access log shows no scheduled maintenance.",
+        imageUrl: "/placeholder-alert-5.jpg",
+      },
+    ],
+  },
+  {
+    id: "face-recognition",
+    name: "Human Recognition",
+    description: "Alerts triggered when faces are recognized",
+    icon: <UserCheck className="w-5 h-5" />,
+    alertCount: 7,
+    color: "purple",
+    lastAlert: "12 min ago",
+    recentAlerts: [
+      {
+        id: "fr-1",
+        timestamp: "12 min ago",
+        camera: "Cam 1 - Main Entrance",
+        location: "Building A - Reception",
+        description:
+          "Unknown person detected attempting entry. Face not matching any registered employee or visitor database.",
+        imageUrl: "/placeholder-alert-6.jpg",
+      },
+      {
+        id: "fr-2",
+        timestamp: "45 min ago",
+        camera: "Cam 6 - Executive Floor",
+        location: "Building A - Floor 5",
+        description:
+          "Employee John Smith recognized outside authorized hours. Last scheduled shift ended at 6:00 PM.",
+        imageUrl: "/placeholder-alert-7.jpg",
+      },
+    ],
+  },
+];
 
 export default function AlertsPage() {
+  const router = useRouter();
   const [selectedChannel, setSelectedChannel] = useState<AlertChannel>(null);
   const [selectedFeature, setSelectedFeature] = useState<FeatureAlert | null>(
     null
   );
-  const [featureAlerts] = useState<FeatureAlert[]>([
+  const [featureAlerts] = useState<FeatureAlert[]>(featureAlertsData);
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile>();
+  const [selectedPlatform, setSelectedPlatform] = useState<AlertType | null>(
+    null
+  );
+  const [phoneNumbers, setPhoneNumbers] = useState<Record<AlertType, string[]>>(
     {
-      id: "object-detection",
-      name: "Object Detection",
-      description: "Alerts triggered when specific objects are detected",
-      icon: <Eye className="w-5 h-5" />,
-      alertCount: 24,
-      color: "blue",
-      lastAlert: "2 min ago",
-      recentAlerts: [
-        {
-          id: "od-1",
-          timestamp: "2 min ago",
-          camera: "Cam 1 - Main Entrance",
-          location: "Building A - Front Gate",
-          description: "Suspicious package detected near entrance.",
-          imageUrl: "/placeholder-alert-1.jpg",
-        },
-        {
-          id: "od-2",
-          timestamp: "15 min ago",
-          camera: "Cam 3 - Parking Lot",
-          location: "Building A - Parking Area",
-          description:
-            "Unattended package detected near entrance. Security team has been notified for inspection.",
-          imageUrl: "/placeholder-alert-2.jpg",
-        },
-        {
-          id: "od-3",
-          timestamp: "1 hour ago",
-          camera: "Cam 5 - Warehouse",
-          location: "Building B - Storage",
-          description:
-            "Forklift operating in restricted hours. Equipment movement detected outside scheduled time.",
-          imageUrl: "/placeholder-alert-3.jpg",
-        },
-      ],
-    },
-    {
-      id: "motion-detection",
-      name: "Motion Detection",
-      description: "Alerts triggered when motion is detected",
-      icon: <Activity className="w-5 h-5" />,
-      alertCount: 18,
-      color: "cyan",
-      lastAlert: "5 min ago",
-      recentAlerts: [
-        {
-          id: "md-1",
-          timestamp: "5 min ago",
-          camera: "Cam 2 - Back Door",
-          location: "Building A - Rear Exit",
-          description:
-            "Motion detected in restricted area after hours. Movement pattern suggests human activity near emergency exit.",
-          imageUrl: "/placeholder-alert-4.jpg",
-        },
-        {
-          id: "md-2",
-          timestamp: "20 min ago",
-          camera: "Cam 4 - Server Room",
-          location: "Building C - IT Department",
-          description:
-            "Unexpected motion in server room. Access log shows no scheduled maintenance.",
-          imageUrl: "/placeholder-alert-5.jpg",
-        },
-      ],
-    },
-    {
-      id: "face-recognition",
-      name: "Human Recognition",
-      description: "Alerts triggered when faces are recognized",
-      icon: <UserCheck className="w-5 h-5" />,
-      alertCount: 7,
-      color: "purple",
-      lastAlert: "12 min ago",
-      recentAlerts: [
-        {
-          id: "fr-1",
-          timestamp: "12 min ago",
-          camera: "Cam 1 - Main Entrance",
-          location: "Building A - Reception",
-          description:
-            "Unknown person detected attempting entry. Face not matching any registered employee or visitor database.",
-          imageUrl: "/placeholder-alert-6.jpg",
-        },
-        {
-          id: "fr-2",
-          timestamp: "45 min ago",
-          camera: "Cam 6 - Executive Floor",
-          location: "Building A - Floor 5",
-          description:
-            "Employee John Smith recognized outside authorized hours. Last scheduled shift ended at 6:00 PM.",
-          imageUrl: "/placeholder-alert-7.jpg",
-        },
-      ],
-    },
-  ]);
+      SMS: [],
+      WHATSAPP: [],
+      WECHAT: [],
+      TELEGRAM: [],
+    }
+  );
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchUserAndProfile = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
+      if (!user) {
+        router.push("/Login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*, organizations!inner(id, alerts)")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile) {
+        router.push("/Login");
+        return;
+      }
+
+      // Fetch phone numbers from organization_alert_numbers table
+      const { data: alertNumbers } = await supabase
+        .from("organization_alert_numbers")
+        .select("phone_number, alert_type")
+        .eq("org_id", profile.organizations.id);
+
+      // Group phone numbers by alert type
+      const groupedNumbers = {
+        SMS: [],
+        WHATSAPP: [],
+        WECHAT: [],
+        TELEGRAM: [],
+      } as Record<AlertType, string[]>;
+
+      alertNumbers?.forEach(({ phone_number, alert_type }) => {
+        if (groupedNumbers[alert_type as AlertType]) {
+          groupedNumbers[alert_type as AlertType].push(phone_number);
+        }
+      });
+
+      setProfile(profile);
+      setPhoneNumbers(groupedNumbers);
+      setLoading(false);
+    };
+    fetchUserAndProfile();
+  }, [router]);
 
   function selectChannel(channel: AlertChannel) {
     setSelectedChannel(channel);
   }
+
+  const addPhoneNumber = (platform: AlertType, phoneNumber: string) => {
+    if (
+      phoneNumber.trim() &&
+      !phoneNumbers[platform].includes(phoneNumber.trim())
+    ) {
+      setPhoneNumbers((prev) => ({
+        ...prev,
+        [platform]: [...prev[platform], phoneNumber.trim()],
+      }));
+    }
+  };
+
+  const removePhoneNumber = (platform: AlertType, index: number) => {
+    setPhoneNumbers((prev) => ({
+      ...prev,
+      [platform]: prev[platform].filter((_, i) => i !== index),
+    }));
+  };
+
+  const savePhoneNumbers = async () => {
+    if (!profile?.organizations?.id) return;
+
+    setSaving(true);
+    try {
+      const orgId = profile.organizations.id;
+
+      // Delete existing numbers for this platform
+      const { error: deleteError } = await supabase
+        .from("organization_alert_numbers")
+        .delete()
+        .eq("org_id", orgId)
+        .eq("alert_type", selectedPlatform);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      // Insert new numbers if any
+      if (phoneNumbers[selectedPlatform!].length > 0) {
+        const numbersToInsert = phoneNumbers[selectedPlatform!].map(
+          (phoneNumber) => ({
+            org_id: orgId,
+            phone_number: phoneNumber,
+            alert_type: selectedPlatform,
+          })
+        );
+
+        const { error: insertError } = await supabase
+          .from("organization_alert_numbers")
+          .insert(numbersToInsert);
+
+        if (insertError) {
+          throw insertError;
+        }
+      }
+
+      setSelectedPlatform(null);
+    } catch (error) {
+      console.error("Error saving phone numbers:", error);
+      // You might want to show a toast notification here
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const getColorClasses = (color: string) => {
     switch (color) {
@@ -183,6 +297,47 @@ export default function AlertsPage() {
     }
   };
 
+  const getAlertConfig = (type: AlertType) => {
+    switch (type) {
+      case "SMS":
+        return {
+          icon: MessageCircle,
+          activeColors:
+            "from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200 dark:border-blue-700",
+          iconBg: "bg-blue-500",
+          textColors: "text-blue-800 dark:text-blue-200",
+          statusColors: "text-blue-600 dark:text-blue-300",
+        };
+      case "WHATSAPP":
+        return {
+          icon: MessageCircle,
+          activeColors:
+            "from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 border-green-200 dark:border-green-700",
+          iconBg: "bg-green-500",
+          textColors: "text-green-800 dark:text-green-200",
+          statusColors: "text-green-600 dark:text-green-300",
+        };
+      case "WECHAT":
+        return {
+          icon: MessageCircle,
+          activeColors:
+            "from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-purple-200 dark:border-purple-700",
+          iconBg: "bg-purple-500",
+          textColors: "text-purple-800 dark:text-purple-200",
+          statusColors: "text-purple-600 dark:text-purple-300",
+        };
+      case "TELEGRAM":
+        return {
+          icon: Send,
+          activeColors:
+            "from-cyan-50 to-cyan-100 dark:from-cyan-900/30 dark:to-cyan-800/30 border-cyan-200 dark:border-cyan-700",
+          iconBg: "bg-cyan-500",
+          textColors: "text-cyan-800 dark:text-cyan-200",
+          statusColors: "text-cyan-600 dark:text-cyan-300",
+        };
+    }
+  };
+
   const totalAlerts = featureAlerts.reduce((sum, f) => sum + f.alertCount, 0);
 
   return (
@@ -200,26 +355,205 @@ export default function AlertsPage() {
           </div>
         </div>
         <p className="text-gray-600 dark:text-gray-400 ml-15">
-          Configure how you want to receive real-time authentication
-          notifications
+          Configure how you want to receive real-time notifications
         </p>
       </div>
 
-      {/* Info Banner */}
-      <div className="bg-gradient-to-r from-cyan-50 to-indigo-50 dark:from-cyan-900/20 dark:to-indigo-900/20 border border-cyan-200 dark:border-cyan-800 rounded-2xl p-5 mb-8">
-        <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-cyan-600 dark:text-cyan-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <h3 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-1">
-              Stay Connected
-            </h3>
-            <p className="text-sm text-cyan-700 dark:text-cyan-300">
-              Get instant notifications when employees check in or out, helping
-              you monitor attendance in real-time.
-            </p>
+      {/* Organization Alert Status */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-lg mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                Organization Alert Status
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Current alert types enabled for your organization
+              </p>
+            </div>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {loading
+            ? // Loading skeleton
+              Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 animate-pulse"
+                >
+                  <div className="w-10 h-10 bg-gray-300 dark:bg-slate-600 rounded-lg"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-300 dark:bg-slate-600 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-300 dark:bg-slate-600 rounded w-16"></div>
+                  </div>
+                </div>
+              ))
+            : (["SMS", "WHATSAPP", "WECHAT", "TELEGRAM"] as AlertType[]).map(
+                (alertType) => {
+                  const isActive =
+                    profile?.organizations?.alerts?.includes(alertType) ||
+                    false;
+                  const config = getAlertConfig(alertType);
+                  const IconComponent = config.icon;
+
+                  return (
+                    <div
+                      key={alertType}
+                      onClick={() => isActive && setSelectedPlatform(alertType)}
+                      className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-200 relative ${
+                        isActive
+                          ? `bg-gradient-to-br ${config.activeColors} cursor-pointer hover:shadow-md hover:-translate-y-0.5`
+                          : "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700/50 dark:to-slate-600/50 border-gray-200 dark:border-slate-600"
+                      }`}
+                    >
+                      {isActive && (
+                        <div className="absolute top-2 right-2 text-xs px-2 py-1 bg-white/20 rounded-full text-gray-600 dark:text-gray-300">
+                          Configure
+                        </div>
+                      )}
+                      <div
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-md ${
+                          isActive
+                            ? config.iconBg
+                            : "bg-gray-400 dark:bg-slate-500"
+                        }`}
+                      >
+                        <IconComponent className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3
+                          className={`font-semibold ${
+                            isActive
+                              ? config.textColors
+                              : "text-gray-600 dark:text-gray-300"
+                          }`}
+                        >
+                          {alertType === "WHATSAPP"
+                            ? "WhatsApp"
+                            : alertType === "WECHAT"
+                            ? "WeChat"
+                            : alertType}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              isActive
+                                ? "bg-green-500 animate-pulse"
+                                : "bg-gray-400"
+                            }`}
+                          ></div>
+                          <span
+                            className={`text-xs ${
+                              isActive
+                                ? config.statusColors
+                                : "text-gray-500 dark:text-gray-400"
+                            }`}
+                          >
+                            {isActive
+                              ? `Active (${
+                                  phoneNumbers[alertType]?.length || 0
+                                } numbers)`
+                              : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+        </div>
       </div>
+
+      {/* Phone Number Configuration Modal */}
+      {selectedPlatform && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
+            <div
+              className={`bg-gradient-to-r ${
+                getAlertConfig(selectedPlatform).activeColors.includes("blue")
+                  ? "from-blue-500 to-blue-600"
+                  : getAlertConfig(selectedPlatform).activeColors.includes(
+                      "green"
+                    )
+                  ? "from-green-500 to-green-600"
+                  : getAlertConfig(selectedPlatform).activeColors.includes(
+                      "purple"
+                    )
+                  ? "from-purple-500 to-purple-600"
+                  : "from-cyan-500 to-cyan-600"
+              } p-6`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    {getAlertConfig(selectedPlatform).icon === Send ? (
+                      <Send className="w-5 h-5 text-white" />
+                    ) : (
+                      <MessageCircle className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">
+                      Configure{" "}
+                      {selectedPlatform === "WHATSAPP"
+                        ? "WhatsApp"
+                        : selectedPlatform === "WECHAT"
+                        ? "WeChat"
+                        : selectedPlatform}{" "}
+                      Numbers
+                    </h2>
+                    <p className="text-white/80 text-sm">
+                      Manage phone numbers for alert notifications
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedPlatform(null)}
+                  className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <PhoneNumberManager
+                platform={selectedPlatform}
+                phoneNumbers={phoneNumbers[selectedPlatform]}
+                onAdd={addPhoneNumber}
+                onRemove={removePhoneNumber}
+              />
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={() => setSelectedPlatform(null)}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-slate-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={savePhoneNumbers}
+                  disabled={saving}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Numbers"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feature Alerts Section */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-lg">
@@ -400,128 +734,6 @@ export default function AlertsPage() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Channel Selection Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* WhatsApp Card */}
-        <div
-          onClick={() => selectChannel("whatsapp")}
-          className={`relative cursor-pointer rounded-2xl border-2 p-6 transition-all duration-300 transform hover:-translate-y-1
-            ${
-              selectedChannel === "whatsapp"
-                ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/30 shadow-xl"
-                : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-lg"
-            }`}
-        >
-          {/* Selection Badge */}
-          {selectedChannel === "whatsapp" && (
-            <div className="absolute top-4 right-4 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
-              <Check className="w-5 h-5 text-white" />
-            </div>
-          )}
-
-          {/* Icon & Content */}
-          <div className="flex flex-col items-center text-center">
-            <div
-              className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 shadow-lg
-                ${
-                  selectedChannel === "whatsapp"
-                    ? "bg-gradient-to-br from-blue-500 to-blue-600"
-                    : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600"
-                }`}
-            >
-              <MessageCircle
-                className={`w-8 h-8 ${
-                  selectedChannel === "whatsapp"
-                    ? "text-white"
-                    : "text-gray-600 dark:text-gray-300"
-                }`}
-              />
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-              WhatsApp
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
-              Receive instant alerts directly to your WhatsApp messenger
-            </p>
-          </div>
-
-          {/* Active Status */}
-          {selectedChannel === "whatsapp" && (
-            <div className="mt-5 pt-5 border-t border-blue-200 dark:border-blue-700">
-              <div className="flex items-center justify-center gap-2 text-blue-700 dark:text-blue-400 font-semibold">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                Active Channel
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Telegram Card */}
-        <div
-          onClick={() => selectChannel("telegram")}
-          className={`relative cursor-pointer rounded-2xl border-2 p-6 transition-all duration-300 transform hover:-translate-y-1
-            ${
-              selectedChannel === "telegram"
-                ? "border-cyan-500 bg-gradient-to-br from-cyan-50 to-sky-50 dark:from-cyan-900/30 dark:to-sky-900/30 shadow-xl"
-                : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-cyan-300 dark:hover:border-cyan-600 hover:shadow-lg"
-            }`}
-        >
-          {/* Selection Badge */}
-          {selectedChannel === "telegram" && (
-            <div className="absolute top-4 right-4 w-8 h-8 bg-cyan-600 rounded-full flex items-center justify-center shadow-lg">
-              <Check className="w-5 h-5 text-white" />
-            </div>
-          )}
-
-          {/* Icon & Content */}
-          <div className="flex flex-col items-center text-center">
-            <div
-              className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 shadow-lg
-                ${
-                  selectedChannel === "telegram"
-                    ? "bg-gradient-to-br from-cyan-500 to-sky-600"
-                    : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600"
-                }`}
-            >
-              <Send
-                className={`w-8 h-8 ${
-                  selectedChannel === "telegram"
-                    ? "text-white"
-                    : "text-gray-600 dark:text-gray-300"
-                }`}
-              />
-            </div>
-
-            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-              Telegram
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
-              Get alerts through secure Telegram bot notifications
-            </p>
-          </div>
-
-          {/* Active Status */}
-          {selectedChannel === "telegram" && (
-            <div className="mt-5 pt-5 border-t border-cyan-200 dark:border-cyan-700">
-              <div className="flex items-center justify-center gap-2 text-cyan-700 dark:text-cyan-400 font-semibold">
-                <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
-                Active Channel
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Save Button */}
-      {selectedChannel && (
-        <div className="mt-6">
-          <button className="w-full md:w-auto px-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:from-blue-600 hover:to-blue-700">
-            Save Alert Preferences
-          </button>
         </div>
       )}
 

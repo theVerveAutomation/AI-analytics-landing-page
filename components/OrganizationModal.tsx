@@ -15,16 +15,19 @@ export default function OrganizationModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<Organization>>({
     name: organization?.name || "",
     displayid: organization?.displayid || "",
-    email: organization?.contact_email || "",
+    email: organization?.email || "",
+    created_at: organization?.created_at || new Date().toISOString(),
+    alerts: organization?.alerts || [],
   });
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    console.log("Submitting organization data:", formData); // Debug log
 
     try {
       const endpoint = organization
@@ -32,11 +35,17 @@ export default function OrganizationModal({
         : "/api/organizations/create";
 
       const body = organization
-        ? { id: organization.id, ...formData, contact_email: formData.email }
+        ? {
+            id: organization.id,
+            ...formData,
+            email: formData.email,
+            alerts: formData.alerts,
+          }
         : {
             ...formData,
             created_by: currentUserId,
-            contact_email: formData.email,
+            email: formData.email,
+            alerts: formData.alerts,
           };
 
       const res = await fetch(endpoint, {
@@ -126,6 +135,45 @@ export default function OrganizationModal({
               className="w-full px-4 py-3 bg-slate-800 border border-slate-700 text-white rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
               placeholder="contact@organization.com"
             />
+          </div>
+
+          <div className="flex items-center gap-2 pt-2">
+            <div className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col gap-2">
+              <span className="text-sm font-semibold text-slate-300 mb-2">
+                Alert Types:
+              </span>
+              <div className="flex flex-wrap gap-4">
+                {(["SMS", "WHATSAPP", "WECHAT", "TELEGRAM"] as const).map(
+                  (type) => (
+                    <label
+                      key={type}
+                      htmlFor={`alert-${type}`}
+                      className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-700 transition-colors border border-transparent hover:border-primary"
+                    >
+                      <input
+                        type="checkbox"
+                        id={`alert-${type}`}
+                        checked={formData.alerts?.includes(type)}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            alerts: e.target.checked
+                              ? [...(formData.alerts || []), type]
+                              : (formData.alerts || []).filter(
+                                  (t) => t !== type
+                                ),
+                          });
+                        }}
+                        className="accent-primary w-5 h-5 rounded focus:ring-2 focus:ring-primary/50 border border-slate-700 shadow-sm"
+                      />
+                      <span className="text-xs font-medium text-slate-200 tracking-wide">
+                        {type}
+                      </span>
+                    </label>
+                  )
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
