@@ -5,7 +5,7 @@ import { CORS_HEADERS } from "@/lib/cors";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {displayid, name, email } = body;
+    const {displayid, name, email, alerts } = body;
 
     // Validate required fields
     if (!displayid || !name ) {
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
         displayid: displayid.trim(),
         name: name.trim(),
         email: email?.trim() || null,
+        alerts: alerts || [],
       })
       .select()
       .single();
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
             name: organization.name,
             email: organization.email,
             created_at: organization.created_at,
+            alerts: organization.alerts,
         },
       },
       { status: 201 }

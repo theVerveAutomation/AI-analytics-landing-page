@@ -29,9 +29,10 @@ export async function GET(req: NextRequest) {
       id: org.id,
       name: org.name,
       displayid: org.displayid,
-      contact_email: org.email,
+      email: org.email,
       created_at: org.created_at,
       user_count: org.profiles?.length || 0,
+      alerts: org.alerts || [],
     }));
 
     return NextResponse.json(

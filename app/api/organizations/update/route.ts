@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { CORS_HEADERS } from "@/lib/cors";
+import { Organization } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, name, displayid, description, address, contact_email, contact_phone } = body;
+    const { id, name, displayid, address, email, contact_phone, alerts } = body;
 
     // Validate required fields
     if (!id) {
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build update object with only provided fields
-    const updateData: any = {};
+    const updateData: Partial<Organization> = {};
     
     if (name !== undefined) {
       if (name.trim().length < 2) {
@@ -29,23 +30,21 @@ export async function POST(req: NextRequest) {
     }
 
     if (displayid !== undefined) updateData.displayid = displayid.trim() || null;
-    if (description !== undefined) updateData.description = description.trim() || null;
     if (address !== undefined) updateData.address = address.trim() || null;
     if (contact_phone !== undefined) updateData.contact_phone = contact_phone.trim() || null;
+    if (alerts !== undefined) updateData.alerts = alerts;
 
     // Validate email format if provided
-    if (contact_email !== undefined) {
-      if (contact_email.trim()) {
+    if (email !== undefined) {
+      if (email.trim()) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(contact_email)) {
+        if (!emailRegex.test(email)) {
           return NextResponse.json(
             { error: "Invalid email format" },
             { status: 400 }
           );
         }
-        updateData.contact_email = contact_email.trim();
-      } else {
-        updateData.contact_email = null;
+        updateData.email = email.trim();
       }
     }
 
@@ -105,8 +104,9 @@ export async function POST(req: NextRequest) {
           displayid: organization.displayid,
           description: organization.description,
           address: organization.address,
-          contact_email: organization.contact_email,
+          email: organization.email,
           contact_phone: organization.contact_phone,
+          alerts: organization.alerts || [],
           updated_at: organization.updated_at,
         },
       },
