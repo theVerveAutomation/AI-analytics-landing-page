@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabaseClient";
 import { CameraConfig } from "@/types";
 import { Camera, WifiOff } from "lucide-react";
 
@@ -7,9 +8,11 @@ const STREAM_URL =
 export default function CameraFeed({
   camera,
   orgDisplayId,
+  thumbnail,
 }: {
   camera?: CameraConfig;
   orgDisplayId?: string;
+  thumbnail?: boolean;
 }) {
   if (!camera) {
     return (
@@ -26,6 +29,9 @@ export default function CameraFeed({
         <span>Offline</span>
       </div>
     );
+  }
+
+  if (thumbnail) {
   }
 
   // If it's a URL-based camera, show iframe or image

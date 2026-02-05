@@ -16,15 +16,11 @@ import {
 } from "recharts";
 import {
   Video,
-  Play,
-  Pause,
   Eye,
   Activity,
   AlertTriangle,
   HardDrive,
   TrendingUp,
-  Camera,
-  Clock,
   User,
   Package,
   Car,
@@ -75,7 +71,7 @@ const metrics = [
 
 const detectionData = [
   { name: "Person", value: 542, color: "#10b981" },
-  { name: "Vehicle", value: 318, color: "#3b82f6" },
+
   { name: "Object", value: 267, color: "#8b5cf6" },
   { name: "Motion", value: 120, color: "#f59e0b" },
 ];
@@ -154,7 +150,7 @@ export default function VideoAnalyticsPage() {
       }
     }
   );
-  const [isPlaying, setIsPlaying] = useState(true);
+  // ...existing code...
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
 
