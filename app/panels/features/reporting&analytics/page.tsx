@@ -25,12 +25,10 @@ import {
   TrendingUp,
   Eye,
   Activity,
-  UserCheck,
   Camera,
   AlertTriangle,
   Clock,
   Filter,
-  ChevronDown,
 } from "lucide-react";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
