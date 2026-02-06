@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
 import {
   BarChart,
   Bar,
@@ -30,6 +33,8 @@ import {
   Clock,
   Filter,
 } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
+import { Profile, Organization } from "@/types";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
 type ReportType = "daily" | "weekly" | "monthly";
@@ -153,6 +158,275 @@ export default function ReportingAnalyticsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const [reportType, setReportType] = useState<ReportType>("daily");
   const [showFilters, setShowFilters] = useState(false);
+  const [profile, setProfile] = useState<Profile>();
+  const detectionTrendsRef = useRef<HTMLDivElement>(null);
+  const alertDistributionRef = useRef<HTMLDivElement>(null);
+  const hourlyActivityRef = useRef<HTMLDivElement>(null);
+  const weeklyComparisonRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchProfileAndOrg = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*, organizations(*)")
+        .eq("id", user.id)
+        .single();
+      setProfile(profile);
+      console.log("Fetched profile:", profile); // Debug log
+    };
+    fetchProfileAndOrg();
+  }, []);
+
+  const generateReport = async () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    // Title
+    doc.setFontSize(22);
+    doc.setTextColor(30, 64, 175);
+    doc.text("Reporting & Analytics", pageWidth / 2, y, { align: "center" });
+    y += 8;
+    doc.setFontSize(10);
+    doc.setTextColor(107, 114, 128);
+    doc.text(
+      "Comprehensive insights and performance metrics",
+      pageWidth / 2,
+      y,
+      { align: "center" }
+    );
+    y += 4;
+    // Organization Details Section
+    if (profile?.organizations) {
+      doc.setFontSize(10);
+      doc.setTextColor(55, 65, 81);
+      doc.text(
+        `Name: ${profile.organizations?.name || "-"}`,
+        pageWidth / 2,
+        y,
+        {
+          align: "center",
+        }
+      );
+      y += 5;
+      if (profile.organizations?.displayid)
+        doc.text(
+          `Org ID: ${profile.organizations.displayid}`,
+          pageWidth / 2,
+          y,
+          {
+            align: "center",
+          }
+        );
+      else if (profile.organizations?.id)
+        doc.text(`Org ID: ${profile.organizations.id}`, pageWidth / 2, y, {
+          align: "center",
+        });
+      y += 5;
+      if (profile.organizations?.address)
+        doc.text(
+          `Address: ${profile.organizations.address}`,
+          pageWidth / 2,
+          y,
+          {
+            align: "center",
+          }
+        );
+      if (profile.organizations?.email) {
+        doc.text(`Email: ${profile.organizations.email}`, pageWidth / 2, y, {
+          align: "center",
+        });
+      }
+      if (profile.organizations?.contact_phone) {
+        y += 5;
+        doc.text(
+          `Contact: ${profile.organizations.contact_phone}`,
+          pageWidth / 2,
+          y,
+          {
+            align: "center",
+          }
+        );
+      }
+      y += 5;
+      doc.setDrawColor(209, 213, 219);
+      doc.line(14, y, pageWidth - 14, y);
+      y += 5;
+    }
+    doc.text(
+      `Generated on: ${new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })}`,
+      pageWidth / 2,
+      y,
+      { align: "center" }
+    );
+    y += 4;
+
+    // Divider
+    doc.setDrawColor(209, 213, 219);
+    doc.line(14, y, pageWidth - 14, y);
+    y += 10;
+
+    // Key Metrics Section
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.text("Key Metrics", 14, y);
+    y += 8;
+
+    autoTable(doc, {
+      startY: y,
+      head: [["Metric", "Value", "Change"]],
+      body: metrics.map((m) => [m.title, m.value, m.change]),
+      theme: "grid",
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      alternateRowStyles: { fillColor: [243, 244, 246] },
+      styles: { fontSize: 10, cellPadding: 4 },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 12;
+
+    // Detection Trends Section
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.text("Detection Trends (Daily)", 14, y);
+    y += 8;
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        ["Date", "Object Detection", "Motion Detection", "Face Detection"],
+      ],
+      body: detectionTrendData.map((d) => [d.date, d.object, d.motion, d.face]),
+      theme: "grid",
+      headStyles: {
+        fillColor: [16, 185, 129],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      alternateRowStyles: { fillColor: [243, 244, 246] },
+      styles: { fontSize: 10, cellPadding: 4 },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 12;
+
+    // Alert Distribution Section
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.text("Alert Distribution by Severity", 14, y);
+    y += 8;
+
+    const totalAlerts = alertDistribution.reduce((sum, a) => sum + a.value, 0);
+    autoTable(doc, {
+      startY: y,
+      head: [["Severity", "Count", "Percentage"]],
+      body: alertDistribution.map((a) => [
+        a.name,
+        a.value,
+        `${((a.value / totalAlerts) * 100).toFixed(1)}%`,
+      ]),
+      theme: "grid",
+      headStyles: {
+        fillColor: [245, 158, 11],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      alternateRowStyles: { fillColor: [243, 244, 246] },
+      styles: { fontSize: 10, cellPadding: 4 },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 12;
+
+    // --- Chart Images using html2canvas ---
+    const captureChart = async (
+      ref: React.RefObject<HTMLDivElement | null>,
+      title: string
+    ) => {
+      if (!ref.current) return;
+      const canvas = await html2canvas(ref.current, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const imgWidth = pageWidth - 28;
+      const imgHeight = (canvas.height / canvas.width) * imgWidth;
+
+      if (y + imgHeight + 10 > doc.internal.pageSize.getHeight() - 20) {
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setTextColor(31, 41, 55);
+      doc.text(title, 14, y);
+      y += 6;
+      doc.addImage(imgData, "PNG", 14, y, imgWidth, imgHeight);
+      y += imgHeight + 10;
+    };
+
+    await captureChart(detectionTrendsRef, "Detection Trends");
+    await captureChart(alertDistributionRef, "Alert Distribution");
+    await captureChart(hourlyActivityRef, "Hourly Activity Pattern");
+    await captureChart(weeklyComparisonRef, "Year-over-Year Comparison");
+
+    if (y + 40 > doc.internal.pageSize.getHeight() - 20) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Camera Performance Section
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.text("Camera Performance", 14, y);
+    y += 8;
+
+    autoTable(doc, {
+      startY: y,
+      head: [["Camera", "Uptime (%)", "Detections", "Alerts", "Status"]],
+      body: cameraPerformance.map((c) => [
+        c.camera,
+        `${c.uptime}%`,
+        c.detections,
+        c.alerts,
+        c.uptime >= 99 ? "Excellent" : "Good",
+      ]),
+      theme: "grid",
+      headStyles: {
+        fillColor: [59, 130, 246],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      alternateRowStyles: { fillColor: [243, 244, 246] },
+      styles: { fontSize: 10, cellPadding: 4 },
+    });
+
+    // Footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(156, 163, 175);
+      doc.text(
+        `Page ${i} of ${pageCount} | AI Analytics - Confidential`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: "center" }
+      );
+    }
+
+    doc.save(`Analytics_Report_${new Date().toISOString().split("T")[0]}.pdf`);
+  };
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -239,7 +513,10 @@ export default function ReportingAnalyticsPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Detection Trends */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
+        <div
+          ref={detectionTrendsRef}
+          className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm"
+        >
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -302,7 +579,10 @@ export default function ReportingAnalyticsPage() {
         </div>
 
         {/* Alert Distribution */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
+        <div
+          ref={alertDistributionRef}
+          className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm"
+        >
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -337,7 +617,10 @@ export default function ReportingAnalyticsPage() {
         </div>
 
         {/* Hourly Activity */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
+        <div
+          ref={hourlyActivityRef}
+          className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm"
+        >
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -390,7 +673,10 @@ export default function ReportingAnalyticsPage() {
         </div>
 
         {/* Weekly Comparison */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
+        <div
+          ref={weeklyComparisonRef}
+          className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm"
+        >
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -540,7 +826,11 @@ export default function ReportingAnalyticsPage() {
               Download previously generated reports
             </p>
           </div>
-          <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
+          <button
+            onClick={generateReport}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
             Generate New Report
           </button>
         </div>
@@ -565,7 +855,10 @@ export default function ReportingAnalyticsPage() {
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {report.size}
                 </span>
-                <button className="p-2 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
+                <button
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
+                  onClick={generateReport}
+                >
                   <Download className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
