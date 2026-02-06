@@ -159,6 +159,7 @@ export default function ReportingAnalyticsPage() {
   const [reportType, setReportType] = useState<ReportType>("daily");
   const [showFilters, setShowFilters] = useState(false);
   const [profile, setProfile] = useState<Profile>();
+  const [loading, setLoading] = useState(false);
   const detectionTrendsRef = useRef<HTMLDivElement>(null);
   const alertDistributionRef = useRef<HTMLDivElement>(null);
   const hourlyActivityRef = useRef<HTMLDivElement>(null);
@@ -181,6 +182,7 @@ export default function ReportingAnalyticsPage() {
   }, []);
 
   const generateReport = async () => {
+    setLoading(true);
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
@@ -319,7 +321,9 @@ export default function ReportingAnalyticsPage() {
 
     y = (doc as any).lastAutoTable.finalY + 12;
 
-    // Alert Distribution Section
+    // --- Start Alert Distribution on a new page ---
+    doc.addPage();
+    y = 20;
     doc.setFontSize(14);
     doc.setTextColor(31, 41, 55);
     doc.text("Alert Distribution by Severity", 14, y);
@@ -426,10 +430,41 @@ export default function ReportingAnalyticsPage() {
     }
 
     doc.save(`Analytics_Report_${new Date().toISOString().split("T")[0]}.pdf`);
+    setLoading(false);
   };
 
   return (
-    <div className="p-6 space-y-6 w-full">
+    <div className="p-6 space-y-6 w-full relative">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="flex flex-col items-center gap-4 p-8 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700">
+            <svg
+              className="animate-spin h-8 w-8 text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            <span className="text-gray-700 dark:text-gray-200 font-medium">
+              Generating report...
+            </span>
+          </div>
+        </div>
+      )}
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -828,10 +863,11 @@ export default function ReportingAnalyticsPage() {
           </div>
           <button
             onClick={generateReport}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={loading}
           >
             <Download className="w-4 h-4" />
-            Generate New Report
+            {loading ? "Generating..." : "Generate New Report"}
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
