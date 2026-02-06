@@ -19,7 +19,9 @@ import {
 import { FeatureAlert, AlertType, Profile } from "@/types";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import PhoneNumberManager from "@/components/PhoneNumberManager";
+import PhoneNumberManager, {
+  AlertContact,
+} from "@/components/PhoneNumberManager";
 
 type AlertChannel = "whatsapp" | "telegram" | null;
 
@@ -133,14 +135,14 @@ export default function AlertsPage() {
   const [selectedPlatform, setSelectedPlatform] = useState<AlertType | null>(
     null
   );
-  const [phoneNumbers, setPhoneNumbers] = useState<Record<AlertType, string[]>>(
-    {
-      SMS: [],
-      WHATSAPP: [],
-      WECHAT: [],
-      TELEGRAM: [],
-    }
-  );
+  const [phoneNumbers, setPhoneNumbers] = useState<
+    Record<AlertType, AlertContact[]>
+  >({
+    SMS: [],
+    WHATSAPP: [],
+    WECHAT: [],
+    TELEGRAM: [],
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -167,7 +169,7 @@ export default function AlertsPage() {
       // Fetch phone numbers from organization_alert_numbers table
       const { data: alertNumbers } = await supabase
         .from("organization_alert_numbers")
-        .select("phone_number, alert_type")
+        .select("name, phone_number, alert_type")
         .eq("org_id", profile.organizations.id);
 
       // Group phone numbers by alert type
@@ -176,11 +178,14 @@ export default function AlertsPage() {
         WHATSAPP: [],
         WECHAT: [],
         TELEGRAM: [],
-      } as Record<AlertType, string[]>;
+      } as Record<AlertType, AlertContact[]>;
 
-      alertNumbers?.forEach(({ phone_number, alert_type }) => {
+      alertNumbers?.forEach(({ name, phone_number, alert_type }) => {
         if (groupedNumbers[alert_type as AlertType]) {
-          groupedNumbers[alert_type as AlertType].push(phone_number);
+          groupedNumbers[alert_type as AlertType].push({
+            name: name || "",
+            phoneNumber: phone_number,
+          });
         }
       });
 
@@ -191,18 +196,14 @@ export default function AlertsPage() {
     fetchUserAndProfile();
   }, [router]);
 
-  function selectChannel(channel: AlertChannel) {
-    setSelectedChannel(channel);
-  }
-
-  const addPhoneNumber = (platform: AlertType, phoneNumber: string) => {
+  const addPhoneNumber = (platform: AlertType, contact: AlertContact) => {
     if (
-      phoneNumber.trim() &&
-      !phoneNumbers[platform].includes(phoneNumber.trim())
+      contact.phoneNumber &&
+      !phoneNumbers[platform].some((c) => c.phoneNumber === contact.phoneNumber)
     ) {
       setPhoneNumbers((prev) => ({
         ...prev,
-        [platform]: [...prev[platform], phoneNumber.trim()],
+        [platform]: [...prev[platform], contact],
       }));
     }
   };
@@ -235,9 +236,10 @@ export default function AlertsPage() {
       // Insert new numbers if any
       if (phoneNumbers[selectedPlatform!].length > 0) {
         const numbersToInsert = phoneNumbers[selectedPlatform!].map(
-          (phoneNumber) => ({
+          (contact) => ({
             org_id: orgId,
-            phone_number: phoneNumber,
+            name: contact.name,
+            phone_number: contact.phoneNumber,
             alert_type: selectedPlatform,
           })
         );
@@ -471,7 +473,7 @@ export default function AlertsPage() {
       {/* Phone Number Configuration Modal */}
       {selectedPlatform && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-2xl overflow-hidden">
             <div
               className={`bg-gradient-to-r ${
                 getAlertConfig(selectedPlatform).activeColors.includes("blue")
