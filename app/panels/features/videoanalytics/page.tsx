@@ -31,7 +31,8 @@ import {
   Filter,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { Profile, CameraConfig } from "@/types";
+import { Profile, CameraConfig, Snapshot } from "@/types";
+import Image from "next/image";
 import CameraFeed from "@/components/CameraFeed";
 
 const metrics = [
@@ -153,6 +154,35 @@ export default function VideoAnalyticsPage() {
   // ...existing code...
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
+  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
+  // Fetch latest snapshot thumbnail for each camera (from new API route)
+  useEffect(() => {
+    if (!profile || cameras.length === 0) return;
+
+    const fetchThumbnails = async () => {
+      try {
+        const res = await fetch(
+          `/api/snapshots/latest/fetch?cameras=${encodeURIComponent(
+            JSON.stringify(cameras.map((c) => c.id))
+          )}`
+        );
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.snapshots)) {
+          const thumbMap: Record<number, string> = {};
+          for (const snap of data.snapshots as Snapshot[]) {
+            if (snap.camera_id && snap.url) {
+              thumbMap[snap.camera_id] = snap.url;
+            }
+          }
+          setThumbnails(thumbMap);
+        }
+      } catch (err) {
+        console.error("Error fetching thumbnails:", err);
+      }
+    };
+
+    fetchThumbnails();
+  }, [profile, cameras]);
 
   // Persist selection
   useEffect(() => {
@@ -404,10 +434,21 @@ export default function VideoAnalyticsPage() {
                   }`}
                 >
                   <div className="absolute inset-0 bg-gray-900">
-                    <CameraFeed
-                      camera={camera}
-                      orgDisplayId={profile?.organizations?.displayid}
-                    />
+                    {thumbnails[camera.id] ? (
+                      <Image
+                        src={thumbnails[camera.id]}
+                        alt={camera.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                        <Video className="w-8 h-8 mb-1 opacity-40" />
+                        <span className="text-xs opacity-60">No thumbnail</span>
+                      </div>
+                    )}
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 z-10">
                     <div className="flex items-center justify-between">

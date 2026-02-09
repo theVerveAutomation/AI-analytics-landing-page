@@ -22,7 +22,8 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
-import { CameraConfig, Profile } from "@/types";
+import { CameraConfig, Profile, Snapshot } from "@/types";
+import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import CameraFeed from "@/components/CameraFeed";
@@ -61,6 +62,7 @@ export default function CameraSettingPage() {
   const [editCameraName, setEditCameraName] = useState("");
   const [editCameraUrl, setEditCameraUrl] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
 
   // Persist selection
   useEffect(() => {
@@ -76,6 +78,7 @@ export default function CameraSettingPage() {
     }
   }, [selectedCameraId]);
 
+  // Fetch user profile on mount and redirect if not logged in
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       const { data: userData } = await supabase.auth.getUser();
@@ -142,6 +145,36 @@ export default function CameraSettingPage() {
 
     fetchCameras();
   }, [profile]);
+
+  // Fetch latest snapshot thumbnail for each camera (from new API route)
+  useEffect(() => {
+    if (!profile || cameras.length === 0) return;
+
+    const fetchThumbnails = async () => {
+      try {
+        const res = await fetch(
+          `/api/snapshots/latest/fetch?cameras=${encodeURIComponent(
+            JSON.stringify(cameras.map((c) => c.id))
+          )}`
+        );
+        const data = await res.json();
+        console.log("Fetched latest snapshots for thumbnails:", data);
+        if (res.ok && Array.isArray(data.snapshots)) {
+          const thumbMap: Record<number, string> = {};
+          for (const snap of data.snapshots as Snapshot[]) {
+            if (snap.camera_id && snap.url) {
+              thumbMap[snap.camera_id] = snap.url;
+            }
+          }
+          setThumbnails(thumbMap);
+        }
+      } catch (err) {
+        console.error("Error fetching thumbnails:", err);
+      }
+    };
+
+    fetchThumbnails();
+  }, [profile, cameras]);
 
   useEffect(() => {
     if (!profile || cameras.length === 0) return;
@@ -396,12 +429,23 @@ export default function CameraSettingPage() {
               {/* Camera Preview Thumbnail */}
               <button
                 onClick={() => setSelectedCameraId(camera.id)}
-                className="w-full aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden"
+                className="w-full aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden relative"
               >
-                <CameraFeed
-                  camera={camera}
-                  orgDisplayId={profile?.organizations?.displayid}
-                />
+                {thumbnails[camera.id] ? (
+                  <Image
+                    src={thumbnails[camera.id]}
+                    alt={camera.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                    <Camera className="w-8 h-8 mb-1 opacity-40" />
+                    <span className="text-xs opacity-60">No thumbnail</span>
+                  </div>
+                )}
               </button>
 
               {/* Camera Info */}
