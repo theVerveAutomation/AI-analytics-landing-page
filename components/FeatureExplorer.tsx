@@ -22,11 +22,15 @@ const FeatureExplorer = () => {
   const [activeCategory, setActiveCategory] = useState("security");
 
   const activeCategoryData = featureCategories.find(
-    (cat) => cat.id === activeCategory
+    (cat) => cat.id === activeCategory,
   );
 
   return (
-    <section id="features" className="py-24 bg-background">
+    <section id="features" className="py-24 bg-background relative">
+      {/* Decorative Elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-64 h-64 bg-primary rounded-full blur-3xl"></div>
+      </div>
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">

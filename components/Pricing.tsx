@@ -69,7 +69,11 @@ const Pricing = () => {
   const router = useRouter();
 
   return (
-    <section id="pricing" className="py-24 px-6">
+    <section id="pricing" className="py-24 px-6 relative bg-background">
+      {/* Decorative Elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-1/2 w-64 h-64 bg-primary rounded-full blur-3xl"></div>
+      </div>
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
