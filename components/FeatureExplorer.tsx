@@ -1,12 +1,6 @@
 "use client";
 import { useState } from "react";
-import {
-  Shield,
-  ShoppingCart,
-  AlertTriangle,
-  // ...existing code...
-  UserCheck,
-} from "lucide-react";
+import { Shield, ShoppingCart, AlertTriangle, UserCheck } from "lucide-react";
 import FeatureCard from "./FeatureCard";
 import { featureCategories } from "@/data/features";
 
@@ -14,7 +8,6 @@ const categoryIcons = {
   security: Shield,
   retail: ShoppingCart,
   theft: AlertTriangle,
-  // ...existing code...
   safety: UserCheck,
 };
 
@@ -22,11 +15,15 @@ const FeatureExplorer = () => {
   const [activeCategory, setActiveCategory] = useState("security");
 
   const activeCategoryData = featureCategories.find(
-    (cat) => cat.id === activeCategory
+    (cat) => cat.id === activeCategory,
   );
 
   return (
-    <section id="features" className="py-24 bg-background">
+    <section id="features" className="py-24 bg-background relative">
+      {/* Decorative Elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-64 h-64 bg-primary rounded-full blur-3xl"></div>
+      </div>
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -44,7 +41,7 @@ const FeatureExplorer = () => {
         <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
           {/* Left Sidebar - Category Navigation */}
           <div className="lg:w-1/4">
-            <div className="lg:sticky lg:top-24 space-y-2">
+            <div className="lg:sticky lg:top-40 space-y-2">
               {featureCategories.map((category) => {
                 const Icon =
                   categoryIcons[category.id as keyof typeof categoryIcons];
