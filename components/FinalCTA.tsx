@@ -30,7 +30,7 @@ const FinalCTA = () => {
           </p>
           <Button
             size="lg"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow-lg hover:shadow-glow transition-all duration-300 font-semibold px-10 py-7 text-lg animate-glow-pulse"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow-lg hover:shadow-glow transition-all duration-300 font-semibold px-10 py-7 text-lg"
             onClick={() => router.push("/BookDemo")}
           >
             Request Access
