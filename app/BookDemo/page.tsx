@@ -130,7 +130,7 @@ const BookDemo = () => {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
+        <Navigation navType="demoPageNav" navigation={[]} />
         <div className="container mx-auto px-6 py-24 flex items-center justify-center min-h-[80vh]">
           <Card className="max-w-md w-full text-center border-primary shadow-glow">
             <CardHeader>
@@ -157,7 +157,7 @@ const BookDemo = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      <Navigation navType="demoPageNav" navigation={[]} />
 
       <div className="container mx-auto px-6 py-24">
         <Button
