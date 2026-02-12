@@ -31,6 +31,7 @@ export interface Product {
   description: string;
   image_url: string;
   org_id: string;
+  category_id?: string;
   created_at?: string;
 }
 

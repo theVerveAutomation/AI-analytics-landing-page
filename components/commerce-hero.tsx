@@ -4,7 +4,6 @@ import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import CameraImage from "@/assets/camera.png";
 import Image from "next/image";
-import ShopNavbar from "./ShopNavbar";
 
 const categories = [
   {

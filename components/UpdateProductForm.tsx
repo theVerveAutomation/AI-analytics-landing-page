@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Package, ImageIcon, Sparkles, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Package, ImageIcon, Sparkles, Check, Tags } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
 import { Product } from "@/types";
 import Image from "next/image";
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface UpdateProductFormProps {
   product: Product;
@@ -20,12 +25,26 @@ export default function UpdateProductForm({
 }: UpdateProductFormProps) {
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description);
+  const [categoryId, setCategoryId] = useState(product.category_id || "");
   const [imagePreview, setImagePreview] = useState<string | null>(
-    product.image_url
+    product.image_url,
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
-
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data: categoryData } = await supabase
+        .from("categories")
+        .select("id, name")
+        .order("name");
+
+      setCategories(categoryData || []);
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleImageChange = (file: File | null | undefined) => {
     if (file) {
@@ -81,6 +100,7 @@ export default function UpdateProductForm({
           name,
           description,
           imageUrl: finalImageUrl,
+          categoryId: categoryId || null,
         }),
       });
 
@@ -145,6 +165,26 @@ export default function UpdateProductForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </div>
+
+          {/* CATEGORY */}
+          <div>
+            <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
+              <Tags className="w-4 h-4 text-primary" />
+              Category (Optional)
+            </label>
+            <select
+              className="w-full bg-slate-800/50 border border-slate-700 text-white p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* IMAGE UPLOAD */}
