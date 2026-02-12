@@ -8,10 +8,10 @@ export function OPTIONS() {
 
 export async function POST(req: Request) {
   try {
-    const { name, description, imageUrl } = await req.json();
-    console.log("Received product data:", { name, description, imageUrl });
+    const { name, description, imageUrl, categoryId } = await req.json();
+    console.log("Received product data:", { name, description, imageUrl, categoryId });
 
-      if (!name || !description || !imageUrl) {
+      if (!name || !imageUrl) {
       return withCors({ error: "Missing fields" }, 400);
     }
 
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       name,
       description,
       image_url: imageUrl,
+      category_id: categoryId || null,
       created_at: new Date().toISOString(),
     });
 

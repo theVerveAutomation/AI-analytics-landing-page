@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 export async function POST(req: Request) {
   try {
-    const { id, name, description, imageUrl } = await req.json();
+    const { id, name, description, imageUrl, categoryId } = await req.json();
 
     if (!id || !name || !description) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -15,6 +15,7 @@ export async function POST(req: Request) {
         name,
         description,
         image_url: imageUrl,
+        category_id: categoryId || null,
       })
       .eq("id", id);
 

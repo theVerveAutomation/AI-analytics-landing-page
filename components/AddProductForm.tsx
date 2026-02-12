@@ -15,30 +15,46 @@ interface Org {
   org_id: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 export default function AddProductForm({
   onSuccess,
   onCancel,
 }: AddProductFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [orgs, setOrgs] = useState<Org[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      // Fetch organizations
+      const { data: orgData } = await supabase
         .from("profiles")
         .select("org_id")
         .neq("org_id", null);
 
-      const unique = Array.from(new Set((data || []).map((o) => o.org_id))).map(
-        (id) => ({ org_id: id })
-      );
+      const unique = Array.from(
+        new Set((orgData || []).map((o) => o.org_id)),
+      ).map((id) => ({ org_id: id }));
 
       setOrgs(unique);
+
+      // Fetch categories
+      const { data: categoryData } = await supabase
+        .from("categories")
+        .select("id, name")
+        .order("name");
+
+      setCategories(categoryData || []);
     })();
   }, []);
 
@@ -90,8 +106,14 @@ export default function AddProductForm({
   };
 
   const handleSubmit = async () => {
-    if (!name || !description || !imageFile) {
-      toast.error("All fields are required");
+    console.log("Submitting with:", {
+      name,
+      description,
+      categoryId,
+      imageFile,
+    });
+    if (!name || !imageFile) {
+      toast.error("Name and image are required");
       return;
     }
     setLoading(true);
@@ -109,6 +131,7 @@ export default function AddProductForm({
           name,
           description,
           imageUrl,
+          categoryId: categoryId || null,
         }),
       });
 
@@ -160,6 +183,25 @@ export default function AddProductForm({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+        </div>
+
+        {/* CATEGORY */}
+        <div>
+          <label className="block font-semibold text-slate-300 mb-2">
+            Category (Optional)
+          </label>
+          <select
+            className="w-full bg-slate-800/50 border border-slate-700 text-white p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+          >
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* IMAGE */}
