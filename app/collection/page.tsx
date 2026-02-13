@@ -30,7 +30,8 @@ export default function CollectionPage() {
 
   // Group products by category
   const productsByCategory = useMemo(() => {
-    const grouped: Record<string, { category: Category; products: Product[] }> = {};
+    const grouped: Record<string, { category: Category; products: Product[] }> =
+      {};
     categories.forEach((cat) => {
       grouped[cat.id] = { category: cat, products: [] };
     });
@@ -107,7 +108,9 @@ export default function CollectionPage() {
       <section>
         {productsByCategory.map((group) => (
           <div key={group.category.id} className="mb-12">
-            <h2 className="text-2xl font-bold mb-4 text-foreground">{group.category.name}</h2>
+            <h2 className="text-2xl font-bold mb-4 text-foreground">
+              {group.category.name}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {group.products.map((p, idx) => (
                 <motion.div
@@ -115,7 +118,11 @@ export default function CollectionPage() {
                   className="group relative bg-muted/50 backdrop-blur-sm rounded-3xl p-4 sm:p-6 min-h-[250px] sm:min-h-[300px] w-full overflow-hidden transition-all duration-500 cursor-pointer border border-border"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: idx * 0.1, ease: "easeOut" }}
+                  transition={{
+                    duration: 0.6,
+                    delay: idx * 0.1,
+                    ease: "easeOut",
+                  }}
                   onClick={() => router.push(`/shop/${p.id}`)}
                 >
                   <div className="absolute inset-0 z-20">
@@ -124,7 +131,11 @@ export default function CollectionPage() {
                     </h2>
                     <div className="absolute inset-0 flex items-center justify-center p-4">
                       <Image
-                        src={p.image_url ? p.image_url : "/placeholder-category.png"}
+                        src={
+                          p.image_url
+                            ? p.image_url
+                            : "/placeholder-category.png"
+                        }
                         alt={p.name}
                         width={256}
                         height={256}
