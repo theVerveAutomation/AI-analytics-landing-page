@@ -8,12 +8,14 @@ import UpdateCategoryForm from "@/components/UpdateCategoryForm";
 import ShopNavbar from "@/components/ShopNavbar";
 import { Tags, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { Profile } from "@/types";
+import Image from "next/image";
 
 interface Category {
   id: string;
   name: string;
   description: string;
   created_at: string;
+  image_url?: string;
 }
 
 export default function AdminCategoriesPage() {
@@ -108,7 +110,7 @@ export default function AdminCategoriesPage() {
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
                   <th className="p-4 text-left text-xs font-bold text-foreground uppercase">
-                    Name
+                    Image Name
                   </th>
                   <th className="p-4 text-left text-xs font-bold text-foreground uppercase">
                     Description
@@ -138,6 +140,19 @@ export default function AdminCategoriesPage() {
                       key={category.id}
                       className="hover:bg-muted/30 transition-colors"
                     >
+                      <td className="p-4">
+                        {category.image_url ? (
+                          <Image
+                            src={category.image_url}
+                            alt={category.name}
+                            width={48}
+                            height={48}
+                            className="rounded-lg object-contain w-12 h-12 border border-border bg-muted"
+                          />
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
                       <td className="p-4 font-semibold text-foreground">
                         {category.name}
                       </td>

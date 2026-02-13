@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
 
 interface AddCategoryFormProps {
   onSuccess: () => void;
@@ -20,22 +21,57 @@ export default function AddCategoryForm({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    image_url: "",
   });
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (file?: File | null) => {
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  async function uploadCategoryImage(file: File) {
+    const ext = file.name.split(".").pop();
+    const fileName = `categories/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("products") // Use 'products' bucket for now
+      .upload(fileName, file, {
+        contentType: file.type,
+        upsert: false,
+      });
+    if (error) {
+      throw new Error(error.message);
+    }
+    const { data } = supabase.storage.from("products").getPublicUrl(fileName);
+    return data.publicUrl;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
+      let imageUrl = "";
+      if (imageFile) {
+        imageUrl = await uploadCategoryImage(imageFile);
+      }
       const { error } = await supabase.from("categories").insert([
         {
           name: formData.name,
           description: formData.description,
+          image_url: imageUrl,
         },
       ]);
-
       if (error) throw error;
-
       onSuccess();
     } catch (error) {
       console.error("Error adding category:", error);
@@ -93,6 +129,41 @@ export default function AddCategoryForm({
           />
         </div>
 
+        {/* IMAGE UPLOAD */}
+        <div>
+          <Label
+            htmlFor="image"
+            className="text-sm font-medium text-foreground"
+          >
+            Category Image (optional)
+          </Label>
+          {imagePreview ? (
+            <div className="relative group mt-2">
+              <Image
+                src={imagePreview}
+                alt="Category preview"
+                className="w-full h-40 object-contain rounded-xl border border-slate-700 bg-slate-800/50"
+                width={100}
+                height={100}
+              />
+              <button
+                onClick={handleRemoveImage}
+                type="button"
+                className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImageChange(e.target.files?.[0])}
+              className="mt-2"
+            />
+          )}
+        </div>
         <div className="flex gap-3 pt-4">
           <Button
             type="submit"

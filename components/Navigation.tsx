@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import ShoppingCart from "@/components/ui/shopping-cart";
 import {
   Sheet,
   SheetContent,
@@ -30,8 +31,47 @@ interface NavigationProps {
 const Navigation = ({ navType, navigation }: NavigationProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([
+    {
+      id: "1",
+      name: "Sony WH-1000XM5 Wireless Headphones",
+      price: 99.99,
+      quantity: 1,
+      imageUrl:
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      id: "2",
+      name: "Apple Watch Series 7",
+      price: 249.0,
+      quantity: 2,
+      imageUrl:
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      id: "3",
+      name: 'Samsung 55" 4K Ultra HD Smart TV',
+      price: 799.5,
+      quantity: 1,
+      imageUrl:
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    },
+  ]);
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+
+  const handleQuantityChange = (id: string, newQuantity: number) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, newQuantity) } : item,
+      ),
+    );
+  };
+
+  const handleRemoveItem = (id: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -139,21 +179,49 @@ const Navigation = ({ navType, navigation }: NavigationProps) => {
             )}
             {navType === "shopNav" && (
               <>
-                {/* search and cart */}
+                {/* search bar for lg+ */}
+                <div className="hidden lg:flex items-center gap-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search products..."
+                      className="w-[320px] h-10 rounded-md border border-border bg-background px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all"
+                    />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                  </div>
+                </div>
+                {/* search icon for md and below */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="cursor-pointer relative group hover:text-primary transition-colors"
+                  className="cursor-pointer relative group hover:text-primary transition-colors lg:hidden"
                 >
                   <Search className="w-5 h-5" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="cursor-pointer relative group hover:text-primary transition-colors"
-                >
-                  <ShoppingBasket className="w-5 h-5" />
-                </Button>
+                <Sheet open={cartOpen} onOpenChange={setCartOpen}>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="cursor-pointer relative group hover:text-primary transition-colors"
+                      onClick={() => setCartOpen(true)}
+                    >
+                      <ShoppingBasket className="w-5 h-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent
+                    side="right"
+                    className="w-[900px] max-w-full p-0"
+                  >
+                    <div className="p-6 h-full overflow-y-auto">
+                      <ShoppingCart
+                        items={cartItems}
+                        onQuantityChange={handleQuantityChange}
+                        onRemoveItem={handleRemoveItem}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </>
             )}
             {/* Theme toggle */}

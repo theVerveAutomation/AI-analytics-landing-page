@@ -10,7 +10,7 @@ export default function ShopLayout({
         navigation={[
           { label: "Home", href: "/" },
           { label: "Shop", href: "/shop" },
-          { label: "Collections", section: "collections" },
+          { label: "Collections", href: "/shop/collections" },
         ]}
       />
       {children}

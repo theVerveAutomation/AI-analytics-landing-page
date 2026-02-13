@@ -25,6 +25,7 @@ export default function UpdateProductForm({
 }: UpdateProductFormProps) {
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description);
+  const [price, setPrice] = useState<number | "">(product.price ?? "");
   const [categoryId, setCategoryId] = useState(product.category_id || "");
   const [imagePreview, setImagePreview] = useState<string | null>(
     product.image_url,
@@ -76,8 +77,8 @@ export default function UpdateProductForm({
   }
 
   const handleSubmit = async () => {
-    if (!name || !description) {
-      toast.error("Name and description required");
+    if (!name || price === "" || isNaN(Number(price))) {
+      toast.error("Name and price are required");
       return;
     }
 
@@ -99,6 +100,7 @@ export default function UpdateProductForm({
           id: product.id,
           name,
           description,
+          price: Number(price),
           imageUrl: finalImageUrl,
           categoryId: categoryId || null,
         }),
@@ -167,6 +169,23 @@ export default function UpdateProductForm({
             />
           </div>
 
+          {/* PRICE */}
+          <div>
+            <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
+              Price (₹)
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+              placeholder="Enter product price"
+              value={price}
+              onChange={(e) =>
+                setPrice(e.target.value === "" ? "" : Number(e.target.value))
+              }
+            />
+          </div>
+
           {/* CATEGORY */}
           <div>
             <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
@@ -200,6 +219,8 @@ export default function UpdateProductForm({
                   src={imagePreview}
                   alt="Product preview"
                   className="w-full h-48 object-cover rounded-xl border border-slate-700 bg-slate-800/50"
+                  width={64}
+                  height={64}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-xl transition-opacity">
                   <label className="bg-gradient-to-r from-primary to-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer font-semibold shadow-lg hover:from-primary/90 hover:to-blue-600/90 transition-all">

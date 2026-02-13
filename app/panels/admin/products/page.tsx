@@ -15,16 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Profile } from "@/types";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  image_url: string;
-  org_id: string;
-  category_id?: string;
-}
-
+import { Product } from "@/types";
 interface Category {
   id: string;
   name: string;
@@ -138,6 +129,9 @@ export default function AdminProductsPage() {
                     Description
                   </th>
                   <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
+                    Price
+                  </th>
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Category
                   </th>
                   {/* Org ID column removed */}
@@ -175,6 +169,9 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="p-4 text-sm text-slate-400">
                         {p.description}
+                      </td>
+                      <td className="p-4 text-sm text-slate-400">
+                        ₹{p.price ?? 0}
                       </td>
                       <td className="p-4 text-sm text-slate-400">
                         {categories.find((c) => c.id === p.category_id)

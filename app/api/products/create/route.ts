@@ -8,10 +8,10 @@ export function OPTIONS() {
 
 export async function POST(req: Request) {
   try {
-    const { name, description, imageUrl, categoryId } = await req.json();
-    console.log("Received product data:", { name, description, imageUrl, categoryId });
+    const { name, description, price, imageUrl, categoryId } = await req.json();
+    console.log("Received product data:", { name, description, price, imageUrl, categoryId });
 
-      if (!name || !imageUrl) {
+    if (!name || !imageUrl || price === undefined) {
       return withCors({ error: "Missing fields" }, 400);
     }
 
@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     const { error } = await supabase.from("products").insert({
       name,
       description,
+      price,
       image_url: imageUrl,
       category_id: categoryId || null,
       created_at: new Date().toISOString(),
