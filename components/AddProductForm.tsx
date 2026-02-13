@@ -26,6 +26,7 @@ export default function AddProductForm({
 }: AddProductFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [price, setPrice] = useState<number | "">("");
   const [categoryId, setCategoryId] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -106,14 +107,8 @@ export default function AddProductForm({
   };
 
   const handleSubmit = async () => {
-    console.log("Submitting with:", {
-      name,
-      description,
-      categoryId,
-      imageFile,
-    });
-    if (!name || !imageFile) {
-      toast.error("Name and image are required");
+    if (!name || !imageFile || price === "" || isNaN(Number(price))) {
+      toast.error("Name, image, and price are required");
       return;
     }
     setLoading(true);
@@ -130,6 +125,7 @@ export default function AddProductForm({
         body: JSON.stringify({
           name,
           description,
+          price: Number(price),
           imageUrl,
           categoryId: categoryId || null,
         }),
@@ -182,6 +178,21 @@ export default function AddProductForm({
             placeholder="Enter product description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        {/* PRICE */}
+        <div>
+          <label className="block font-semibold text-slate-300 mb-2">
+            Price (₹)
+          </label>
+          <input
+            type="number"
+            min="0"
+            className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+            placeholder="Enter product price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value === "" ? "" : Number(e.target.value))}
           />
         </div>
 

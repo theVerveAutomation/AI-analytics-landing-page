@@ -32,6 +32,16 @@ export interface Product {
   image_url: string;
   org_id: string;
   category_id?: string;
+  price?: number;
+  created_at?: string;
+  available?: boolean;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
   created_at?: string;
 }
 
