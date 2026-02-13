@@ -17,10 +17,9 @@ export default function ShopPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
-
-  const handleCategoryClick = (id: string) => {
-    setSelectedCategoryId(id === "all" ? null : id);
-  };
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   const renderCategoryCardContent = (cat: Category) => (
     <div className="absolute inset-0 z-20">
@@ -64,12 +63,28 @@ export default function ShopPage() {
     load();
   }, []);
 
-  const filteredProducts = products.filter(
-    (p) =>
-      (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (!selectedCategoryId || p.category_id === selectedCategoryId),
-  );
+  const filteredProducts = products.filter((p) => {
+    // Text search
+    const matchesText =
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchTerm.toLowerCase());
+    // Category filter
+    const matchesCategory =
+      !selectedCategoryId || p.category_id === selectedCategoryId;
+    // Price filter
+    const price = typeof p.price === "number" ? p.price : 0;
+    const matchesMinPrice = minPrice === "" || price >= Number(minPrice);
+    const matchesMaxPrice = maxPrice === "" || price <= Number(maxPrice);
+    // In-stock filter (assume p.stock or p.quantity or p.available)
+    const matchesStock = !inStockOnly || (p.available ?? true);
+    return (
+      matchesText &&
+      matchesCategory &&
+      matchesMinPrice &&
+      matchesMaxPrice &&
+      matchesStock
+    );
+  });
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
@@ -130,12 +145,58 @@ export default function ShopPage() {
         <CommerceHero />
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-8 text-primary">All Products</h1>
+          <div className="mb-8 flex flex-wrap gap-4 justify-center items-center">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search products..."
+              className="w-full max-w-md px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <select
+              value={selectedCategoryId ?? ""}
+              onChange={(e) => setSelectedCategoryId(e.target.value || null)}
+              className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              placeholder="Min Price"
+              className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              min="0"
+            />
+            <input
+              type="number"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="Max Price"
+              className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              min="0"
+            />
+            <label className="flex items-center gap-2 text-foreground">
+              <input
+                type="checkbox"
+                checked={inStockOnly}
+                onChange={(e) => setInStockOnly(e.target.checked)}
+                className="accent-primary"
+              />
+              In Stock Only
+            </label>
+          </div>
           {loading ? (
             <div className="min-h-screen flex items-center justify-center bg-background">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center px-6">
+            <div className="text-center min-h-[50vh] flex flex-col items-center justify-center gap-4">
               <p className="text-lg font-medium text-foreground mb-1">
                 {searchTerm ? "No results found" : "No products yet"}
               </p>

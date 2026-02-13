@@ -34,6 +34,7 @@ export interface Product {
   category_id?: string;
   price?: number;
   created_at?: string;
+  available?: boolean;
 }
 
 export interface Category {
