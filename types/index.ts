@@ -45,6 +45,14 @@ export interface Category {
   created_at?: string;
 }
 
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl: string;
+}
+
 export interface Organization {
   id: string;
   name?: string;

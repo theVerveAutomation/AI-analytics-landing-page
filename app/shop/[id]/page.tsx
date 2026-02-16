@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCartStore } from "@/store/userCartStore";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -11,30 +12,28 @@ import {
 } from "lucide-react";
 import { Product } from "@/types";
 import Image from "next/image";
-import Navigation from "@/components/Navigation";
 
 export default function ProductDetailsPage() {
-  console.log("Rendering ProductDetailsPage");
   const router = useRouter();
   const params = useParams();
-  console.log("ProductDetailsPage params:", params);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
-    async function loadProduct() {
+    const loadProduct = async () => {
       try {
         // Fetch all products and find the one with matching ID
-        const res = await fetch("/api/products/fetch");
+        const res = await fetch(`/api/products/${params.id}`);
         const json = await res.json();
-        const found = json.products?.find((p: Product) => p.id === params.id);
-        setProduct(found || null);
+        const found = json.product;
+        setProduct(found);
       } catch (error) {
         console.error("Error loading product:", error);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     if (params.id) {
       loadProduct();
@@ -65,7 +64,7 @@ export default function ProductDetailsPage() {
             Product Not Found
           </h3>
           <button
-            onClick={() => router.push("/shop")}
+            onClick={() => router.back()}
             className="px-6 py-3 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground rounded-xl font-semibold transition-all shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30"
           >
             Back to Shop
@@ -81,7 +80,7 @@ export default function ProductDetailsPage() {
       <div className="bg-background/95 backdrop-blur-md border-b border-border shadow-lg sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 py-4">
           <button
-            onClick={() => router.push("/shop")}
+            onClick={() => router.back()}
             className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -182,6 +181,22 @@ export default function ProductDetailsPage() {
 
               {/* Contact Actions */}
               <div className="space-y-3">
+                <button
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border border-primary py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                  onClick={() => {
+                    if (product) {
+                      addItem({
+                        id: product.id,
+                        name: product.name,
+                        price:
+                          typeof product.price === "number" ? product.price : 0,
+                        imageUrl: product.image_url || "",
+                      });
+                    }
+                  }}
+                >
+                  Add to Cart
+                </button>
                 <button className="w-full bg-accent/60 hover:bg-accent text-foreground hover:text-primary-foreground border border-border py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2">
                   <ExternalLink className="w-5 h-5" />
                   Request Quote
