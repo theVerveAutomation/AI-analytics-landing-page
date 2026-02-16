@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
-import { ArrowUpRight, ShoppingBag } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Category, Product } from "@/types";
 import Image from "next/image";
 import { CommerceHero } from "@/components/commerce-hero";
 import { motion } from "framer-motion";
+import { useCartStore } from "@/store/userCartStore";
 
 export default function ShopPage() {
   const router = useRouter();
@@ -21,35 +22,9 @@ export default function ShopPage() {
   );
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [inStockOnly, setInStockOnly] = useState(false);
-  // Removed availability filter
   const [sortBy, setSortBy] = useState("none"); // none, price-asc, price-desc, name-asc, name-desc
 
-  const renderCategoryCardContent = (cat: Category) => (
-    <div className="absolute inset-0 z-20">
-      <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[clamp(1.5rem,4vw,2.5rem)] font-bold relative z-10 text-primary my-2 sm:my-4 group-hover:text-primary/90 transition-colors duration-300">
-        {cat.name}
-      </h2>
-      <div className="absolute inset-0 flex items-center justify-center p-4">
-        {cat.id === "all" ? (
-          <ShoppingBag className="w-24 h-24 sm:w-28 sm:h-28 text-primary/60 group-hover:scale-110 group-hover:text-primary/80 transition-all duration-500" />
-        ) : (
-          <Image
-            src={cat.image_url ? cat.image_url : "/placeholder-category.png"}
-            alt={cat.name}
-            width={256}
-            height={256}
-            className="w-full max-w-[min(40vw,200px)] sm:max-w-[min(30vw,180px)] md:max-w-[min(25vw,160px)] lg:max-w-[min(20vw,140px)] h-auto object-contain opacity-90 group-hover:scale-110 group-hover:opacity-100 transition-all duration-500"
-          />
-        )}
-      </div>
-      <div className="absolute bottom-0 right-0 w-16 h-16 md:w-20 md:h-20 bg-background/95 backdrop-blur-sm rounded-tl-xl flex items-center justify-center z-10 border-l border-t border-border/50">
-        <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 w-10 h-10 md:w-12 md:h-12 bg-secondary rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 transition-all duration-300 shadow-lg">
-          <ArrowUpRight className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     const load = async () => {
@@ -101,14 +76,7 @@ export default function ShopPage() {
     const matchesMinPrice = minPrice === "" || price >= Number(minPrice);
     const matchesMaxPrice = maxPrice === "" || price <= Number(maxPrice);
     // In-stock filter (assume p.stock or p.quantity or p.available)
-    const matchesStock = !inStockOnly || (p.available ?? true);
-    return (
-      matchesText &&
-      matchesCategory &&
-      matchesMinPrice &&
-      matchesMaxPrice &&
-      matchesStock
-    );
+    return matchesText && matchesCategory && matchesMinPrice && matchesMaxPrice;
   });
 
   // Sorting
@@ -142,10 +110,10 @@ export default function ShopPage() {
     <>
       <main className="min-h-screen bg-background pt-14">
         <CommerceHero />
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4">
           <h1 className="text-3xl font-bold mb-8 text-primary">All Products</h1>
           <div
-            className="mb-8 flex flex-wrap gap-4 justify-center items-center scroll-mt-40"
+            className="mb-8 flex flex-wrap gap-4 justify-center items-center scroll-mt-40 mx-2 sm:mx-0"
             ref={filtersRef}
           >
             <input
@@ -271,17 +239,12 @@ export default function ShopPage() {
                         className="mt-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium shadow hover:bg-primary/90 transition-colors text-sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.dispatchEvent(
-                            new CustomEvent("add-to-cart", {
-                              detail: {
-                                id: p.id,
-                                name: p.name,
-                                price: p.price,
-                                imageUrl: p.image_url,
-                                quantity: 1,
-                              },
-                            }),
-                          );
+                          addItem({
+                            id: p.id,
+                            name: p.name,
+                            price: typeof p.price === "number" ? p.price : 0,
+                            imageUrl: p.image_url || "",
+                          });
                         }}
                       >
                         Add to Cart

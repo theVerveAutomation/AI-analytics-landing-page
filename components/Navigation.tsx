@@ -31,47 +31,8 @@ interface NavigationProps {
 const Navigation = ({ navType, navigation }: NavigationProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState([
-    {
-      id: "1",
-      name: "Sony WH-1000XM5 Wireless Headphones",
-      price: 99.99,
-      quantity: 1,
-      imageUrl:
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "2",
-      name: "Apple Watch Series 7",
-      price: 249.0,
-      quantity: 2,
-      imageUrl:
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "3",
-      name: 'Samsung 55" 4K Ultra HD Smart TV',
-      price: 799.5,
-      quantity: 1,
-      imageUrl:
-        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    },
-  ]);
   const { theme, setTheme } = useTheme();
   const router = useRouter();
-
-  const handleQuantityChange = (id: string, newQuantity: number) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, newQuantity) } : item,
-      ),
-    );
-  };
-
-  const handleRemoveItem = (id: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
-  };
 
   useEffect(() => {
     setMounted(true);
@@ -113,8 +74,8 @@ const Navigation = ({ navType, navigation }: NavigationProps) => {
         transition: "background 0.3s, box-shadow 0.3s",
       }}
     >
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 min-h-[64px]">
+      <div className="w-full px-2 sm:px-4 py-4 md:max-w-7xl md:mx-auto max-w-full mx-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 min-h-[64px] w-full">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
             <Image

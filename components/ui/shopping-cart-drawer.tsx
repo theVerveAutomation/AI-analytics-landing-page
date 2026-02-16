@@ -13,56 +13,18 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { CartItem } from "@/types";
+import { ExternalLink, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+
+import { useCartStore } from "@/store/userCartStore";
+import Image from "next/image";
 
 export default function ShoppingCartDrawer() {
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("cartItems");
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch {}
-      }
-    }
-    return [];
-  });
-
-  // Save cart to localStorage on change
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cartItems", JSON.stringify(cartItems));
-    }
-  }, [cartItems]);
-
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setCartItems((prev) => prev.filter((item) => item.id !== id));
-    } else {
-      setCartItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, quantity: newQuantity } : item,
-        ),
-      );
-    }
-  };
-
-  const removeItem = (id: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  const getTotalPrice = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0,
-    );
-  };
-
-  const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  const items = useCartStore((state) => state.items);
+  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
+  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const getTotalPrice = useCartStore((state) => state.getTotalPrice);
+  const getTotalItems = useCartStore((state) => state.getTotalItems);
 
   return (
     <Drawer shouldScaleBackground={true} snapPoints={[1]}>
@@ -70,7 +32,7 @@ export default function ShoppingCartDrawer() {
         <Button variant="outline" className="relative">
           <ShoppingCart className="w-4 h-4" />
           <p className="text-sm hidden md:block">Shopping Cart</p>
-          {cartItems.length > 0 && (
+          {items.length > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
               {getTotalItems()}
             </span>
@@ -88,7 +50,7 @@ export default function ShoppingCartDrawer() {
           </DrawerDescription>
         </DrawerHeader>
         <DrawerBody className="flex-1 min-h-0 overflow-y-auto flex flex-col justify-center">
-          {cartItems.length === 0 ? (
+          {items.length === 0 ? (
             <div className="text-center py-8">
               <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">Your cart is empty</p>
@@ -98,12 +60,18 @@ export default function ShoppingCartDrawer() {
             </div>
           ) : (
             <div className="space-y-4">
-              {cartItems.map((item) => (
+              {items.map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center gap-4 p-4 border rounded-lg"
                 >
-                  <div className="text-3xl">{item.imageUrl}</div>
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.name}
+                    width={64}
+                    height={64}
+                    className="rounded-md"
+                  />
                   <div className="flex-1">
                     <h3 className="font-medium">{item.name}</h3>
                     <p className="text-sm text-gray-500">
@@ -115,7 +83,7 @@ export default function ShoppingCartDrawer() {
                       variant="outline"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => decreaseQuantity(item.id)}
                     >
                       <Minus className="w-3 h-3" />
                     </Button>
@@ -126,7 +94,7 @@ export default function ShoppingCartDrawer() {
                       variant="outline"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => increaseQuantity(item.id)}
                     >
                       <Plus className="w-3 h-3" />
                     </Button>
@@ -154,24 +122,9 @@ export default function ShoppingCartDrawer() {
                     <span>Subtotal:</span>
                     <span>${getTotalPrice().toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Shipping:</span>
-                    <span>$5.99</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Tax:</span>
-                    <span>${(getTotalPrice() * 0.08).toFixed(2)}</span>
-                  </div>
                   <div className="border-t pt-2 flex justify-between font-medium">
                     <span>Total:</span>
-                    <span>
-                      $
-                      {(
-                        getTotalPrice() +
-                        5.99 +
-                        getTotalPrice() * 0.08
-                      ).toFixed(2)}
-                    </span>
+                    <span>${getTotalPrice().toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -194,11 +147,12 @@ export default function ShoppingCartDrawer() {
           </DrawerClose>
           <Button
             className="w-full"
-            disabled={cartItems.length === 0}
+            disabled={items.length === 0}
             onClick={() => alert("Proceeding to checkout...")}
           >
-            Checkout ($
-            {(getTotalPrice() + 5.99 + getTotalPrice() * 0.08).toFixed(2)})
+            <ExternalLink className="w-5 h-5" />
+            Request Quote ($
+            {getTotalPrice().toFixed(2)})
           </Button>
         </DrawerFooter>
       </DrawerContent>

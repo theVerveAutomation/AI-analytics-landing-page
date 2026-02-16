@@ -72,7 +72,7 @@ const Pricing = () => {
     <section id="pricing" className="py-24 px-6 relative bg-background">
       {/* Decorative Elements */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-1/2 w-64 h-64 bg-primary rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-1/2 w-48 h-48 md:w-64 md:h-64 bg-primary rounded-full blur-3xl"></div>
       </div>
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
