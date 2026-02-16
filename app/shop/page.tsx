@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { ArrowUpRight, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Category, Product } from "@/types";
@@ -14,12 +14,16 @@ export default function ShopPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const filtersRef = useRef<HTMLDivElement>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [inStockOnly, setInStockOnly] = useState(false);
+  // Removed availability filter
+  const [sortBy, setSortBy] = useState("none"); // none, price-asc, price-desc, name-asc, name-desc
 
   const renderCategoryCardContent = (cat: Category) => (
     <div className="absolute inset-0 z-20">
@@ -61,9 +65,30 @@ export default function ShopPage() {
       setLoading(false);
     };
     load();
+
+    // Listen for custom event to focus search input
+    const focusHandler = () => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    };
+    window.addEventListener("focus-shop-search-input", focusHandler);
+
+    // Listen for custom event to scroll to filters
+    const scrollToFilters = () => {
+      if (filtersRef.current) {
+        filtersRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+    window.addEventListener("scroll-to-shop-filters", scrollToFilters);
+
+    return () => {
+      window.removeEventListener("focus-shop-search-input", focusHandler);
+      window.removeEventListener("scroll-to-shop-filters", scrollToFilters);
+    };
   }, []);
 
-  const filteredProducts = products.filter((p) => {
+  let filteredProducts = products.filter((p) => {
     // Text search
     const matchesText =
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,50 +111,24 @@ export default function ShopPage() {
     );
   });
 
-  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
-
-  // Group products by category for carousels
-  const productsByCategory = useMemo(() => {
-    const grouped: Record<string, { category: Category; products: Product[] }> =
-      {};
-
-    // Create groups for each category
-    categories.forEach((cat) => {
-      grouped[cat.id] = { category: cat, products: [] };
-    });
-
-    // Add "Uncategorized" group
-    grouped["uncategorized"] = {
-      category: {
-        id: "uncategorized",
-        name: "Other Products",
-        description: "Products without a category",
-      },
-      products: [],
-    };
-
-    // Distribute filtered products into groups
-    filteredProducts.forEach((p) => {
-      if (p.category_id && grouped[p.category_id]) {
-        grouped[p.category_id].products.push(p);
-      } else {
-        grouped["uncategorized"].products.push(p);
-      }
-    });
-
-    // Return only groups that have products
-    return Object.values(grouped).filter((g) => g.products.length > 0);
-  }, [filteredProducts, categories]);
-
-  // Map app Product → carousel Product
-  // const toCarouselProduct = (p: Product) => ({
-  //   id: p.id,
-  //   name: p.name,
-  //   quantity: p.description,
-  //   price: p.price ?? 0,
-  //   deliveryTime: "Available",
-  //   imageUrl: p.image_url,
-  // });
+  // Sorting
+  if (sortBy === "price-asc") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (a.price ?? 0) - (b.price ?? 0),
+    );
+  } else if (sortBy === "price-desc") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (b.price ?? 0) - (a.price ?? 0),
+    );
+  } else if (sortBy === "name-asc") {
+    filteredProducts = [...filteredProducts].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  } else if (sortBy === "name-desc") {
+    filteredProducts = [...filteredProducts].sort((a, b) =>
+      b.name.localeCompare(a.name),
+    );
+  }
 
   if (loading) {
     return (
@@ -145,8 +144,12 @@ export default function ShopPage() {
         <CommerceHero />
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-8 text-primary">All Products</h1>
-          <div className="mb-8 flex flex-wrap gap-4 justify-center items-center">
+          <div
+            className="mb-8 flex flex-wrap gap-4 justify-center items-center scroll-mt-40"
+            ref={filtersRef}
+          >
             <input
+              ref={searchInputRef}
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -165,31 +168,45 @@ export default function ShopPage() {
                 </option>
               ))}
             </select>
-            <input
-              type="number"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              placeholder="Min Price"
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
               className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              min="0"
-            />
-            <input
-              type="number"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              placeholder="Max Price"
-              className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              min="0"
-            />
-            <label className="flex items-center gap-2 text-foreground">
+            >
+              <option value="none">Sort By</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="name-asc">Name: A-Z</option>
+              <option value="name-desc">Name: Z-A</option>
+            </select>
+            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+              <label htmlFor="minPrice" className="text-sm text-foreground">
+                Min Price: ₹{minPrice || 0}
+              </label>
               <input
-                type="checkbox"
-                checked={inStockOnly}
-                onChange={(e) => setInStockOnly(e.target.checked)}
-                className="accent-primary"
+                id="minPrice"
+                type="range"
+                min="0"
+                max={maxPrice !== "" ? maxPrice : 10000}
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-full accent-primary"
               />
-              In Stock Only
-            </label>
+            </div>
+            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+              <label htmlFor="maxPrice" className="text-sm text-foreground">
+                Max Price: ₹{maxPrice || 10000}
+              </label>
+              <input
+                id="maxPrice"
+                type="range"
+                min={minPrice !== "" ? minPrice : 0}
+                max="10000"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-full accent-primary"
+              />
+            </div>
           </div>
           {loading ? (
             <div className="min-h-screen flex items-center justify-center bg-background">
@@ -243,13 +260,32 @@ export default function ShopPage() {
                         <ArrowUpRight className="w-5 h-5" />
                       </div>
                     </div>
-                    <div className="absolute left-0 bottom-0 p-4">
+                    <div className="absolute left-0 bottom-0 p-4 w-full flex flex-col gap-2 items-start">
                       <div className="text-base font-semibold text-primary">
                         ₹{p.price ?? 0}
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                         {p.description}
                       </div>
+                      <button
+                        className="mt-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium shadow hover:bg-primary/90 transition-colors text-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.dispatchEvent(
+                            new CustomEvent("add-to-cart", {
+                              detail: {
+                                id: p.id,
+                                name: p.name,
+                                price: p.price,
+                                imageUrl: p.image_url,
+                                quantity: 1,
+                              },
+                            }),
+                          );
+                        }}
+                      >
+                        Add to Cart
+                      </button>
                     </div>
                   </div>
                 </motion.div>

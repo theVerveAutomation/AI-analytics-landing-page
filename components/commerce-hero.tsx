@@ -33,7 +33,16 @@ export function CommerceHero() {
               security - we have everything you need.
             </p>
             <div className="flex flex-wrap gap-4 justify-center mt-4">
-              <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors duration-200 flex items-center gap-2 text-lg">
+              <button
+                className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors duration-200 flex items-center gap-2 text-lg"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(
+                      new CustomEvent("scroll-to-shop-filters"),
+                    );
+                  }
+                }}
+              >
                 Browse Products
                 <ArrowUpRight className="w-5 h-5" />
               </button>
