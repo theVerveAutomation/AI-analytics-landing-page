@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import ShoppingCartDrawer from "@/components/ui/shopping-cart-drawer";
+import ShoppingCartDrawer from "@/components/shopping-cart-drawer";
 import {
   Sheet,
   SheetContent,
