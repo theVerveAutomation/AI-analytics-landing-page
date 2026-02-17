@@ -17,9 +17,7 @@ export default function ShopPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const filtersRef = useRef<HTMLDivElement>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null,
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("none"); // none, price-asc, price-desc, name-asc, name-desc
@@ -69,8 +67,9 @@ export default function ShopPage() {
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.description.toLowerCase().includes(searchTerm.toLowerCase());
     // Category filter
+
     const matchesCategory =
-      !selectedCategoryId || p.category_id === selectedCategoryId;
+      !selectedCategoryId || p.category_id == selectedCategoryId;
     // Price filter
     const price = typeof p.price === "number" ? p.price : 0;
     const matchesMinPrice = minPrice === "" || price >= Number(minPrice);
@@ -126,7 +125,7 @@ export default function ShopPage() {
             />
             <select
               value={selectedCategoryId ?? ""}
-              onChange={(e) => setSelectedCategoryId(e.target.value || null)}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
               className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Categories</option>
@@ -243,7 +242,7 @@ export default function ShopPage() {
                             id: p.id,
                             name: p.name,
                             price: typeof p.price === "number" ? p.price : 0,
-                            imageUrl: p.image_url || "",
+                            image_url: p.image_url || "",
                           });
                         }}
                       >

@@ -10,14 +10,16 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
-import { Product } from "@/types";
+import { CartItem, Product } from "@/types";
 import Image from "next/image";
+import { QuoteRequestForm } from "@/components/QuoteRequestForm";
 
 export default function ProductDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quoteFormOpen, setQuoteFormOpen] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -190,22 +192,35 @@ export default function ProductDetailsPage() {
                         name: product.name,
                         price:
                           typeof product.price === "number" ? product.price : 0,
-                        imageUrl: product.image_url || "",
+                        image_url: product.image_url || "",
                       });
                     }
                   }}
                 >
                   Add to Cart
                 </button>
-                <button className="w-full bg-accent/60 hover:bg-accent text-foreground hover:text-primary-foreground border border-border py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2">
-                  <ExternalLink className="w-5 h-5" />
-                  Request Quote
-                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Quote Request Form */}
+      {product && (
+        <QuoteRequestForm
+          open={quoteFormOpen}
+          onOpenChange={setQuoteFormOpen}
+          productDetails={[
+            {
+              id: product.id,
+              name: product.name,
+              price: typeof product.price === "number" ? product.price : 0,
+              quantity: 1,
+              image_url: product.image_url || "",
+            } as CartItem,
+          ]}
+        />
+      )}
     </main>
   );
 }

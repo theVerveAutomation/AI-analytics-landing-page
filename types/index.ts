@@ -50,7 +50,7 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
-  imageUrl: string;
+  image_url: string;
 }
 
 export interface Organization {
