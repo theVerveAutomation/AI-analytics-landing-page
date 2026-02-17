@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/userCartStore";
 import { useRouter, useParams } from "next/navigation";
-import {
-  ArrowLeft,
-  Package,
-  Calendar,
-  ExternalLink,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, Package, Calendar, Loader2 } from "lucide-react";
 import { CartItem, Product } from "@/types";
 import Image from "next/image";
 import { QuoteRequestForm } from "@/components/QuoteRequestForm";

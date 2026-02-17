@@ -29,12 +29,8 @@ export function QuoteRequestForm({
   onOpenChange,
   productDetails,
 }: QuoteRequestFormProps) {
-  // Always treat productDetails as an array for display and sending
-  const productArray: CartItem[] = Array.isArray(productDetails)
-    ? productDetails
-    : productDetails
-      ? [productDetails as unknown as CartItem]
-      : [];
+  // productDetails is already typed as CartItem[]
+  const productArray: CartItem[] = productDetails;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -276,12 +272,17 @@ export function QuoteRequestForm({
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={loading}>
+                  <Button
+                    type="submit"
+                    disabled={loading || productArray.length === 0}
+                  >
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Sending...
                       </>
+                    ) : productArray.length === 0 ? (
+                      "Add a product to submit"
                     ) : (
                       "Submit Request"
                     )}
