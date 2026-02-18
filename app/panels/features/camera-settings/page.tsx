@@ -36,22 +36,21 @@ export default function CameraSettingPage() {
         transports: ["websocket"],
         autoConnect: true,
       }),
-    []
+    [],
   );
 
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
-  const [selectedCameraId, setSelectedCameraId] = useState<number | undefined>(
+  const [selectedCameraId, setSelectedCameraId] = useState<string | undefined>(
     () => {
       try {
         if (typeof window === "undefined") return undefined;
         const saved = localStorage.getItem("cameraSettings:selectedCameraId");
         if (!saved) return undefined;
-        const parsed = Number(saved);
-        return Number.isNaN(parsed) ? undefined : parsed;
+        return saved;
       } catch {
         return undefined;
       }
-    }
+    },
   );
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -62,7 +61,7 @@ export default function CameraSettingPage() {
   const [editCameraName, setEditCameraName] = useState("");
   const [editCameraUrl, setEditCameraUrl] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
 
   // Persist selection
   useEffect(() => {
@@ -70,7 +69,7 @@ export default function CameraSettingPage() {
       if (selectedCameraId != null) {
         localStorage.setItem(
           "cameraSettings:selectedCameraId",
-          String(selectedCameraId)
+          String(selectedCameraId),
         );
       }
     } catch {
@@ -113,14 +112,14 @@ export default function CameraSettingPage() {
       try {
         const res = await fetch(
           `/api/camera/fetch?organization_id=${encodeURIComponent(
-            profile.organization_id
+            profile.organization_id,
           )}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
         const data = await res.json();
         console.log("Fetched cameras:", data);
@@ -154,13 +153,13 @@ export default function CameraSettingPage() {
       try {
         const res = await fetch(
           `/api/snapshots/latest/fetch?cameras=${encodeURIComponent(
-            JSON.stringify(cameras.map((c) => c.id))
-          )}`
+            JSON.stringify(cameras.map((c) => c.id)),
+          )}`,
         );
         const data = await res.json();
         console.log("Fetched latest snapshots for thumbnails:", data);
         if (res.ok && Array.isArray(data.snapshots)) {
-          const thumbMap: Record<number, string> = {};
+          const thumbMap: Record<string, string> = {};
           for (const snap of data.snapshots as Snapshot[]) {
             if (snap.camera_id && snap.url) {
               thumbMap[snap.camera_id] = snap.url;
@@ -225,12 +224,12 @@ export default function CameraSettingPage() {
   }
 
   const updateCameraSetting = (
-    cameraId: number,
+    cameraId: string,
     key: keyof CameraConfig,
-    value: number | string | boolean
+    value: number | string | boolean,
   ) => {
     setCameras((prev) =>
-      prev.map((cam) => (cam.id === cameraId ? { ...cam, [key]: value } : cam))
+      prev.map((cam) => (cam.id === cameraId ? { ...cam, [key]: value } : cam)),
     );
     setHasChanges(true);
   };
@@ -282,7 +281,7 @@ export default function CameraSettingPage() {
     }
   };
 
-  const handleDeleteCamera = async (cameraId: number) => {
+  const handleDeleteCamera = async (cameraId: string) => {
     if (!confirm("Are you sure you want to delete this camera?")) return;
 
     try {
@@ -296,13 +295,13 @@ export default function CameraSettingPage() {
         alert(data.error || "Failed to delete camera");
         return;
       }
-      setCameras((prev) => {
-        const next = prev.filter((c) => c.id !== cameraId);
-        if (selectedCameraId === cameraId) {
-          setSelectedCameraId(next[0]?.id);
-        }
-        return next;
-      });
+      // setCameras((prev) => {
+      //   const next = prev.filter((c) => c.id !== cameraId);
+      //   if (selectedCameraId === cameraId) {
+      //     setSelectedCameraId(next[0]?.id);
+      //   }
+      //   return next;
+      // });
       alert("Camera deleted successfully!");
     } catch {
       alert("Failed to delete camera (network error)");
@@ -311,7 +310,7 @@ export default function CameraSettingPage() {
 
   const handleEditCamera = (camera: CameraConfig) => {
     setEditingCamera(camera);
-    setEditCameraName(camera.name);
+    setEditCameraName(camera.name ?? "");
     setEditCameraUrl(camera.url || "");
   };
 
@@ -338,7 +337,7 @@ export default function CameraSettingPage() {
         return;
       }
       setCameras((prev) =>
-        prev.map((c) => (c.id === editingCamera.id ? data.camera : c))
+        prev.map((c) => (c.id === editingCamera.id ? data.camera : c)),
       );
       setEditingCamera(null);
       setEditCameraName("");
@@ -417,7 +416,7 @@ export default function CameraSettingPage() {
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {cameras.map((camera) => (
+          {cameras.map((camera: CameraConfig) => (
             <div
               key={camera.id}
               className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${
@@ -431,10 +430,10 @@ export default function CameraSettingPage() {
                 onClick={() => setSelectedCameraId(camera.id)}
                 className="w-full aspect-video bg-gray-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden relative"
               >
-                {thumbnails[camera.id] ? (
+                {camera.id !== undefined && thumbnails[String(camera.id)] ? (
                   <Image
-                    src={thumbnails[camera.id]}
-                    alt={camera.name}
+                    src={thumbnails[String(camera.id)]}
+                    alt={camera.name ?? ""}
                     fill
                     className="object-cover"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -455,11 +454,11 @@ export default function CameraSettingPage() {
                 </span>
                 <span
                   className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full capitalize ${getStatusColor(
-                    camera.status
+                    camera.status ?? "unknown",
                   )}`}
                 >
-                  {getStatusIcon(camera.status)}
-                  {camera.status}
+                  {getStatusIcon(camera.status ?? "unknown")}
+                  {camera.status ?? "unknown"}
                 </span>
               </div>
 
@@ -479,7 +478,7 @@ export default function CameraSettingPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteCamera(camera.id);
+                      handleDeleteCamera(camera.id ?? "");
                     }}
                     className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"
                     title="Delete Camera"
@@ -549,7 +548,7 @@ export default function CameraSettingPage() {
           <div className="flex items-center justify-between text-sm">
             <span
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full capitalize ${getStatusColor(
-                getSelectedCamera()?.status || "unknown"
+                getSelectedCamera()?.status || "unknown",
               )}`}
             >
               {getStatusIcon(getSelectedCamera()?.status || "unknown")}
@@ -581,17 +580,21 @@ export default function CameraSettingPage() {
                   onClick={() => {
                     const cam = getSelectedCamera();
                     if (cam)
-                      updateCameraSetting(cam.id, "detection", !cam.detection);
+                      updateCameraSetting(
+                        cam.id ?? "",
+                        "detection",
+                        !cam.detection,
+                      );
                   }}
                   className={`relative w-12 h-6 rounded-full transition-colors ${
-                    getSelectedCamera()?.detection ?? false
+                    (getSelectedCamera()?.detection ?? false)
                       ? "bg-blue-500"
                       : "bg-gray-300 dark:bg-slate-600"
                   }`}
                 >
                   <span
                     className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      getSelectedCamera()?.detection ?? false
+                      (getSelectedCamera()?.detection ?? false)
                         ? "left-7"
                         : "left-1"
                     }`}
@@ -599,13 +602,13 @@ export default function CameraSettingPage() {
                 </button>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                {getSelectedCamera()?.detection ?? false ? (
+                {(getSelectedCamera()?.detection ?? false) ? (
                   <Eye className="w-4 h-4 text-blue-500" />
                 ) : (
                   <EyeOff className="w-4 h-4" />
                 )}
                 <span>
-                  {getSelectedCamera()?.detection ?? false
+                  {(getSelectedCamera()?.detection ?? false)
                     ? "Enabled"
                     : "Disabled"}
                 </span>
@@ -627,20 +630,20 @@ export default function CameraSettingPage() {
                     const cam = getSelectedCamera();
                     if (cam)
                       updateCameraSetting(
-                        cam.id,
+                        cam.id ?? "",
                         "alert_sound",
-                        !cam.alert_sound
+                        !cam.alert_sound,
                       );
                   }}
                   className={`relative w-12 h-6 rounded-full transition-colors ${
-                    getSelectedCamera()?.alert_sound ?? false
+                    (getSelectedCamera()?.alert_sound ?? false)
                       ? "bg-blue-500"
                       : "bg-gray-300 dark:bg-slate-600"
                   }`}
                 >
                   <span
                     className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      getSelectedCamera()?.alert_sound ?? false
+                      (getSelectedCamera()?.alert_sound ?? false)
                         ? "left-7"
                         : "left-1"
                     }`}
@@ -648,13 +651,13 @@ export default function CameraSettingPage() {
                 </button>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                {getSelectedCamera()?.alert_sound ?? false ? (
+                {(getSelectedCamera()?.alert_sound ?? false) ? (
                   <Volume2 className="w-4 h-4 text-blue-500" />
                 ) : (
                   <VolumeX className="w-4 h-4" />
                 )}
                 <span>
-                  {getSelectedCamera()?.alert_sound ?? false ? "On" : "Off"}
+                  {(getSelectedCamera()?.alert_sound ?? false) ? "On" : "Off"}
                 </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -683,9 +686,9 @@ export default function CameraSettingPage() {
                   const cam = getSelectedCamera();
                   if (cam)
                     updateCameraSetting(
-                      cam.id,
+                      cam.id ?? "",
                       "frame_rate",
-                      Number(e.target.value)
+                      Number(e.target.value),
                     );
                 }}
                 className="w-full h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
@@ -710,7 +713,11 @@ export default function CameraSettingPage() {
                 onChange={(e) => {
                   const cam = getSelectedCamera();
                   if (cam)
-                    updateCameraSetting(cam.id, "resolution", e.target.value);
+                    updateCameraSetting(
+                      cam.id ?? "",
+                      "resolution",
+                      e.target.value,
+                    );
                 }}
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               >
@@ -759,7 +766,7 @@ export default function CameraSettingPage() {
               </span>
               <span
                 className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full capitalize ${getStatusColor(
-                  getSelectedCamera()?.status || "unknown"
+                  getSelectedCamera()?.status || "unknown",
                 )}`}
               >
                 {getStatusIcon(getSelectedCamera()?.status || "unknown")}

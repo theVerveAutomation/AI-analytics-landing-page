@@ -138,23 +138,22 @@ const recentEvents = [
 
 export default function VideoAnalyticsPage() {
   const router = useRouter();
-  const [selectedCamera, setSelectedCamera] = useState<number | undefined>(
+  const [selectedCamera, setSelectedCamera] = useState<string | undefined>(
     () => {
       try {
         if (typeof window === "undefined") return undefined;
         const saved = localStorage.getItem("videoAnalytics:selectedCamera");
         if (!saved) return undefined;
-        const parsed = Number(saved);
-        return Number.isNaN(parsed) ? undefined : parsed;
+        return saved;
       } catch {
         return undefined;
       }
-    }
+    },
   );
   // ...existing code...
   const [profile, setProfile] = useState<Profile | null>(null);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
-  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   // Fetch latest snapshot thumbnail for each camera (from new API route)
   useEffect(() => {
     if (!profile || cameras.length === 0) return;
@@ -163,12 +162,12 @@ export default function VideoAnalyticsPage() {
       try {
         const res = await fetch(
           `/api/snapshots/latest/fetch?cameras=${encodeURIComponent(
-            JSON.stringify(cameras.map((c) => c.id))
-          )}`
+            JSON.stringify(cameras.map((c) => c.id)),
+          )}`,
         );
         const data = await res.json();
         if (res.ok && Array.isArray(data.snapshots)) {
-          const thumbMap: Record<number, string> = {};
+          const thumbMap: Record<string, string> = {};
           for (const snap of data.snapshots as Snapshot[]) {
             if (snap.camera_id && snap.url) {
               thumbMap[snap.camera_id] = snap.url;
@@ -190,7 +189,7 @@ export default function VideoAnalyticsPage() {
       if (selectedCamera != null) {
         localStorage.setItem(
           "videoAnalytics:selectedCamera",
-          String(selectedCamera)
+          String(selectedCamera),
         );
       }
     } catch {
@@ -232,14 +231,14 @@ export default function VideoAnalyticsPage() {
       try {
         const res = await fetch(
           `/api/camera/fetch?organization_id=${encodeURIComponent(
-            profile.organization_id
+            profile.organization_id,
           )}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
         const data = await res.json();
         if (res.ok && Array.isArray(data.cameras)) {
@@ -255,7 +254,7 @@ export default function VideoAnalyticsPage() {
               updated_at: cam.updated_at || "-",
               url: cam.url,
               organization_id: cam.organization_id,
-            })
+            }),
           );
           setCameras(dbCameras);
           setSelectedCamera((prev) => {
@@ -434,10 +433,10 @@ export default function VideoAnalyticsPage() {
                   }`}
                 >
                   <div className="absolute inset-0 bg-gray-900">
-                    {thumbnails[camera.id] ? (
+                    {thumbnails[camera.id ?? ""] ? (
                       <Image
-                        src={thumbnails[camera.id]}
-                        alt={camera.name}
+                        src={thumbnails[camera.id ?? ""]}
+                        alt={camera.name || "Camera Thumbnail"}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -460,8 +459,8 @@ export default function VideoAnalyticsPage() {
                           camera.status === "normal"
                             ? "bg-blue-500"
                             : camera.status === "warning"
-                            ? "bg-amber-500"
-                            : "bg-gray-500"
+                              ? "bg-amber-500"
+                              : "bg-gray-500"
                         }`}
                       ></span>
                     </div>
@@ -575,8 +574,8 @@ export default function VideoAnalyticsPage() {
                         event.severity === "critical"
                           ? "bg-red-100 dark:bg-red-900/30"
                           : event.severity === "medium"
-                          ? "bg-amber-100 dark:bg-amber-900/30"
-                          : "bg-blue-100 dark:bg-blue-900/30"
+                            ? "bg-amber-100 dark:bg-amber-900/30"
+                            : "bg-blue-100 dark:bg-blue-900/30"
                       } flex items-center justify-center flex-shrink-0`}
                     >
                       <event.icon className={`w-5 h-5 ${event.color}`} />

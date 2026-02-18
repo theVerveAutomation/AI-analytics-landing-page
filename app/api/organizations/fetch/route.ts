@@ -4,6 +4,46 @@ import { CORS_HEADERS } from "@/lib/cors";
 
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    // If ID is provided, fetch single organization
+    if (id) {
+      const { data: organization, error } = await supabaseAdmin
+        .from("organizations")
+        .select(`
+          *,
+          profiles (
+            id
+          )
+        `)
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Fetch organization error:", error);
+        return NextResponse.json(
+          { error: error.message || "Failed to fetch organization" },
+          { status: 500 }
+        );
+      }
+
+      const organizationWithCount = {
+        id: organization.id,
+        name: organization.name,
+        displayid: organization.displayid,
+        email: organization.email,
+        created_at: organization.created_at,
+        user_count: organization.profiles?.length || 0,
+        alerts: organization.alerts || [],
+      };
+
+      return NextResponse.json(
+        { organization: organizationWithCount },
+        { status: 200 }
+      );
+    }
+
     // Fetch all organizations with user count from profiles
     const { data: organizations, error } = await supabaseAdmin
       .from("organizations")

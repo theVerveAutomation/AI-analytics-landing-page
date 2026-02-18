@@ -23,22 +23,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { Profile, CameraConfig } from "@/types";
-
-// Recording type definition
-interface Recording {
-  id: string;
-  camera_id: number;
-  camera_name: string;
-  start_time: string;
-  end_time: string;
-  duration: number; // in seconds
-  file_size: number; // in MB
-  file_url: string;
-  thumbnail_url?: string;
-  has_detections: boolean;
-  detection_count: number;
-}
+import { Profile, CameraConfig, Recording } from "@/types";
 
 export default function RecordingPage() {
   const router = useRouter();
@@ -56,7 +41,7 @@ export default function RecordingPage() {
 
   // Playback
   const [selectedRecording, setSelectedRecording] = useState<Recording | null>(
-    null
+    null,
   );
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -99,8 +84,8 @@ export default function RecordingPage() {
       try {
         const res = await fetch(
           `/api/camera/fetch?organization_id=${encodeURIComponent(
-            profile.organization_id
-          )}`
+            profile.organization_id,
+          )}`,
         );
         const data = await res.json();
         if (res.ok && Array.isArray(data.cameras)) {
@@ -133,15 +118,15 @@ export default function RecordingPage() {
           // Generate some sample recordings for each camera
           for (let i = 0; i < 5; i++) {
             const startTime = new Date(
-              now.getTime() - (i + 1) * 3600000 - Math.random() * 7200000
+              now.getTime() - (i + 1) * 3600000 - Math.random() * 7200000,
             );
             const duration = Math.floor(Math.random() * 3600) + 300; // 5 min to 1 hour
             const endTime = new Date(startTime.getTime() + duration * 1000);
 
             recordingsForCamera.push({
               id: `${camera.id}-${i}`,
-              camera_id: camera.id,
-              camera_name: camera.name,
+              camera_id: camera.id ?? "",
+              camera_name: camera.name ?? "Unknown Camera",
               start_time: startTime.toISOString(),
               end_time: endTime.toISOString(),
               duration,
@@ -157,7 +142,7 @@ export default function RecordingPage() {
         // Sort by start time descending
         simulatedRecordings.sort(
           (a, b) =>
-            new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+            new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
         );
 
         setRecordings(simulatedRecordings);
@@ -178,16 +163,14 @@ export default function RecordingPage() {
 
     // Camera filter
     if (selectedCameraId !== "all") {
-      filtered = filtered.filter(
-        (r) => r.camera_id === parseInt(selectedCameraId)
-      );
+      filtered = filtered.filter((r) => r.camera_id === selectedCameraId);
     }
 
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((r) =>
-        r.camera_name.toLowerCase().includes(query)
+        r.camera_name.toLowerCase().includes(query),
       );
     }
 
@@ -235,7 +218,7 @@ export default function RecordingPage() {
   const totalPages = Math.ceil(filteredRecordings.length / recordingsPerPage);
   const paginatedRecordings = filteredRecordings.slice(
     (currentPage - 1) * recordingsPerPage,
-    currentPage * recordingsPerPage
+    currentPage * recordingsPerPage,
   );
 
   // Total storage used
