@@ -1,13 +1,13 @@
 import nodemailer from "nodemailer";
 import type { NextRequest } from "next/server";
 
-const ADMIN_EMAIL = process.env.VIDEO_ANALYTICS_EMAIL || "guestiefy@gmail.com";
-const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
-const SMTP_PORT = process.env.SMTP_PORT || "465";
-const SMTP_SECURE = process.env.SMTP_SECURE === "true" || true;
-const SMTP_USER = process.env.SMTP_USER || "guestiefy@gmail.com";
-const SMTP_PASS = process.env.SMTP_PASS || "vsix pjpp sygf jalm";
-const SMTP_FROM = process.env.SMTP_FROM || "Quote Request <guestiefy@gmail.com>";
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "videoanalyticspro@gmail.com";
+const SMTP_HOST = process.env.NEXT_PUBLIC_SMTP_HOST || "smtp.gmail.com";
+const SMTP_PORT = process.env.NEXT_PUBLIC_SMTP_PORT || "465";
+const SMTP_SECURE = process.env.NEXT_PUBLIC_SMTP_SECURE === "true" || true;
+const SMTP_USER = process.env.NEXT_PUBLIC_SMTP_USER || "videoanalyticspro@gmail.com";
+const SMTP_PASS = process.env.NEXT_PUBLIC_SMTP_PASS || "zhnn jxzk kqhs uimi";
+const SMTP_FROM = process.env.NEXT_PUBLIC_SMTP_FROM || "Quote Request <videoanalyticspro@gmail.com>";
 
 function escapeHtml(input: string | undefined | null) {
   if (!input) return '-';

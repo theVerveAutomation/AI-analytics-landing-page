@@ -6,70 +6,11 @@ import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { Boxes, Plus, Trash2, ArrowLeft, Check, X, Save } from "lucide-react";
 import { toast } from "sonner";
-
-interface Feature {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  icon?: string;
-  created_at?: string;
-}
-
-const AVAILABLE_FEATURES = [
-  {
-    id: "authentication",
-    name: "Authentication",
-    description: "Access authentication dashboard",
-    icon: "🔐",
-  },
-  {
-    id: "video-analytics",
-    name: "Video Analytics",
-    description: "AI-powered video analysis and insights",
-    icon: "🎥",
-  },
-  {
-    id: "object-detection",
-    name: "Object Detection",
-    description: "Identify and track objects in video streams",
-    icon: "🎯",
-  },
-  {
-    id: "face-recognition",
-    name: "Face Recognition",
-    description: "Identify and verify individuals",
-    icon: "👤",
-  },
-  {
-    id: "motion-detection",
-    name: "Motion Detection",
-    description: "Detect and alert on movement patterns",
-    icon: "🏃",
-  },
-  {
-    id: "alert-management",
-    name: "Alert Management",
-    description: "Configure and manage system alerts",
-    icon: "🔔",
-  },
-  {
-    id: "reporting-analytics",
-    name: "Reporting & Analytics",
-    description: "Generate reports and insights",
-    icon: "📊",
-  },
-  {
-    id: "live-monitoring",
-    name: "Live Monitoring",
-    description: "Real-time video stream monitoring",
-    icon: "📹",
-  },
-];
+import { Feature, Profile } from "@/types";
 
 export default function FeaturesPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -107,40 +48,13 @@ export default function FeaturesPage() {
 
   async function loadFeatures() {
     try {
-      // First, try to fetch from database
-      const { data: dbFeatures, error } = await supabase
-        .from("features")
-        .select("*")
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        console.error("Error loading features:", error);
-        // If table doesn't exist, initialize with default features
-        if (error.code === "42P01") {
-          toast.info(
-            "Initializing features... Please create the features table."
-          );
-          const initialFeatures = AVAILABLE_FEATURES.map((f) => ({
-            ...f,
-            enabled: true,
-          }));
-          setFeatures(initialFeatures);
-        } else {
-          toast.error("Failed to load features");
-        }
+      const res = await fetch("/api/features/list");
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to load features");
         return;
       }
-
-      if (dbFeatures && dbFeatures.length > 0) {
-        setFeatures(dbFeatures);
-      } else {
-        // Database is empty, show default features
-        const initialFeatures = AVAILABLE_FEATURES.map((f) => ({
-          ...f,
-          enabled: true,
-        }));
-        setFeatures(initialFeatures);
-      }
+      setFeatures(data.features || []);
     } catch (err) {
       console.error("Unexpected error:", err);
       toast.error("Failed to load features");
@@ -150,30 +64,24 @@ export default function FeaturesPage() {
   async function toggleFeature(featureId: string) {
     const feature = features.find((f) => f.id === featureId);
     if (!feature) return;
-
     const newEnabledState = !feature.enabled;
-
-    // Optimistic update
     setFeatures((prev) =>
       prev.map((f) =>
-        f.id === featureId ? { ...f, enabled: newEnabledState } : f
-      )
+        f.id === featureId ? { ...f, enabled: newEnabledState } : f,
+      ),
     );
-
-    // Update in database
-    const { error } = await supabase
-      .from("features")
-      .update({ enabled: newEnabledState })
-      .eq("id", featureId);
-
-    if (error) {
-      console.error("Error toggling feature:", error);
-      toast.error("Failed to update feature");
-      // Revert optimistic update
+    const res = await fetch("/api/features/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: featureId, enabled: newEnabledState }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error(data.error || "Failed to update feature");
       setFeatures((prev) =>
         prev.map((f) =>
-          f.id === featureId ? { ...f, enabled: !newEnabledState } : f
-        )
+          f.id === featureId ? { ...f, enabled: !newEnabledState } : f,
+        ),
       );
     } else {
       toast.success("Feature updated");
@@ -185,30 +93,20 @@ export default function FeaturesPage() {
       toast.error("Please fill in all required fields");
       return;
     }
-
     setSaving(true);
-
     try {
-      const { data, error } = await supabase
-        .from("features")
-        .insert([
-          {
-            name: newFeature.name,
-            description: newFeature.description,
-            icon: newFeature.icon || "⚙️",
-            enabled: newFeature.enabled,
-          },
-        ])
-        .select();
-
-      if (error) {
-        console.error("Error adding feature:", error);
-        toast.error("Failed to add feature");
+      const res = await fetch("/api/features/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newFeature),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to add feature");
         return;
       }
-
-      if (data && data.length > 0) {
-        setFeatures((prev) => [...prev, data[0]]);
+      if (data.feature) {
+        setFeatures((prev) => [...prev, data.feature]);
         toast.success("Feature added successfully");
         setShowAddModal(false);
         setNewFeature({
@@ -228,18 +126,16 @@ export default function FeaturesPage() {
 
   async function handleDeleteFeature(featureId: string) {
     if (!confirm("Are you sure you want to delete this feature?")) return;
-
-    const { error } = await supabase
-      .from("features")
-      .delete()
-      .eq("id", featureId);
-
-    if (error) {
-      console.error("Error deleting feature:", error);
-      toast.error("Failed to delete feature");
+    const res = await fetch("/api/features/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: featureId }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error(data.error || "Failed to delete feature");
       return;
     }
-
     setFeatures((prev) => prev.filter((f) => f.id !== featureId));
     toast.success("Feature deleted");
   }
@@ -258,11 +154,11 @@ export default function FeaturesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 mt-20 relative overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 mt-20 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
       </div>
@@ -278,13 +174,13 @@ export default function FeaturesPage() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-emerald-600 blur-lg opacity-40 rounded-2xl" />
-              <div className="relative p-4 bg-gradient-to-br from-cyan-500 to-emerald-600 rounded-2xl shadow-lg shadow-cyan-500/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary to-slate-600 blur-lg opacity-40 rounded-2xl" />
+              <div className="relative p-4 bg-gradient-to-br from-primary to-slate-600 rounded-2xl shadow-lg shadow-primary/20">
                 <Boxes className="w-8 h-8 text-white" />
               </div>
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-slate-400 to-slate-300 bg-clip-text text-transparent">
                 Feature Management
               </h1>
               <p className="mt-1 text-slate-400">
@@ -298,8 +194,8 @@ export default function FeaturesPage() {
             onClick={() => setShowAddModal(true)}
             className="group relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-emerald-600 blur-lg opacity-50 rounded-xl group-hover:opacity-70 transition-opacity" />
-            <div className="relative bg-gradient-to-r from-cyan-500 to-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 group-hover:scale-105 transition-all flex items-center gap-2 font-semibold">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary to-slate-600 blur-lg opacity-50 rounded-xl group-hover:opacity-70 transition-opacity" />
+            <div className="relative bg-gradient-to-r from-primary to-slate-600 text-white px-6 py-3 rounded-xl shadow-lg shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all flex items-center gap-2 font-semibold">
               <Plus className="w-5 h-5" />
               Add Feature
             </div>
@@ -307,13 +203,13 @@ export default function FeaturesPage() {
         </div>
 
         {/* SUMMARY */}
-        <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-800 p-6 mb-6">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 p-6 mb-6">
           <h3 className="text-lg font-bold text-white mb-4">Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-600">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-cyan-500/20 rounded-lg border border-cyan-500/40">
-                  <Boxes className="w-5 h-5 text-cyan-400" />
+                <div className="p-2 bg-primary/20 rounded-lg border border-primary/40">
+                  <Boxes className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm text-slate-400 font-medium">
@@ -326,7 +222,7 @@ export default function FeaturesPage() {
               </div>
             </div>
 
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-600">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500/20 rounded-lg border border-green-500/40">
                   <Check className="w-5 h-5 text-green-400" />
@@ -340,7 +236,7 @@ export default function FeaturesPage() {
               </div>
             </div>
 
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <div className="bg-slate-700/50 rounded-xl p-4 border border-slate-600">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-red-500/20 rounded-lg border border-red-500/40">
                   <X className="w-5 h-5 text-red-400" />
@@ -361,10 +257,10 @@ export default function FeaturesPage() {
           {features.map((feature) => (
             <div
               key={feature.id}
-              className={`bg-slate-900/50 backdrop-blur-sm rounded-2xl overflow-hidden shadow-xl border transition-all duration-300 ${
+              className={`bg-slate-800/50 backdrop-blur-sm rounded-2xl overflow-hidden shadow-xl border transition-all duration-300 ${
                 feature.enabled
-                  ? "border-cyan-500/30 shadow-cyan-500/10"
-                  : "border-slate-800"
+                  ? "border-primary/30 shadow-primary/10"
+                  : "border-slate-700"
               }`}
             >
               <div className="p-6">
@@ -398,7 +294,7 @@ export default function FeaturesPage() {
                       className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
                         feature.enabled
                           ? "bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40"
-                          : "bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 border border-cyan-500/40"
+                          : "bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40"
                       }`}
                     >
                       {feature.enabled ? (
@@ -424,9 +320,9 @@ export default function FeaturesPage() {
       {/* ADD FEATURE MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 w-full max-w-md mx-4 overflow-hidden">
+          <div className="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md mx-4 overflow-hidden">
             {/* MODAL HEADER */}
-            <div className="bg-gradient-to-r from-cyan-500 to-emerald-600 p-6">
+            <div className="bg-gradient-to-r from-primary to-slate-600 p-6">
               <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                 <Plus className="w-6 h-6" />
                 Add New Feature
@@ -446,7 +342,7 @@ export default function FeaturesPage() {
                     setNewFeature({ ...newFeature, name: e.target.value })
                   }
                   placeholder="e.g., Video Analytics"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
 
@@ -464,7 +360,7 @@ export default function FeaturesPage() {
                   }
                   placeholder="Brief description of this feature"
                   rows={3}
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                 />
               </div>
 
@@ -480,7 +376,7 @@ export default function FeaturesPage() {
                   }
                   placeholder="⚙️"
                   maxLength={2}
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
 
@@ -497,7 +393,7 @@ export default function FeaturesPage() {
                   }
                   className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
                     newFeature.enabled
-                      ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/40"
+                      ? "bg-primary/20 text-primary border border-primary/40"
                       : "bg-slate-700/50 text-slate-400 border border-slate-600"
                   }`}
                 >
@@ -507,7 +403,7 @@ export default function FeaturesPage() {
             </div>
 
             {/* MODAL FOOTER */}
-            <div className="p-6 bg-slate-900/50 border-t border-slate-800 flex gap-3">
+            <div className="p-6 bg-slate-800/50 border-t border-slate-700 flex gap-3">
               <button
                 onClick={() => {
                   setShowAddModal(false);
@@ -519,14 +415,14 @@ export default function FeaturesPage() {
                   });
                 }}
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddFeature}
                 disabled={saving || !newFeature.name || !newFeature.description}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-emerald-600 hover:from-cyan-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-primary to-slate-600 hover:from-primary hover:to-slate-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {saving ? (
                   <>
@@ -550,8 +446,8 @@ export default function FeaturesPage() {
         onClick={() => router.back()}
         className="fixed bottom-8 left-8 group z-40"
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-emerald-600 blur-xl opacity-50 rounded-full group-hover:opacity-70 transition-opacity" />
-        <div className="relative bg-gradient-to-r from-cyan-500 to-emerald-600 text-white px-6 py-4 rounded-full shadow-2xl shadow-cyan-500/20 group-hover:shadow-cyan-500/40 group-hover:scale-105 transition-all flex items-center gap-3">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary to-slate-600 blur-xl opacity-50 rounded-full group-hover:opacity-70 transition-opacity" />
+        <div className="relative bg-gradient-to-r from-primary to-slate-600 text-white px-6 py-4 rounded-full shadow-2xl shadow-primary/20 group-hover:shadow-primary/40 group-hover:scale-105 transition-all flex items-center gap-3">
           <ArrowLeft className="w-6 h-6" />
           <span className="font-semibold text-lg">Go Back</span>
         </div>

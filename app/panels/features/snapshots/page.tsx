@@ -39,11 +39,11 @@ export default function SnapshotPage() {
 
   // View mode: "folders" or "snapshots"
   const [viewMode, setViewMode] = useState<"folders" | "snapshots">("folders");
-  const [selectedCameraId, setSelectedCameraId] = useState<number | null>(null);
+  const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
 
   // Selected folder for details panel (folders view)
   const [selectedFolder, setSelectedFolder] = useState<CameraFolder | null>(
-    null
+    null,
   );
 
   // Filters (only for snapshots view)
@@ -55,7 +55,7 @@ export default function SnapshotPage() {
 
   // Preview
   const [selectedSnapshot, setSelectedSnapshot] = useState<Snapshot | null>(
-    null
+    null,
   );
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
@@ -97,8 +97,8 @@ export default function SnapshotPage() {
       try {
         const res = await fetch(
           `/api/camera/fetch?organization_id=${encodeURIComponent(
-            profile.organization_id
-          )}`
+            profile.organization_id,
+          )}`,
         );
         const data = await res.json();
         if (res.ok && Array.isArray(data.cameras)) {
@@ -121,8 +121,8 @@ export default function SnapshotPage() {
       try {
         const res = await fetch(
           `/api/snapshots/fetch?organization_id=${encodeURIComponent(
-            profile.organization_id
-          )}`
+            profile.organization_id,
+          )}`,
         );
         const data = await res.json();
 
@@ -131,13 +131,13 @@ export default function SnapshotPage() {
           const snapshotList: Snapshot[] = data.snapshots.map(
             (snap: Snapshot) => {
               const matchingCamera = cameras.find(
-                (cam) => cam.id === snap.camera_id
+                (cam) => cam.id === snap.camera_id,
               );
               return {
                 ...snap,
                 camera_name: matchingCamera?.name || `Camera ${snap.camera_id}`,
               };
-            }
+            },
           );
 
           setSnapshots(snapshotList);
@@ -156,11 +156,11 @@ export default function SnapshotPage() {
   const cameraFolders: CameraFolder[] = useMemo(() => {
     return cameras.map((camera) => {
       const cameraSnapshots = snapshots.filter(
-        (s) => s.camera_id === camera.id
+        (s) => s.camera_id === camera.id,
       );
       const latestSnapshot = cameraSnapshots.sort(
         (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
 
       return {
@@ -175,7 +175,9 @@ export default function SnapshotPage() {
   const filteredSnapshots = useMemo(() => {
     if (selectedCameraId === null) return [];
 
-    let filtered = snapshots.filter((s) => s.camera_id === selectedCameraId);
+    let filtered = snapshots.filter(
+      (s: Snapshot) => s.camera_id === selectedCameraId,
+    );
 
     // Search filter
     if (searchQuery) {
@@ -183,7 +185,7 @@ export default function SnapshotPage() {
       filtered = filtered.filter(
         (s) =>
           s.camera_name.toLowerCase().includes(query) ||
-          s.created_at.toLowerCase().includes(query)
+          s.created_at.toLowerCase().includes(query),
       );
     }
 
@@ -200,7 +202,7 @@ export default function SnapshotPage() {
     // Sort by date (newest first)
     return filtered.sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
   }, [snapshots, selectedCameraId, searchQuery, dateFilter, typeFilter]);
 
@@ -227,11 +229,11 @@ export default function SnapshotPage() {
   const totalPages = Math.ceil(filteredSnapshots.length / snapshotsPerPage);
   const paginatedSnapshots = filteredSnapshots.slice(
     (currentPage - 1) * snapshotsPerPage,
-    currentPage * snapshotsPerPage
+    currentPage * snapshotsPerPage,
   );
 
   // Open camera folder
-  const handleOpenFolder = (cameraId: number) => {
+  const handleOpenFolder = (cameraId: string) => {
     setSelectedCameraId(cameraId);
     setViewMode("snapshots");
     setCurrentPage(1);
@@ -399,7 +401,9 @@ export default function SnapshotPage() {
                     <div
                       key={folder.camera.id}
                       onClick={() => setSelectedFolder(folder)}
-                      onDoubleClick={() => handleOpenFolder(folder.camera.id)}
+                      onDoubleClick={() =>
+                        handleOpenFolder(folder.camera.id ?? "")
+                      }
                       className={`grid grid-cols-12 gap-4 px-4 py-3 cursor-pointer transition-colors ${
                         selectedFolder?.camera.id === folder.camera.id
                           ? "bg-blue-50 dark:bg-blue-900/30"
@@ -472,7 +476,7 @@ export default function SnapshotPage() {
                         <p className="text-white text-xs flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {formatDateTime(
-                            selectedFolder.latestSnapshot.created_at
+                            selectedFolder.latestSnapshot.created_at,
                           )}
                         </p>
                       </div>
@@ -510,7 +514,7 @@ export default function SnapshotPage() {
                         </span>
                         <span className="text-gray-800 dark:text-white font-medium text-right">
                           {formatDateTime(
-                            selectedFolder.latestSnapshot.created_at
+                            selectedFolder.latestSnapshot.created_at,
                           )}
                         </span>
                       </div>
@@ -524,8 +528,8 @@ export default function SnapshotPage() {
                           selectedFolder.camera.status === "normal"
                             ? "text-green-600 dark:text-green-400"
                             : selectedFolder.camera.status === "warning"
-                            ? "text-amber-600 dark:text-amber-400"
-                            : "text-gray-500 dark:text-gray-400"
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-gray-500 dark:text-gray-400"
                         }`}
                       >
                         {selectedFolder.camera.status}
@@ -536,7 +540,9 @@ export default function SnapshotPage() {
 
                 {/* Open Folder Button */}
                 <button
-                  onClick={() => handleOpenFolder(selectedFolder.camera.id)}
+                  onClick={() =>
+                    handleOpenFolder(selectedFolder.camera.id ?? "")
+                  }
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors"
                 >
                   <FolderOpen className="w-4 h-4" />
@@ -596,7 +602,7 @@ export default function SnapshotPage() {
                   value={typeFilter}
                   onChange={(e) =>
                     setTypeFilter(
-                      e.target.value as "all" | "time" | "door_crossing"
+                      e.target.value as "all" | "time" | "door_crossing",
                     )
                   }
                   className="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
