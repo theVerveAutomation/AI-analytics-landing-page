@@ -15,13 +15,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Profile } from "@/types";
-
-interface Product {
+import { Product } from "@/types";
+interface Category {
   id: string;
   name: string;
-  description: string;
-  image_url: string;
-  org_id: string;
 }
 
 export default function AdminProductsPage() {
@@ -33,6 +30,7 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -50,12 +48,19 @@ export default function AdminProductsPage() {
       if (!prof) return router.replace("/Login");
 
       setProfile(prof);
-      const { data } = await supabase
+      const { data: productsData } = await supabase
         .from("products")
         .select("*")
         .order("created_at", { ascending: false });
 
-      setProducts(data || []);
+      setProducts(productsData || []);
+
+      // Fetch categories
+      const { data: categoriesData } = await supabase
+        .from("categories")
+        .select("id, name");
+      setCategories(categoriesData || []);
+
       setLoading(false);
     })();
   }, [router]);
@@ -89,7 +94,6 @@ export default function AdminProductsPage() {
         role={profile.role}
         organizationLogo={profile.organization_logo}
       />
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* HEADER */}
         <div className="flex items-center gap-4 mb-8">
@@ -125,8 +129,12 @@ export default function AdminProductsPage() {
                     Description
                   </th>
                   <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
-                    Org ID
+                    Price
                   </th>
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
+                    Category
+                  </th>
+                  {/* Org ID column removed */}
                   <th className="p-4 text-center text-xs font-bold text-slate-300 uppercase">
                     Actions
                   </th>
@@ -162,9 +170,18 @@ export default function AdminProductsPage() {
                       <td className="p-4 text-sm text-slate-400">
                         {p.description}
                       </td>
-                      <td className="p-4 font-mono text-sm text-primary">
-                        {p.org_id}
+                      <td className="p-4 text-sm text-slate-400">
+                        ₹{p.price ?? 0}
                       </td>
+                      <td className="p-4 text-sm text-slate-400">
+                        {categories.find((c) => c.id === p.category_id)
+                          ?.name || (
+                          <span className="italic text-slate-600">
+                            Uncategorized
+                          </span>
+                        )}
+                      </td>
+                      {/* Org ID cell removed */}
                       <td className="p-4 text-center flex justify-center gap-2">
                         {/* EDIT */}
                         <button
@@ -190,7 +207,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
       </div>
-
       {/* BACK BUTTON */}
       <button
         onClick={() => router.back()}
@@ -202,7 +218,6 @@ export default function AdminProductsPage() {
           <span className="font-semibold text-lg">Go Back</span>
         </div>
       </button>
-
       {/* ADD BUTTON */}
       <button
         onClick={() => setShowForm(true)}
@@ -213,7 +228,6 @@ export default function AdminProductsPage() {
           <Plus className="w-7 h-7" />
         </div>
       </button>
-
       {/* ADD PRODUCT MODAL */}
       {showForm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
@@ -233,7 +247,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
-
       {editingProduct && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50">
           <div className="bg-slate-900 rounded-2xl p-6 w-full max-w-lg border border-slate-800 shadow-2xl">

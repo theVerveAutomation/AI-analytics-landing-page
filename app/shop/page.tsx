@@ -1,171 +1,261 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ShoppingBag, Package, Search, Eye, ArrowLeft } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Product } from "@/types";
+import { Category, Product } from "@/types";
 import Image from "next/image";
+import { CommerceHero } from "@/components/commerce-hero";
+import { motion } from "framer-motion";
+import { useCartStore } from "@/store/userCartStore";
 
 export default function ShopPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const filtersRef = useRef<HTMLDivElement>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [sortBy, setSortBy] = useState("none"); // none, price-asc, price-desc, name-asc, name-desc
+
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/products/fetch");
-      const json = await res.json();
-      setProducts(json.products || []);
+    const load = async () => {
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch("/api/products/fetch"),
+        fetch("/api/categories/fetch"),
+      ]);
+
+      const productsJson = await productsRes.json();
+      const categoriesJson = await categoriesRes.json();
+      setProducts(productsJson.products || []);
+      setCategories(categoriesJson.categories || []);
       setLoading(false);
-    }
+    };
     load();
+
+    // Listen for custom event to focus search input
+    const focusHandler = () => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    };
+    window.addEventListener("focus-shop-search-input", focusHandler);
+
+    // Listen for custom event to scroll to filters
+    const scrollToFilters = () => {
+      if (filtersRef.current) {
+        filtersRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+    window.addEventListener("scroll-to-shop-filters", scrollToFilters);
+
+    return () => {
+      window.removeEventListener("focus-shop-search-input", focusHandler);
+      window.removeEventListener("scroll-to-shop-filters", scrollToFilters);
+    };
   }, []);
 
-  const filteredProducts = products.filter(
-    (p) =>
+  let filteredProducts = products.filter((p) => {
+    // Text search
+    const matchesText =
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      p.description.toLowerCase().includes(searchTerm.toLowerCase());
+    // Category filter
+
+    const matchesCategory =
+      !selectedCategoryId || p.category_id == selectedCategoryId;
+    // Price filter
+    const price = typeof p.price === "number" ? p.price : 0;
+    const matchesMinPrice = minPrice === "" || price >= Number(minPrice);
+    const matchesMaxPrice = maxPrice === "" || price <= Number(maxPrice);
+    // In-stock filter (assume p.stock or p.quantity or p.available)
+    return matchesText && matchesCategory && matchesMinPrice && matchesMaxPrice;
+  });
+
+  // Sorting
+  if (sortBy === "price-asc") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (a.price ?? 0) - (b.price ?? 0),
+    );
+  } else if (sortBy === "price-desc") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (b.price ?? 0) - (a.price ?? 0),
+    );
+  } else if (sortBy === "name-asc") {
+    filteredProducts = [...filteredProducts].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  } else if (sortBy === "name-desc") {
+    filteredProducts = [...filteredProducts].sort((a, b) =>
+      b.name.localeCompare(a.name),
+    );
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg text-slate-300 font-medium">
-            Loading products...
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      {/* Header */}
-      <div className="bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-lg">
-        <div className="max-w-7xl mx-auto px-2 py-6 flex items-center justify-between gap-6">
-          <button
-            onClick={() => router.replace("/")}
-            className="p-2 hover:bg-slate-800/50 rounded-xl transition-all group"
-            aria-label="Go back"
+    <>
+      <main className="min-h-screen bg-background pt-14">
+        <CommerceHero />
+        <div className="max-w-7xl mx-auto px-2 sm:px-4">
+          <h1 className="text-3xl font-bold mb-8 text-primary">All Products</h1>
+          <div
+            className="mb-8 flex flex-wrap gap-4 justify-center items-center scroll-mt-40 mx-2 sm:mx-0"
+            ref={filtersRef}
           >
-            <ArrowLeft className="w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
-          </button>
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-primary to-blue-600 rounded-2xl shadow-lg shadow-primary/20">
-              <ShoppingBag className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-blue-400 bg-clip-text text-transparent mb-1">
-                Product Catalog
-              </h1>
-              <p className="text-slate-400">
-                Browse verified AI-powered products and solutions
-              </p>
-            </div>
-          </div>
-          <div className="w-10"></div> {/* Spacer for symmetry */}
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-20 z-40 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 max-w-xl w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 w-5 h-5" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search products..."
+              className="w-full max-w-md px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <select
+              value={selectedCategoryId ?? ""}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full max-w-xs px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="none">Sort By</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="name-asc">Name: A-Z</option>
+              <option value="name-desc">Name: Z-A</option>
+            </select>
+            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+              <label htmlFor="minPrice" className="text-sm text-foreground">
+                Min Price: ₹{minPrice || 0}
+              </label>
               <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 transition-all outline-none text-sm"
+                id="minPrice"
+                type="range"
+                min="0"
+                max={maxPrice !== "" ? maxPrice : 10000}
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-full accent-primary"
               />
             </div>
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-primary/20 to-blue-600/20 text-primary rounded-xl text-sm font-semibold border border-primary/30">
-              <Package className="w-4 h-4" />
-              <span>
-                {filteredProducts.length}{" "}
-                {filteredProducts.length === 1 ? "Product" : "Products"}
-              </span>
+            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+              <label htmlFor="maxPrice" className="text-sm text-foreground">
+                Max Price: ₹{maxPrice || 10000}
+              </label>
+              <input
+                id="maxPrice"
+                type="range"
+                min={minPrice !== "" ? minPrice : 0}
+                max="10000"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-full accent-primary"
+              />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-24">
-            <div className="inline-block p-6 bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl shadow-lg mb-4">
-              <Package className="w-16 h-16 text-slate-600" />
+          {loading ? (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">
-              {searchTerm ? "No products found" : "No products available"}
-            </h3>
-            <p className="text-slate-400">
-              {searchTerm
-                ? "Try a different search term"
-                : "Products will appear here once added"}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((p) => (
-              <div
-                key={p.id}
-                className="group bg-slate-900/50 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-2xl hover:shadow-primary/20 transition-all duration-300 overflow-hidden border border-slate-800 hover:border-primary/50 hover:-translate-y-1 flex flex-col h-full"
-              >
-                {/* Image - Fixed Height */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 h-56 flex-shrink-0">
-                  <Image
-                    src={p.image_url}
-                    alt={p.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    width={100}
-                    height={100}
-                  />
-                  <div className="absolute top-3 right-3 bg-gradient-to-r from-primary to-blue-600 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg shadow-primary/30">
-                    <svg
-                      className="w-3 h-3"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center min-h-[50vh] flex flex-col items-center justify-center gap-4">
+              <p className="text-lg font-medium text-foreground mb-1">
+                {searchTerm ? "No results found" : "No products yet"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {searchTerm
+                  ? `Nothing matched "${searchTerm}". Try a different term.`
+                  : "Check back soon — new products are on the way."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {filteredProducts.map((p, idx) => (
+                <motion.div
+                  key={p.id}
+                  className="group relative bg-muted/50 backdrop-blur-sm rounded-3xl p-4 sm:p-6 min-h-[250px] sm:min-h-[300px] w-full overflow-hidden transition-all duration-500 cursor-pointer border border-border"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.6,
+                    delay: idx * 0.1,
+                    ease: "easeOut",
+                  }}
+                  onClick={() => router.push(`/shop/${p.id}`)}
+                >
+                  <div className="absolute inset-0 z-20">
+                    <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[clamp(1.5rem,4vw,2.5rem)] font-bold relative z-10 text-primary my-2 sm:my-4 group-hover:text-primary/90 transition-colors duration-300">
+                      {p.name}
+                    </h2>
+                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                      <Image
+                        src={
+                          p.image_url
+                            ? p.image_url
+                            : "/placeholder-category.png"
+                        }
+                        alt={p.name}
+                        width={256}
+                        height={256}
+                        className="w-full max-w-[min(40vw,200px)] sm:max-w-[min(30vw,180px)] md:max-w-[min(25vw,160px)] lg:max-w-[min(20vw,140px)] h-auto object-contain opacity-90 group-hover:scale-110 group-hover:opacity-100 transition-all duration-500"
                       />
-                    </svg>
-                    Verified
+                    </div>
+                    <div className="absolute bottom-0 right-0 w-16 h-16 md:w-20 md:h-20 bg-background/95 backdrop-blur-sm rounded-tl-xl flex items-center justify-center z-10 border-l border-t border-border/50">
+                      <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 w-10 h-10 md:w-12 md:h-12 bg-secondary rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 transition-all duration-300 shadow-lg">
+                        <ArrowUpRight className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div className="absolute left-0 bottom-0 p-4 w-full flex flex-col gap-2 items-start">
+                      <div className="text-base font-semibold text-primary">
+                        ₹{p.price ?? 0}
+                      </div>
+                      <div className="mt-1 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                        {p.description}
+                      </div>
+                      <button
+                        className="mt-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium shadow hover:bg-primary/90 transition-colors text-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addItem({
+                            id: p.id,
+                            name: p.name,
+                            price: typeof p.price === "number" ? p.price : 0,
+                            image_url: p.image_url || "",
+                          });
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                {/* Content - Flexible Height */}
-                <div className="p-5 flex flex-col flex-grow">
-                  <h2 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-primary transition-colors">
-                    {p.name}
-                  </h2>
-                  <p className="text-sm text-slate-400 mb-4 line-clamp-2 leading-relaxed flex-grow">
-                    {p.description}
-                  </p>
-
-                  {/* View Details Button */}
-                  <button
-                    onClick={() => router.push(`/shop/${p.id}`)}
-                    className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-2 group mt-auto"
-                  >
-                    <Eye className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

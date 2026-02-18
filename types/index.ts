@@ -25,13 +25,47 @@ export interface Feature {
   updated_at?: string;
 }
 
+export interface Recording {
+  id: string;
+  camera_id: string;
+  camera_name: string;
+  start_time: string;
+  end_time: string;
+  duration: number; // in seconds
+  file_size: number; // in MB
+  file_url: string;
+  thumbnail_url?: string;
+  has_detections: boolean;
+  detection_count: number;
+}
+
+
 export interface Product {
   id: string;
   name: string;
   description: string;
   image_url: string;
   org_id: string;
+  category_id?: string;
+  price?: number;
   created_at?: string;
+  available?: boolean;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  created_at?: string;
+}
+
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image_url: string;
 }
 
 export interface Organization {
@@ -51,23 +85,24 @@ export interface Organization {
 export type AlertType = "SMS" | "WHATSAPP" | "WECHAT" | "TELEGRAM";
 
 export interface CameraConfig {
-  id: number;
-  name: string;
-  status: "normal" | "warning" | "offline";
-  detection: boolean;
-  alert_sound: boolean;
-  frame_rate: number;
-  resolution: string;
-  updated_at: string;
+  id?: string;
+  name?: string;
+  status?: "normal" | "warning" | "offline";
+  detection?: boolean;
+  alert_sound?: boolean;
+  frame_rate?: number;
+  resolution?: string;
+  updated_at?: string;
   url?: string; // Optional URL for RTSP/HTTP streams
   created_at?: string;
-  organization_id: string | number;
+  organization_id?: string | number;
   stream_url?: string;
+  camera_features?: Feature[]; // Optional array of features assigned to the camera
 }
 
 export interface Snapshot {
   id: string;
-  camera_id: number;
+  camera_id: string;
   camera_name: string;
   url: string;
   organization_id: string;

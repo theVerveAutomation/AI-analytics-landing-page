@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Eye, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 const Hero = () => {

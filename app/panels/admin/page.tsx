@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
-import { Users, Video, Boxes, Building2 } from "lucide-react";
+import { Users, Video, Boxes, Building2, Tags } from "lucide-react";
 import { Profile } from "@/types";
 
 export default function AdminHome() {
@@ -111,23 +111,50 @@ export default function AdminHome() {
           </div>
 
           {/* Shop Management card */}
-          <div className="group relative">
-            <div
-              className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 pb-10 transition-all duration-300 shadow-lg shadow-blue-600/5 hover:shadow-xl hover:shadow-blue-600/20 hover:-translate-y-1 hover:border-blue-600/50 cursor-pointer"
-              onClick={() => router.push("/panels/admin/products")}
-            >
+          <div className="group relative col-span-2">
+            <div className="relative bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 transition-all duration-300 shadow-lg shadow-blue-600/5 hover:shadow-xl hover:shadow-blue-600/20">
               <div className="mb-4 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 blur-lg opacity-30 rounded-full"></div>
                 <div className="relative w-16 h-16 mx-auto bg-gradient-to-br from-blue-600/20 to-indigo-600/20 rounded-2xl flex items-center justify-center border border-blue-600/40">
                   <Video className="w-8 h-8 text-blue-400" />
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2 text-center">
+              <h3 className="text-xl font-bold text-white mb-4 text-center">
                 Shop Management
               </h3>
-              <p className="text-slate-400 mb-3 leading-relaxed text-sm text-center">
-                Manage shop products, inventory, and business operations
-              </p>
+
+              {/* Sub-options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 cursor-pointer hover:bg-slate-800/70 hover:border-blue-600/50 transition-all group"
+                  onClick={() => router.push("/panels/admin/products")}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Boxes className="w-5 h-5 text-blue-400" />
+                    <h4 className="font-semibold text-white group-hover:text-blue-400 transition-colors">
+                      Products
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Manage product catalog and inventory
+                  </p>
+                </div>
+
+                <div
+                  className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 cursor-pointer hover:bg-slate-800/70 hover:border-blue-600/50 transition-all group"
+                  onClick={() => router.push("/panels/admin/categories")}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Tags className="w-5 h-5 text-blue-400" />
+                    <h4 className="font-semibold text-white group-hover:text-blue-400 transition-colors">
+                      Categories
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Organize products into categories
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -4,17 +4,19 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+interface OrganizationModalProps {
+  organization: Organization | null;
+  currentUserId: string;
+  onClose: () => void;
+  onSaved: () => void;
+}
+
 export default function OrganizationModal({
   organization,
   currentUserId,
   onClose,
   onSaved,
-}: {
-  organization: Organization | null;
-  currentUserId: string;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
+}: OrganizationModalProps) {
   const [formData, setFormData] = useState<Partial<Organization>>({
     name: organization?.name || "",
     displayid: organization?.displayid || "",
@@ -64,7 +66,7 @@ export default function OrganizationModal({
       toast.success(
         organization
           ? "Organization updated successfully!"
-          : "Organization created successfully!"
+          : "Organization created successfully!",
       );
       onSaved();
       onClose();
@@ -160,7 +162,7 @@ export default function OrganizationModal({
                             alerts: e.target.checked
                               ? [...(formData.alerts || []), type]
                               : (formData.alerts || []).filter(
-                                  (t) => t !== type
+                                  (t) => t !== type,
                                 ),
                           });
                         }}
@@ -170,7 +172,7 @@ export default function OrganizationModal({
                         {type}
                       </span>
                     </label>
-                  )
+                  ),
                 )}
               </div>
             </div>
@@ -185,8 +187,8 @@ export default function OrganizationModal({
               {saving
                 ? "Saving..."
                 : organization
-                ? "Update Organization"
-                : "Create Organization"}
+                  ? "Update Organization"
+                  : "Create Organization"}
             </button>
             <button
               type="button"

@@ -13,6 +13,7 @@ import {
   Phone,
   MapPin,
   Plus,
+  Settings,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Organization } from "@/types";
@@ -91,7 +92,7 @@ export default function OrganizationManagementPage() {
         (org: Organization) =>
           org.name?.toLowerCase().includes(query) ||
           org.displayid?.toLowerCase().includes(query) ||
-          org.email?.toLowerCase().includes(query)
+          org.email?.toLowerCase().includes(query),
       );
     }
 
@@ -101,7 +102,7 @@ export default function OrganizationManagementPage() {
   async function deleteOrganization(id: string) {
     if (
       !confirm(
-        "Are you sure you want to delete this organization? This will also delete all associated users."
+        "Are you sure you want to delete this organization? This will also delete all associated users.",
       )
     )
       return;
@@ -343,6 +344,18 @@ export default function OrganizationManagementPage() {
 
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
+                          <button
+                            className="p-2 text-blue-400 hover:bg-blue-400/20 rounded-lg transition-all hover:scale-110"
+                            title="Camera Setup"
+                            onClick={() =>
+                              router.push(
+                                `/panels/admin/organizations/${org.id}`,
+                              )
+                            }
+                          >
+                            <Settings className="w-5 h-5" />
+                          </button>
+
                           <button
                             className="p-2 text-primary hover:bg-primary/20 rounded-lg transition-all hover:scale-110"
                             title="Edit Organization"
