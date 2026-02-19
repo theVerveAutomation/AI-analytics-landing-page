@@ -2,25 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import {} from // ...existing chart imports removed
+"recharts";
 import {
   Video,
   Eye,
-  Activity,
   AlertTriangle,
   HardDrive,
-  TrendingUp,
   User,
   Package,
   Car,
@@ -29,6 +17,10 @@ import {
   Download,
   Search,
   Filter,
+  TrendingUp,
+  Activity,
+  ShieldCheck,
+  Clock,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { Profile, CameraConfig, Snapshot } from "@/types";
@@ -70,23 +62,7 @@ const metrics = [
   },
 ];
 
-const detectionData = [
-  { name: "Person", value: 542, color: "#10b981" },
-
-  { name: "Object", value: 267, color: "#8b5cf6" },
-  { name: "Motion", value: 120, color: "#f59e0b" },
-];
-
-const hourlyActivity = [
-  { hour: "00:00", detections: 12 },
-  { hour: "03:00", detections: 8 },
-  { hour: "06:00", detections: 28 },
-  { hour: "09:00", detections: 76 },
-  { hour: "12:00", detections: 95 },
-  { hour: "15:00", detections: 102 },
-  { hour: "18:00", detections: 88 },
-  { hour: "21:00", detections: 45 },
-];
+// ...existing code...
 
 const recentEvents = [
   {
@@ -470,14 +446,14 @@ export default function VideoAnalyticsPage() {
             </div>
           </div>
 
-          {/* Analytics Charts */}
+          {/* Analytics Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Detection by Type */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            {/* Detection Breakdown */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-5">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                    Detection by Type
+                    Detection Breakdown
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Today&apos;s distribution
@@ -485,69 +461,138 @@ export default function VideoAnalyticsPage() {
                 </div>
                 <TrendingUp className="w-5 h-5 text-blue-600" />
               </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={detectionData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={70}
-                    dataKey="value"
-                  >
-                    {detectionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="space-y-4">
+                {[
+                  {
+                    label: "Person",
+                    count: 542,
+                    total: 929,
+                    bar: "bg-emerald-500",
+                    text: "text-emerald-600 dark:text-emerald-400",
+                  },
+                  {
+                    label: "Object",
+                    count: 267,
+                    total: 929,
+                    bar: "bg-violet-500",
+                    text: "text-violet-600 dark:text-violet-400",
+                  },
+                  {
+                    label: "Motion",
+                    count: 120,
+                    total: 929,
+                    bar: "bg-amber-500",
+                    text: "text-amber-600 dark:text-amber-400",
+                  },
+                  {
+                    label: "Intrusion",
+                    count: 15,
+                    total: 929,
+                    bar: "bg-red-500",
+                    text: "text-red-600 dark:text-red-400",
+                  },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        {item.label}
+                      </span>
+                      <span className={`text-sm font-bold ${item.text}`}>
+                        {item.count}{" "}
+                        <span className="font-normal text-gray-400">
+                          (
+                          {item.total > 0
+                            ? Math.round((item.count / item.total) * 100)
+                            : 0}
+                          %)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-2">
+                      <div
+                        className={`${item.bar} h-2 rounded-full`}
+                        style={{
+                          width: `${item.total > 0 ? Math.round((item.count / item.total) * 100) : 0}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Total Detections
+                </span>
+                <span className="text-sm font-bold text-gray-800 dark:text-white">
+                  929
+                </span>
+              </div>
             </div>
 
-            {/* Hourly Activity */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+            {/* Camera Performance */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-5">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                    Hourly Activity
+                    Camera Performance
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Detection trends
+                    Live system metrics
                   </p>
                 </div>
-                <Activity className="w-5 h-5 text-blue-500" />
+                <Activity className="w-5 h-5 text-green-500" />
               </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={hourlyActivity}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#374151"
-                    strokeOpacity={0.3}
-                  />
-                  <XAxis
-                    dataKey="hour"
-                    stroke="#9ca3af"
-                    tick={{ fill: "#9ca3af", fontSize: 11 }}
-                  />
-                  <YAxis
-                    stroke="#9ca3af"
-                    tick={{ fill: "#9ca3af", fontSize: 11 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1e293b",
-                      border: "1px solid #334155",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Bar
-                    dataKey="detections"
-                    fill="#10b981"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="space-y-3">
+                {[
+                  {
+                    label: "Avg Frame Rate",
+                    value: "28.4 FPS",
+                    icon: Zap,
+                    color: "text-blue-500",
+                    bg: "bg-blue-50 dark:bg-blue-900/30",
+                  },
+                  {
+                    label: "Camera Uptime",
+                    value: "99.8%",
+                    icon: ShieldCheck,
+                    color: "text-green-500",
+                    bg: "bg-green-50 dark:bg-green-900/30",
+                  },
+                  {
+                    label: "Processing Latency",
+                    value: "42 ms",
+                    icon: Clock,
+                    color: "text-amber-500",
+                    bg: "bg-amber-50 dark:bg-amber-900/30",
+                  },
+                  {
+                    label: "False Positive Rate",
+                    value: "1.2%",
+                    icon: AlertTriangle,
+                    color: "text-red-500",
+                    bg: "bg-red-50 dark:bg-red-900/30",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-slate-700/40"
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-lg ${item.bg} flex items-center justify-center flex-shrink-0`}
+                    >
+                      <item.icon className={`w-4 h-4 ${item.color}`} />
+                    </div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        {item.label}
+                      </span>
+                      <span className="text-sm font-bold text-gray-800 dark:text-white">
+                        {item.value}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
