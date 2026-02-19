@@ -98,7 +98,6 @@ export default function CameraSettingPage() {
         router.push("/Login");
         return;
       }
-      console.log("Fetched profile:", profile);
       setProfile(profile);
     };
     fetchUserAndProfile();
@@ -122,7 +121,6 @@ export default function CameraSettingPage() {
           },
         );
         const data = await res.json();
-        console.log("Fetched cameras:", data);
         if (res.ok && Array.isArray(data.cameras)) {
           setCameras(data.cameras);
           setSelectedCameraId((prev) => {
@@ -157,7 +155,6 @@ export default function CameraSettingPage() {
           )}`,
         );
         const data = await res.json();
-        console.log("Fetched latest snapshots for thumbnails:", data);
         if (res.ok && Array.isArray(data.snapshots)) {
           const thumbMap: Record<string, string> = {};
           for (const snap of data.snapshots as Snapshot[]) {

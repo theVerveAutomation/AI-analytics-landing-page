@@ -30,7 +30,6 @@ interface SidebarProps {
   setTheme: (theme: string) => void;
   setOpenEmployees?: (open: boolean) => void;
   profile: Profile;
-  features: Feature[];
   profileMenuOpen: boolean;
   setProfileMenuOpen: (open: boolean) => void;
 }
@@ -43,7 +42,6 @@ export default function Sidebar({
   setTheme,
   setOpenEmployees,
   profile,
-  features,
   profileMenuOpen,
   setProfileMenuOpen,
 }: SidebarProps) {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import { Profile } from "@/types";
+import { DashboardState, Profile } from "@/types";
 import {
   Camera,
   Bell,
@@ -27,60 +27,6 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-
-const stats = [
-  {
-    title: "Cameras Online",
-    value: "3",
-    subtitle: "of 3 total",
-    icon: Camera,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-    border: "border-blue-200 dark:border-blue-800",
-  },
-  {
-    title: "Alerts Today",
-    value: "0",
-    subtitle: "+0 from yesterday",
-    icon: Bell,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/30",
-    border: "border-amber-200 dark:border-amber-800",
-  },
-  {
-    title: "Total Detections",
-    value: "1,284",
-    subtitle: "Last 24 hours",
-    icon: Eye,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-    border: "border-blue-200 dark:border-blue-800",
-  },
-  {
-    title: "System Health",
-    value: "98%",
-    subtitle: "All systems operational",
-    icon: Shield,
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-50 dark:bg-purple-900/30",
-    border: "border-purple-200 dark:border-purple-800",
-  },
-];
-
-const detectionsByType = [
-  { name: "Object", value: 524, color: "#10b981" },
-  { name: "Motion", value: 412, color: "#3b82f6" },
-  { name: "Staff", value: 348, color: "#8b5cf6" },
-];
-
-const hourlyDetections = [
-  { hour: "6AM", object: 0, motion: 0, Staff: 0 },
-  { hour: "9AM", object: 45, motion: 32, Staff: 28 },
-  { hour: "12PM", object: 78, motion: 65, Staff: 42 },
-  { hour: "3PM", object: 92, motion: 71, Staff: 55 },
-  { hour: "6PM", object: 68, motion: 52, Staff: 38 },
-  { hour: "9PM", object: 0, motion: 0, Staff: 0 },
-];
 
 const recentAlerts = [
   {
@@ -112,19 +58,79 @@ const recentAlerts = [
   },
 ];
 
-const cameraStatus = [
-  { id: 1, name: "Main Entrance", status: "online", detections: 145 },
-  { id: 2, name: "Server Room", status: "online", detections: 23 },
-  { id: 3, name: "Office Area", status: "online", detections: 0 },
-];
-
+// const hourlyDetections = [
+//   { hour: "3AM", object: 0, motion: 0, Staff: 0 },
+//   { hour: "6AM", object: 45, motion: 32, Staff: 28 },
+//   { hour: "9AM", object: 78, motion: 65, Staff: 42 },
+//   { hour: "12PM", object: 92, motion: 71, Staff: 55 },
+//   { hour: "3PM", object: 68, motion: 52, Staff: 38 },
+//   { hour: "6PM", object: 0, motion: 0, Staff: 0 },
+//   { hour: "9PM", object: 78, motion: 65, Staff: 42 },
+// ];
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [dashboardState, setDashboardState] = useState<DashboardState>({
+    camerasOnline: 0,
+    totalCameras: 0,
+    alertsToday: 0,
+    totalDetections: 0,
+    systemHealth: 0,
+    objectDetected: 0,
+    staffDetected: 0,
+    motionDetected: 0,
+    hourlyDetections: [],
+    cameraStatus: [],
+  });
+
+  const stats = [
+    {
+      title: "Healthy Cameras",
+      value: `${dashboardState.camerasOnline}`,
+      subtitle: `of ${dashboardState.totalCameras} total`,
+      icon: Camera,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+      border: "border-blue-200 dark:border-blue-800",
+    },
+    {
+      title: "Alerts Today",
+      value: dashboardState.alertsToday.toString(),
+      subtitle: "+0 from yesterday",
+      icon: Bell,
+      color: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-50 dark:bg-amber-900/30",
+      border: "border-amber-200 dark:border-amber-800",
+    },
+    {
+      title: "Total Detections",
+      value: dashboardState.totalDetections.toString(),
+      subtitle: "Last 24 hours",
+      icon: Eye,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+      border: "border-blue-200 dark:border-blue-800",
+    },
+    {
+      title: "System Health",
+      value: `${dashboardState.systemHealth}%`,
+      subtitle: "System summary",
+      icon: Shield,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-50 dark:bg-purple-900/30",
+      border: "border-purple-200 dark:border-purple-800",
+    },
+  ];
+
+  const detectionsByType = [
+    { name: "Object", value: dashboardState.objectDetected, color: "#10b981" },
+    { name: "Motion", value: dashboardState.motionDetected, color: "#3b82f6" },
+    { name: "Staff", value: dashboardState.staffDetected, color: "#8b5cf6" },
+  ];
 
   useEffect(() => {
-    (async () => {
+    const fetchProfile = async () => {
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
@@ -138,8 +144,48 @@ export default function DashboardPage() {
 
       setProfile(prof);
       setLoading(false);
-    })();
-  }, []);
+    };
+    fetchProfile();
+  }, [router]);
+
+  useEffect(() => {
+    const fetchDashboardState = async () => {
+      try {
+        const res = await fetch("/api/dashboard/state");
+        if (!res.ok) throw new Error("Failed to fetch dashboard state");
+        const {
+          camerasOnline,
+          totalCameras,
+          alertsToday,
+          totalDetections,
+          systemHealth,
+          objectDetected,
+          staffDetected,
+          motionDetected,
+          hourlyDetections,
+          cameraStatus,
+        } = await res.json();
+
+        setDashboardState({
+          camerasOnline,
+          totalCameras,
+          alertsToday,
+          totalDetections,
+          systemHealth,
+          objectDetected,
+          staffDetected,
+          motionDetected,
+          hourlyDetections,
+          cameraStatus,
+        });
+      } catch (error) {
+        console.error("Error fetching dashboard state:", error);
+      }
+    };
+    if (profile) {
+      fetchDashboardState();
+    }
+  }, [profile]);
 
   if (loading || !profile) {
     return (
@@ -267,7 +313,7 @@ export default function DashboardPage() {
               </p>
 
               <ResponsiveContainer width="100%" height={224}>
-                <BarChart data={hourlyDetections}>
+                <BarChart data={dashboardState.hourlyDetections}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="#374151"
@@ -335,7 +381,7 @@ export default function DashboardPage() {
                   >
                     <div
                       className={`w-10 h-10 rounded-lg flex items-center justify-center ${getSeverityColor(
-                        alert.severity
+                        alert.severity,
                       )}`}
                     >
                       <alert.icon className="w-5 h-5" />
@@ -351,7 +397,7 @@ export default function DashboardPage() {
                     <div className="text-right">
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${getSeverityColor(
-                          alert.severity
+                          alert.severity,
                         )}`}
                       >
                         {alert.severity}
@@ -375,13 +421,17 @@ export default function DashboardPage() {
                   </h3>
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {cameraStatus.filter((c) => c.status === "online").length}/
-                  {cameraStatus.length} online
+                  {
+                    dashboardState.cameraStatus.filter(
+                      (c) => c.status === "normal",
+                    ).length
+                  }
+                  /{dashboardState.cameraStatus.length} Normal
                 </span>
               </div>
 
               <div className="space-y-3">
-                {cameraStatus.map((camera) => (
+                {dashboardState.cameraStatus.map((camera) => (
                   <div
                     key={camera.id}
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
@@ -389,7 +439,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-2 h-2 rounded-full ${
-                          camera.status === "online"
+                          camera.status === "normal"
                             ? "bg-blue-500"
                             : "bg-red-500"
                         }`}

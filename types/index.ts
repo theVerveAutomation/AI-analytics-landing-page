@@ -135,3 +135,21 @@ export interface FeatureAlert {
   lastAlert: string;
   recentAlerts: AlertDetail[];
 }
+
+export interface DashboardState {
+  camerasOnline: number;
+  totalCameras: number;
+  alertsToday: number;
+  totalDetections: number;
+  systemHealth: number;
+  objectDetected: number;
+  staffDetected: number;
+  motionDetected: number;
+  hourlyDetections: { hour: string; object: number; motion: number; staff: number }[];
+  cameraStatus: {
+    id: string;
+    name: string;
+    status: "normal" | "warning" | "offline";
+    detections: number;
+  }[];
+}
