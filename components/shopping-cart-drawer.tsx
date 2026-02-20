@@ -79,9 +79,16 @@ export default function ShoppingCartDrawer() {
                     />
                     <div className="flex-1">
                       <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        ${item.price.toFixed(2)} each
-                      </p>
+                      {item.brand && (
+                        <div className="text-xs text-gray-400 font-semibold">
+                          Brand: {item.brand}
+                        </div>
+                      )}
+                      {item.showPrice && (
+                        <p className="text-sm text-gray-500">
+                          ${item.price.toFixed(2)} each
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -105,9 +112,11 @@ export default function ShoppingCartDrawer() {
                       </Button>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
+                      {item.showPrice && (
+                        <p className="font-medium">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </p>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -121,14 +130,14 @@ export default function ShoppingCartDrawer() {
                 ))}
               </div>
               {/* Order Summary */}
-              <div className="flex pt-4 w-full justify-center">
+              {/* <div className="flex pt-4 w-full justify-center">
                 <div className="grid grid-cols-2 gap-4 w-full max-w-sm text-sm">
                   <span className="font-bold col-span-1">Total:</span>
                   <span className="font-bold text-right col-span-1">
                     ${getTotalPrice().toFixed(2)}
                   </span>
                 </div>
-              </div>
+              </div> */}
             </>
           )}
         </DrawerBody>
@@ -144,8 +153,8 @@ export default function ShoppingCartDrawer() {
             onClick={() => setQuoteFormOpen(true)}
           >
             <ExternalLink className="w-5 h-5" />
-            Request Quote ($
-            {getTotalPrice().toFixed(2)})
+            Request Quote
+            {/* (${getTotalPrice().toFixed(2)}) */}
           </Button>
           {/* Quote Request Modal for Cart */}
           <QuoteRequestForm

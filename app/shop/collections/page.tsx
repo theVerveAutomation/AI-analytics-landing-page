@@ -6,12 +6,15 @@ import { useRouter } from "next/navigation";
 import { Category, Product } from "@/types";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useCartStore } from "@/store/userCartStore";
 
 export default function CollectionPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     const load = async () => {
@@ -166,27 +169,26 @@ export default function CollectionPage() {
                         </div>
                       </div>
                       <div className="absolute left-0 bottom-0 p-4 w-full flex flex-col gap-2 items-start">
-                        <div className="text-base font-semibold text-primary">
-                          ₹{p.price ?? 0}
-                        </div>
-                        <div className="mt-1 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                          {p.description}
-                        </div>
+                        {p.showPrice && (
+                          <div className="text-base font-semibold text-primary">
+                            ${p.price ?? 0}
+                          </div>
+                        )}
+                        {p.brand && (
+                          <div className="text-sm text-slate-400 font-semibold">
+                            Brand: {p.brand}
+                          </div>
+                        )}
                         <button
                           className="mt-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium shadow hover:bg-primary/90 transition-colors text-sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.dispatchEvent(
-                              new CustomEvent("add-to-cart", {
-                                detail: {
-                                  id: p.id,
-                                  name: p.name,
-                                  price: p.price,
-                                  imageUrl: p.image_url,
-                                  quantity: 1,
-                                },
-                              }),
-                            );
+                            addItem({
+                              id: p.id,
+                              name: p.name,
+                              price: typeof p.price === "number" ? p.price : 0,
+                              image_url: p.image_url || "",
+                            });
                           }}
                         >
                           Add to Cart

@@ -5,6 +5,7 @@ import { Upload, Plus, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
+import { Category } from "@/types";
 
 interface AddProductFormProps {
   onSuccess?: () => void;
@@ -15,16 +16,12 @@ interface Org {
   org_id: string;
 }
 
-interface Category {
-  id: string;
-  name: string;
-}
-
 export default function AddProductForm({
   onSuccess,
   onCancel,
 }: AddProductFormProps) {
   const [name, setName] = useState("");
+  const [brand, setBrand] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [categoryId, setCategoryId] = useState("");
@@ -34,6 +31,7 @@ export default function AddProductForm({
   const [dragActive, setDragActive] = useState(false);
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [showPrice, setShowPrice] = useState<boolean>(true);
 
   useEffect(() => {
     (async () => {
@@ -124,10 +122,12 @@ export default function AddProductForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          brand,
           description,
           price: Number(price),
           imageUrl,
           categoryId: categoryId || null,
+          showPrice,
         }),
       });
 
@@ -166,6 +166,18 @@ export default function AddProductForm({
             onChange={(e) => setName(e.target.value)}
           />
         </div>
+        {/* BRAND */}
+        <div>
+          <label className="block font-semibold text-slate-300 mb-2">
+            Brand
+          </label>
+          <input
+            className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+            placeholder="Enter brand name"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+          />
+        </div>
 
         {/* DESCRIPTION */}
         <div>
@@ -183,16 +195,29 @@ export default function AddProductForm({
 
         {/* PRICE */}
         <div>
-          <label className="block font-semibold text-slate-300 mb-2">
-            Price (₹)
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block font-semibold text-slate-300">
+              Price (USD)
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <span className="text-slate-400 text-sm">Show Price</span>
+              <input
+                type="checkbox"
+                checked={showPrice}
+                onChange={() => setShowPrice((prev) => !prev)}
+                className="accent-blue-600 w-5 h-5"
+              />
+            </label>
+          </div>
           <input
             type="number"
             min="0"
             className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-            placeholder="Enter product price"
+            placeholder="Enter product price in USD"
             value={price}
-            onChange={(e) => setPrice(e.target.value === "" ? "" : Number(e.target.value))}
+            onChange={(e) =>
+              setPrice(e.target.value === "" ? "" : Number(e.target.value))
+            }
           />
         </div>
 

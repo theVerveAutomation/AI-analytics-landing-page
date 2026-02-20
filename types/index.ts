@@ -43,11 +43,13 @@ export interface Recording {
 export interface Product {
   id: string;
   name: string;
+  brand?: string;
   description: string;
   image_url: string;
   org_id: string;
   category_id?: string;
   price?: number;
+  showPrice?: boolean;
   created_at?: string;
   available?: boolean;
 }
@@ -57,13 +59,15 @@ export interface Category {
   name: string;
   description?: string;
   image_url?: string;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface CartItem {
   id: string;
   name: string;
   price: number;
+  brand?: string;
+  showPrice?: boolean;
   quantity: number;
   image_url: string;
 }

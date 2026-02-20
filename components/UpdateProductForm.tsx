@@ -24,6 +24,7 @@ export default function UpdateProductForm({
   onCancel,
 }: UpdateProductFormProps) {
   const [name, setName] = useState(product.name);
+  const [brand, setBrand] = useState(product.brand || "");
   const [description, setDescription] = useState(product.description);
   const [price, setPrice] = useState<number | "">(product.price ?? "");
   const [categoryId, setCategoryId] = useState(product.category_id || "");
@@ -33,6 +34,9 @@ export default function UpdateProductForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showPrice, setShowPrice] = useState<boolean>(
+    product.showPrice ?? true,
+  );
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -77,8 +81,9 @@ export default function UpdateProductForm({
   }
 
   const handleSubmit = async () => {
-    if (!name || price === "" || isNaN(Number(price))) {
+    if (!name) {
       toast.error("Name and price are required");
+      console.log("Validation failed:", { name, price, showPrice });
       return;
     }
 
@@ -99,10 +104,12 @@ export default function UpdateProductForm({
         body: JSON.stringify({
           id: product.id,
           name,
+          brand,
           description,
           price: Number(price),
           imageUrl: finalImageUrl,
           categoryId: categoryId || null,
+          showPrice,
         }),
       });
 
@@ -154,6 +161,19 @@ export default function UpdateProductForm({
               onChange={(e) => setName(e.target.value)}
             />
           </div>
+          {/* BRAND */}
+          <div>
+            <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
+              Brand
+            </label>
+            <input
+              type="text"
+              className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              placeholder="Enter brand name"
+            />
+          </div>
 
           {/* DESCRIPTION */}
           <div>
@@ -171,14 +191,25 @@ export default function UpdateProductForm({
 
           {/* PRICE */}
           <div>
-            <label className="flex items-center gap-2 font-semibold text-slate-300 mb-2">
-              Price (₹)
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-2 font-semibold text-slate-300">
+                Price (USD)
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <span className="text-slate-400 text-sm">Show Price</span>
+                <input
+                  type="checkbox"
+                  checked={showPrice}
+                  onChange={() => setShowPrice((prev) => !prev)}
+                  className="accent-blue-600 w-5 h-5"
+                />
+              </label>
+            </div>
             <input
               type="number"
               min="0"
               className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 p-3 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-              placeholder="Enter product price"
+              placeholder="Enter product price in USD"
               value={price}
               onChange={(e) =>
                 setPrice(e.target.value === "" ? "" : Number(e.target.value))
