@@ -140,7 +140,9 @@ export default function AdminCategoriesPage() {
                         {category.description}
                       </td>
                       <td className="p-4 text-sm text-muted-foreground">
-                        {new Date(category.created_at).toLocaleDateString()}
+                        {category?.created_at
+                          ? new Date(category.created_at).toLocaleDateString()
+                          : "N/A"}
                       </td>
                       <td className="p-4 text-center flex justify-center gap-2">
                         {/* EDIT */}

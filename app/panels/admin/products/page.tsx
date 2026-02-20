@@ -119,10 +119,16 @@ export default function AdminProductsPage() {
                     Name
                   </th>
                   <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
+                    Brand
+                  </th>
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Description
                   </th>
                   <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Price
+                  </th>
+                  <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
+                    Show Price
                   </th>
                   <th className="p-4 text-left text-xs font-bold text-slate-300 uppercase">
                     Category
@@ -143,7 +149,7 @@ export default function AdminProductsPage() {
                     </td>
                   </tr>
                 ) : (
-                  products.map((p) => (
+                  products.map((p: Product) => (
                     <tr
                       key={p.id}
                       className="hover:bg-slate-800/30 transition-colors"
@@ -161,10 +167,20 @@ export default function AdminProductsPage() {
                         {p.name}
                       </td>
                       <td className="p-4 text-sm text-slate-400">
+                        {p.brand || <span className="italic text-slate-600">-</span>}
+                      </td>
+                      <td className="p-4 text-sm text-slate-400">
                         {p.description}
                       </td>
                       <td className="p-4 text-sm text-slate-400">
-                        ₹{p.price ?? 0}
+                        ${p.price ?? 0}
+                      </td>
+                      <td className="p-4 text-sm text-slate-400">
+                        {p.showPrice === undefined
+                          ? "-"
+                          : p.showPrice
+                            ? "True"
+                            : "False"}
                       </td>
                       <td className="p-4 text-sm text-slate-400">
                         {categories.find((c) => c.id === p.category_id)

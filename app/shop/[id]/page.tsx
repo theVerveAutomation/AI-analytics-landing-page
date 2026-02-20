@@ -85,7 +85,7 @@ export default function ProductDetailsPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left Column - Image */}
           <div className="space-y-6">
@@ -98,20 +98,6 @@ export default function ProductDetailsPage() {
                 height={400}
                 priority
               />
-              <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 shadow-lg">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Verified Product
-              </div>
             </div>
 
             {/* Additional Info Section */}
@@ -144,6 +130,18 @@ export default function ProductDetailsPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 break-words">
                 {product.name}
               </h1>
+              {product.brand && (
+                <div className="mb-2 text-sm text-slate-400 font-semibold">
+                  Brand: {product.brand}
+                </div>
+              )}
+
+              {/* Price */}
+              {product.showPrice && (
+                <div className="mb-4 text-lg font-semibold text-primary">
+                  ${product.price ?? 0}
+                </div>
+              )}
 
               {/* Description */}
               <div className="mb-6">

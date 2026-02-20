@@ -110,7 +110,6 @@ export function QuoteRequestForm({
                     <th className="p-2 text-left">Name</th>
                     <th className="p-2 text-left">Unit Price</th>
                     <th className="p-2 text-left">Quantity</th>
-                    <th className="p-2 text-left">Subtotal</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,27 +130,20 @@ export function QuoteRequestForm({
                         {item.name}
                       </td>
                       <td className="p-2 align-middle">
-                        $
-                        {typeof item.price === "number"
-                          ? item.price.toLocaleString(undefined, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })
-                          : "-"}
+                        {item.showPrice ? (
+                          `$${
+                            typeof item.price === "number"
+                              ? item.price.toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })
+                              : "-"
+                          }`
+                        ) : (
+                          <span className="italic text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="p-2 align-middle">{item.quantity || 1}</td>
-                      <td className="p-2 align-middle font-semibold text-primary">
-                        $
-                        {typeof item.price === "number"
-                          ? (item.price * (item.quantity || 1)).toLocaleString(
-                              undefined,
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              },
-                            )
-                          : "-"}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -192,19 +184,6 @@ export function QuoteRequestForm({
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="email">Email *</Label>
                   <Input
                     id="email"
@@ -215,6 +194,19 @@ export function QuoteRequestForm({
                       setFormData({ ...formData, email: e.target.value })
                     }
                     placeholder="john@example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    required
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    placeholder="John Doe"
                   />
                 </div>
 
