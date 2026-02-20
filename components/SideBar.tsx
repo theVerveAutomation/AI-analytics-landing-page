@@ -1,5 +1,4 @@
 "use client";
-import { Feature, Profile } from "@/types";
 import {
   AlertCircle,
   Book,
@@ -9,10 +8,8 @@ import {
   Key,
   LayoutDashboard,
   LogOut,
-  LucideCamera,
   LucideFileVideoCamera,
   Moon,
-  ReceiptPoundSterling,
   Sun,
   User,
   Video,
@@ -21,32 +18,29 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
+import { useTheme } from "next-themes";
+import { userLoginStore } from "@/store/loginUserStore";
+import { useState } from "react";
 
 interface SidebarProps {
   openEmployees?: boolean;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  theme: string | undefined;
-  setTheme: (theme: string) => void;
   setOpenEmployees?: (open: boolean) => void;
-  profile: Profile;
-  profileMenuOpen: boolean;
-  setProfileMenuOpen: (open: boolean) => void;
 }
 
 export default function Sidebar({
   openEmployees,
   sidebarOpen,
   setSidebarOpen,
-  theme,
-  setTheme,
   setOpenEmployees,
-  profile,
-  profileMenuOpen,
-  setProfileMenuOpen,
 }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const profile = userLoginStore((s) => s.user);
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   return (
     <aside
@@ -315,14 +309,14 @@ export default function Sidebar({
             className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 
             flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-md flex-shrink-0"
           >
-            {profile.full_name?.charAt(0).toUpperCase() || "U"}
+            {profile?.full_name?.charAt(0).toUpperCase() || "U"}
           </div>
           <div className="flex-1 text-left min-w-0">
             <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
-              {profile.full_name || "User"}
+              {profile?.full_name || "User"}
             </p>
             <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 capitalize truncate">
-              {profile.role || "Member"}
+              {profile?.role || "Member"}
             </p>
           </div>
           {profileMenuOpen ? (

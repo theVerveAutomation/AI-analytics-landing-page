@@ -1,27 +1,19 @@
 "use client";
-import React, { useState } from "react";
+
+import { useState } from "react";
 import MobileHeader from "@/components/MobileHeader";
-import { Profile } from "@/types";
-// import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import Sidebar from "@/components/SideBar";
 
 export default function ClientLayout({
   children,
-  profile,
 }: {
   children: React.ReactNode;
-  profile: Profile;
 }) {
-  // const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Mobile Header */}
-      <MobileHeader profile={profile} setSidebarOpen={setSidebarOpen} />
+      <MobileHeader setSidebarOpen={setSidebarOpen} />
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
@@ -37,11 +29,6 @@ export default function ClientLayout({
         setSidebarOpen={setSidebarOpen}
         // openEmployees={openEmployees}
         // setOpenEmployees={setOpenEmployees}
-        profile={profile}
-        theme={theme}
-        setTheme={setTheme}
-        profileMenuOpen={profileMenuOpen}
-        setProfileMenuOpen={setProfileMenuOpen}
       />
 
       {/* Main content */}

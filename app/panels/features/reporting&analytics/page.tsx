@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -33,11 +33,9 @@ import {
   Clock,
   Filter,
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
-import { Profile, Organization } from "@/types";
+import { userLoginStore } from "@/store/loginUserStore";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
-type ReportType = "daily" | "weekly" | "monthly";
 
 const detectionTrendData = [
   { date: "Jan 1", object: 45, motion: 32, face: 28 },
@@ -155,33 +153,17 @@ const metrics = [
 ];
 
 export default function ReportingAnalyticsPage() {
+  const profile = userLoginStore((s) => s.user);
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
-  const [reportType, setReportType] = useState<ReportType>("daily");
   const [showFilters, setShowFilters] = useState(false);
-  const [profile, setProfile] = useState<Profile>();
   const [loading, setLoading] = useState(false);
   const detectionTrendsRef = useRef<HTMLDivElement>(null);
   const alertDistributionRef = useRef<HTMLDivElement>(null);
   const hourlyActivityRef = useRef<HTMLDivElement>(null);
   const weeklyComparisonRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchProfileAndOrg = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-      if (!user) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*, organizations(*)")
-        .eq("id", user.id)
-        .single();
-      setProfile(profile);
-      console.log("Fetched profile:", profile); // Debug log
-    };
-    fetchProfileAndOrg();
-  }, []);
-
   const generateReport = async () => {
+    if (!profile) return;
     setLoading(true);
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -198,7 +180,7 @@ export default function ReportingAnalyticsPage() {
       "Comprehensive insights and performance metrics",
       pageWidth / 2,
       y,
-      { align: "center" }
+      { align: "center" },
     );
     y += 4;
     // Organization Details Section
@@ -211,7 +193,7 @@ export default function ReportingAnalyticsPage() {
         y,
         {
           align: "center",
-        }
+        },
       );
       y += 5;
       if (profile.organizations?.displayid)
@@ -221,7 +203,7 @@ export default function ReportingAnalyticsPage() {
           y,
           {
             align: "center",
-          }
+          },
         );
       else if (profile.organizations?.id)
         doc.text(`Org ID: ${profile.organizations.id}`, pageWidth / 2, y, {
@@ -235,7 +217,7 @@ export default function ReportingAnalyticsPage() {
           y,
           {
             align: "center",
-          }
+          },
         );
       if (profile.organizations?.email) {
         doc.text(`Email: ${profile.organizations.email}`, pageWidth / 2, y, {
@@ -250,7 +232,7 @@ export default function ReportingAnalyticsPage() {
           y,
           {
             align: "center",
-          }
+          },
         );
       }
       y += 5;
@@ -266,7 +248,7 @@ export default function ReportingAnalyticsPage() {
       })}`,
       pageWidth / 2,
       y,
-      { align: "center" }
+      { align: "center" },
     );
     y += 4;
 
@@ -353,7 +335,7 @@ export default function ReportingAnalyticsPage() {
     // --- Chart Images using html2canvas ---
     const captureChart = async (
       ref: React.RefObject<HTMLDivElement | null>,
-      title: string
+      title: string,
     ) => {
       if (!ref.current) return;
       const canvas = await html2canvas(ref.current, {
@@ -425,7 +407,7 @@ export default function ReportingAnalyticsPage() {
         `Page ${i} of ${pageCount} | AI Analytics - Confidential`,
         pageWidth / 2,
         doc.internal.pageSize.getHeight() - 10,
-        { align: "center" }
+        { align: "center" },
       );
     }
 
@@ -528,8 +510,8 @@ export default function ReportingAnalyticsPage() {
                   metric.trend === "up"
                     ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                     : metric.trend === "down"
-                    ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-                    : "bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400"
+                      ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                      : "bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400"
                 }`}
               >
                 {metric.change}
@@ -815,8 +797,8 @@ export default function ReportingAnalyticsPage() {
                             camera.uptime >= 99
                               ? "bg-blue-500"
                               : camera.uptime >= 95
-                              ? "bg-amber-500"
-                              : "bg-red-500"
+                                ? "bg-amber-500"
+                                : "bg-red-500"
                           }`}
                           style={{ width: `${camera.uptime}%` }}
                         />

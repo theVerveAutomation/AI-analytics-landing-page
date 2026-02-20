@@ -1,33 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { UserPlus, Lock, Building2, Mail } from "lucide-react";
-import { Feature, Organization, Profile } from "@/types";
+import { Feature, Organization } from "@/types";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function UserRegistrationPage() {
   const router = useRouter();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const profile = userLoginStore((state) => state.user);
   const [loading, setLoading] = useState(true);
 
   const [orgId, setOrgId] = useState("");
-  const [organizations, setOrganizations] = useState<
-    { id: string; name: string }[]
-  >([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [organizationName, setOrganizationName] = useState("");
   const [fullName, setFullName] = useState("");
-  const [organizationLogo, setOrganizationLogo] = useState<string | null>(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showServices, setShowServices] = useState(false);
@@ -38,70 +31,50 @@ export default function UserRegistrationPage() {
     setSelectedServices((prev) =>
       prev.includes(service)
         ? prev.filter((s) => s !== service)
-        : [...prev, service]
+        : [...prev, service],
     );
   }
 
   useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) return router.replace("/Login");
-
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (!prof) return router.replace("/Login");
-
-      setProfile(prof);
-      setOrgId("");
-      await loadFeatures();
-      // Fetch organizations for dropdown
+    const fetchOrganizations = async () => {
+      setLoading(true);
       try {
         const res = await fetch("/api/organizations/fetch");
         const data = await res.json();
         if (res.ok && data.organizations) {
-          setOrganizations(
-            data.organizations.map((o: Organization) => ({
-              id: o.id,
-              name: o.name,
-            }))
-          );
+          setOrganizations(data.organizations);
         } else {
           setOrganizations([]);
         }
-      } catch {
+      } catch (err) {
         setOrganizations([]);
       }
       setLoading(false);
-    })();
-  }, []);
+    };
+    if (!profile) return;
+    fetchOrganizations();
+  }, [profile]);
 
-  async function loadFeatures() {
-    try {
-      const { data, error } = await supabase
-        .from("features")
-        .select("*")
-        .eq("enabled", true)
-        .order("name", { ascending: true });
-
-      if (error) {
-        console.error("Error loading features:", error);
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      try {
+        const res = await fetch("/api/features/fetchEnabled");
+        const data = await res.json();
+        if (!res.ok) {
+          setFeatures([]);
+        } else {
+          setFeatures(data.features || []);
+        }
+      } catch (err) {
+        console.error("Unexpected error loading features:", err);
         setFeatures([]);
-      } else {
-        setFeatures(data || []);
+      } finally {
+        setLoadingFeatures(false);
       }
-    } catch (err) {
-      console.error("Unexpected error loading features:", err);
-      setFeatures([]);
-    } finally {
-      setLoadingFeatures(false);
-    }
-  }
+    };
+    if (!profile) return;
+    fetchFeatures();
+  }, [profile]);
 
   async function handleRegister() {
     if (
@@ -150,7 +123,6 @@ export default function UserRegistrationPage() {
     setEmail("");
     setUsername("");
     setFullName("");
-    setOrganizationName("");
     setPassword("");
     setConfirmPassword("");
     setSelectedServices([]);
@@ -233,7 +205,7 @@ export default function UserRegistrationPage() {
             <form className="space-y-4">
               {/* Organization Dropdown */}
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-primary" />
                   Organization
                 </label>
@@ -310,7 +282,7 @@ export default function UserRegistrationPage() {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
                   <Mail className="w-4 h-4 text-primary" />
                   Email
                 </label>
@@ -337,7 +309,7 @@ export default function UserRegistrationPage() {
 
               {/* SERVICES DROPDOWN */}
               <div className="relative">
-                <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
                   <Lock className="w-4 h-4 text-primary" />
                   Enabled Services
                 </label>
@@ -353,8 +325,8 @@ export default function UserRegistrationPage() {
                           selectedServices.length > 1 ? "s" : ""
                         } selected`
                       : loadingFeatures
-                      ? "Loading features..."
-                      : "Select features"}
+                        ? "Loading features..."
+                        : "Select features"}
                   </span>
                   <span className="text-slate-500">▾</span>
                 </button>

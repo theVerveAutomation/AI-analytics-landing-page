@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 import {
   Building2,
   Pencil,
@@ -18,9 +17,11 @@ import {
 import toast from "react-hot-toast";
 import { Organization } from "@/types";
 import OrganizationModal from "@/components/OrganizationModal";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function OrganizationManagementPage() {
   const router = useRouter();
+  const profile = userLoginStore((state) => state.user);
 
   const [loading, setLoading] = useState(true);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -29,22 +30,17 @@ export default function OrganizationManagementPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) return router.replace("/Login");
-      setCurrentUserId(data.user.id);
-      fetchOrganizations();
-    })();
-  }, []);
+    if (!profile) return;
+    fetchOrganizations();
+  }, [profile]);
 
   useEffect(() => {
     filterOrganizations();
   }, [organizations, searchQuery]);
 
-  async function fetchOrganizations() {
+  const fetchOrganizations = async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/organizations/fetch");
@@ -61,7 +57,7 @@ export default function OrganizationManagementPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   async function refreshOrganizations() {
     setRefreshing(true);
@@ -406,10 +402,10 @@ export default function OrganizationManagementPage() {
       </div>
 
       {/* CREATE/EDIT ORGANIZATION MODAL */}
-      {(showCreateModal || editingOrg) && (
+      {(showCreateModal || editingOrg) && profile && (
         <OrganizationModal
           organization={editingOrg}
-          currentUserId={currentUserId}
+          currentUserId={profile.id}
           onClose={() => {
             setShowCreateModal(false);
             setEditingOrg(null);

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import {
   MessageCircle,
   Send,
-  Check,
   Bell,
   Sparkles,
   Eye,
@@ -16,14 +15,13 @@ import {
   Camera,
   MapPin,
 } from "lucide-react";
-import { FeatureAlert, AlertType, Profile } from "@/types";
+import { FeatureAlert, AlertType } from "@/types";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
 import PhoneNumberManager, {
   AlertContact,
 } from "@/components/PhoneNumberManager";
-
-type AlertChannel = "whatsapp" | "telegram" | null;
+import { userLoginStore } from "@/store/loginUserStore";
+import { toast } from "sonner";
 
 const featureAlertsData: FeatureAlert[] = [
   {
@@ -124,16 +122,14 @@ const featureAlertsData: FeatureAlert[] = [
 ];
 
 export default function AlertsPage() {
-  const router = useRouter();
-  const [selectedChannel, setSelectedChannel] = useState<AlertChannel>(null);
+  const profile = userLoginStore((s) => s.user);
   const [selectedFeature, setSelectedFeature] = useState<FeatureAlert | null>(
-    null
+    null,
   );
   const [featureAlerts] = useState<FeatureAlert[]>(featureAlertsData);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile>();
   const [selectedPlatform, setSelectedPlatform] = useState<AlertType | null>(
-    null
+    null,
   );
   const [phoneNumbers, setPhoneNumbers] = useState<
     Record<AlertType, AlertContact[]>
@@ -146,33 +142,13 @@ export default function AlertsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) {
-        router.push("/Login");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*, organizations!inner(id, alerts)")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        router.push("/Login");
-        return;
-      }
-
+    const fetchPhoneNumbers = async () => {
       // Fetch phone numbers from organization_alert_numbers table
       const { data: alertNumbers } = await supabase
         .from("organization_alert_numbers")
         .select("name, phone_number, alert_type")
-        .eq("org_id", profile.organizations.id);
+        .eq("org_id", profile?.organization_id);
 
-      // Group phone numbers by alert type
       const groupedNumbers = {
         SMS: [],
         WHATSAPP: [],
@@ -189,12 +165,12 @@ export default function AlertsPage() {
         }
       });
 
-      setProfile(profile);
       setPhoneNumbers(groupedNumbers);
       setLoading(false);
     };
-    fetchUserAndProfile();
-  }, [router]);
+    if (!profile) return;
+    fetchPhoneNumbers();
+  }, [profile]);
 
   const addPhoneNumber = (platform: AlertType, contact: AlertContact) => {
     if (
@@ -241,7 +217,7 @@ export default function AlertsPage() {
             name: contact.name,
             phone_number: contact.phoneNumber,
             alert_type: selectedPlatform,
-          })
+          }),
         );
 
         const { error: insertError } = await supabase
@@ -256,7 +232,7 @@ export default function AlertsPage() {
       setSelectedPlatform(null);
     } catch (error) {
       console.error("Error saving phone numbers:", error);
-      // You might want to show a toast notification here
+      toast.error("Failed to save phone numbers. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -437,8 +413,8 @@ export default function AlertsPage() {
                           {alertType === "WHATSAPP"
                             ? "WhatsApp"
                             : alertType === "WECHAT"
-                            ? "WeChat"
-                            : alertType}
+                              ? "WeChat"
+                              : alertType}
                         </h3>
                         <div className="flex items-center gap-2">
                           <div
@@ -465,7 +441,7 @@ export default function AlertsPage() {
                       </div>
                     </div>
                   );
-                }
+                },
               )}
         </div>
       </div>
@@ -479,14 +455,14 @@ export default function AlertsPage() {
                 getAlertConfig(selectedPlatform).activeColors.includes("blue")
                   ? "from-blue-500 to-blue-600"
                   : getAlertConfig(selectedPlatform).activeColors.includes(
-                      "green"
-                    )
-                  ? "from-green-500 to-green-600"
-                  : getAlertConfig(selectedPlatform).activeColors.includes(
-                      "purple"
-                    )
-                  ? "from-purple-500 to-purple-600"
-                  : "from-cyan-500 to-cyan-600"
+                        "green",
+                      )
+                    ? "from-green-500 to-green-600"
+                    : getAlertConfig(selectedPlatform).activeColors.includes(
+                          "purple",
+                        )
+                      ? "from-purple-500 to-purple-600"
+                      : "from-cyan-500 to-cyan-600"
               } p-6`}
             >
               <div className="flex items-center justify-between">
@@ -504,8 +480,8 @@ export default function AlertsPage() {
                       {selectedPlatform === "WHATSAPP"
                         ? "WhatsApp"
                         : selectedPlatform === "WECHAT"
-                        ? "WeChat"
-                        : selectedPlatform}{" "}
+                          ? "WeChat"
+                          : selectedPlatform}{" "}
                       Numbers
                     </h2>
                     <p className="text-white/80 text-sm">

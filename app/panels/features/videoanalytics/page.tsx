@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import {} from // ...existing chart imports removed
-"recharts";
 import {
   Video,
   Eye,
@@ -22,10 +19,10 @@ import {
   ShieldCheck,
   Clock,
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
-import { Profile, CameraConfig, Snapshot } from "@/types";
+import { CameraConfig } from "@/types";
 import Image from "next/image";
 import CameraFeed from "@/components/CameraFeed";
+import { userLoginStore } from "@/store/loginUserStore";
 
 const metrics = [
   {
@@ -61,8 +58,6 @@ const metrics = [
     bg: "bg-purple-50 dark:bg-purple-900/30",
   },
 ];
-
-// ...existing code...
 
 const recentEvents = [
   {
@@ -113,7 +108,6 @@ const recentEvents = [
 ];
 
 export default function VideoAnalyticsPage() {
-  const router = useRouter();
   const [selectedCamera, setSelectedCamera] = useState<string | undefined>(
     () => {
       try {
@@ -126,8 +120,7 @@ export default function VideoAnalyticsPage() {
       }
     },
   );
-  // ...existing code...
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const profile = userLoginStore((s) => s.user);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   // Fetch latest snapshot thumbnail for each camera (from new API route)
@@ -142,14 +135,8 @@ export default function VideoAnalyticsPage() {
           )}`,
         );
         const data = await res.json();
-        if (res.ok && Array.isArray(data.snapshots)) {
-          const thumbMap: Record<string, string> = {};
-          for (const snap of data.snapshots as Snapshot[]) {
-            if (snap.camera_id && snap.url) {
-              thumbMap[snap.camera_id] = snap.url;
-            }
-          }
-          setThumbnails(thumbMap);
+        if (res.ok) {
+          setThumbnails(data.snapshots);
         }
       } catch (err) {
         console.error("Error fetching thumbnails:", err);
@@ -172,32 +159,6 @@ export default function VideoAnalyticsPage() {
       // ignore
     }
   }, [selectedCamera]);
-
-  // Fetch user profile
-  useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) {
-        router.push("/Login");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*, organizations!inner(displayid)")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        router.push("/Login");
-        return;
-      }
-      setProfile(profile);
-    };
-    fetchUserAndProfile();
-  }, [router]);
 
   // Fetch cameras from database when profile becomes available
   useEffect(() => {

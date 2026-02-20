@@ -1,19 +1,16 @@
 "use client";
 
-import { Profile } from "@/types";
+import { userLoginStore } from "@/store/loginUserStore";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface MobileHeaderProps {
-  profile: Profile;
   setSidebarOpen: (open: boolean) => void;
 }
 
-export default function MobileHeader({
-  profile,
-  setSidebarOpen,
-}: MobileHeaderProps) {
+export default function MobileHeader({ setSidebarOpen }: MobileHeaderProps) {
   const { theme, setTheme } = useTheme();
+  const profile = userLoginStore((s) => s.user);
 
   return (
     <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 shadow-md border-b border-slate-200 dark:border-slate-700">
@@ -47,7 +44,7 @@ export default function MobileHeader({
             className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 
               flex items-center justify-center text-white font-bold text-sm shadow-md"
           >
-            {profile.username?.charAt(0).toUpperCase() || "U"}
+            {profile?.username?.charAt(0).toUpperCase() || "User"}
           </div>
         </div>
       </div>

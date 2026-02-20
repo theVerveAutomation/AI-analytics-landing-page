@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 import {
   Camera,
   Plus,
@@ -19,11 +18,14 @@ import toast from "react-hot-toast";
 import { CameraConfig, Organization } from "@/types";
 import CameraModal from "@/components/CameraModal";
 import FeatureAssignModal from "@/components/FeatureAssignModal";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function CameraSetupPage() {
   const router = useRouter();
   const params = useParams();
   const organizationId = params.id as string;
+
+  const profile = userLoginStore((state) => state.user);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,17 +38,9 @@ export default function CameraSetupPage() {
   );
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        toast.error("You must be logged in to access this page");
-        return router.replace("/Login");
-      }
-    };
-
-    getUser();
+    if (!profile) return;
     fetchCameras();
-  }, [organizationId]);
+  }, [organizationId, profile, router]);
 
   useEffect(() => {
     const fetchOrganization = async () => {
@@ -69,7 +63,7 @@ export default function CameraSetupPage() {
     fetchOrganization();
   }, [organizationId]);
 
-  async function fetchCameras() {
+  const fetchCameras = async () => {
     setLoading(true);
     try {
       const res = await fetch(
@@ -88,7 +82,7 @@ export default function CameraSetupPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   async function refreshCameras() {
     setRefreshing(true);

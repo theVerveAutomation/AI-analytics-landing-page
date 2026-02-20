@@ -1,34 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { Users, Video, Boxes, Building2, Tags } from "lucide-react";
-import { Profile } from "@/types";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function AdminHome() {
+  const profile = userLoginStore((state) => state.user);
+  const loading = userLoginStore((state) => state.isLoading);
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) return router.push("/Login");
-
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      setProfile(prof);
-      setLoading(false);
-    })();
-  }, [router]);
 
   if (loading || !profile) {
     return (
