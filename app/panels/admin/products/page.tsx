@@ -14,18 +14,15 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Image from "next/image";
-import { Profile } from "@/types";
+import { Category } from "@/types";
 import { Product } from "@/types";
-interface Category {
-  id: string;
-  name: string;
-}
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function AdminProductsPage() {
   const router = useRouter();
 
+  const profile = userLoginStore((state) => state.user);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -33,37 +30,33 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
+    const fetchProducts = async () => {
+      setLoading(true);
+      const res = await fetch("/api/products/fetch");
+      const data = await res.json();
 
-      if (!user) return router.replace("/Login");
-
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (!prof) return router.replace("/Login");
-
-      setProfile(prof);
-      const { data: productsData } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      setProducts(productsData || []);
-
-      // Fetch categories
-      const { data: categoriesData } = await supabase
-        .from("categories")
-        .select("id, name");
-      setCategories(categoriesData || []);
+      setProducts(data.products || []);
 
       setLoading(false);
-    })();
-  }, [router]);
+    };
+    if (!profile) return;
+    fetchProducts();
+  }, [profile, router]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      // Fetch categories
+      const res = await fetch("/api/categories/fetch");
+      const data = await res.json();
+      setCategories(data.categories);
+
+      setLoading(false);
+    };
+    if (!profile) return;
+
+    fetchCategories();
+  }, [profile, router]);
 
   async function deleteProduct(id: string) {
     await fetch("/api/products/delete", {

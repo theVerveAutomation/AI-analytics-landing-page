@@ -21,7 +21,7 @@ export default function UpdateUserModal({
   const [email, setEmail] = useState(user.email || "");
   const [role, setRole] = useState(user.role || "user");
   const [organizationLogo, setOrganizationLogo] = useState(
-    user.organization_logo || ""
+    user.organization_logo || "",
   );
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,18 +37,9 @@ export default function UpdateUserModal({
 
   async function loadFeatures() {
     try {
-      const { data, error } = await supabase
-        .from("features")
-        .select("*")
-        .eq("enabled", true)
-        .order("name", { ascending: true });
-
-      if (error) {
-        console.error("Error loading features:", error);
-        setFeatures([]);
-      } else {
-        setFeatures(data || []);
-      }
+      const res = await fetch("/api/features/fetchEnabled");
+      const data = await res.json();
+      setFeatures(data.features || []);
     } catch (err) {
       console.error("Unexpected error loading features:", err);
       setFeatures([]);
@@ -77,7 +68,7 @@ export default function UpdateUserModal({
     setSelectedFeatures((prev) =>
       prev.includes(featureId)
         ? prev.filter((id) => id !== featureId)
-        : [...prev, featureId]
+        : [...prev, featureId],
     );
   }
 
@@ -247,7 +238,7 @@ export default function UpdateUserModal({
 
           {/* Features Selection */}
           <div className="relative">
-            <label className="block text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+            <label className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
               <Lock className="w-4 h-4 text-primary" />
               Enabled Features
             </label>
@@ -263,8 +254,8 @@ export default function UpdateUserModal({
                       selectedFeatures.length > 1 ? "s" : ""
                     } selected`
                   : loadingFeatures
-                  ? "Loading features..."
-                  : "Select features"}
+                    ? "Loading features..."
+                    : "Select features"}
               </span>
               <span className="text-slate-500">▾</span>
             </button>

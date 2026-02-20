@@ -24,15 +24,14 @@ import {
   Filter,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { Profile, CameraConfig, Snapshot, CameraFolder } from "@/types";
+import { CameraConfig, Snapshot, CameraFolder } from "@/types";
 import Image from "next/image";
+import { userLoginStore } from "@/store/loginUserStore";
 
 // Camera folder with snapshot count
 
 export default function SnapshotPage() {
-  const router = useRouter();
-
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const profile = userLoginStore((s) => s.user);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,32 +61,6 @@ export default function SnapshotPage() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const snapshotsPerPage = 12;
-
-  // Fetch user profile
-  useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) {
-        router.push("/Login");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        router.push("/Login");
-        return;
-      }
-      setProfile(profile);
-    };
-    fetchUserAndProfile();
-  }, [router]);
 
   // Fetch cameras when profile is available
   useEffect(() => {
@@ -807,10 +780,12 @@ export default function SnapshotPage() {
                       onClick={() => setIsLightboxOpen(true)}
                     >
                       {selectedSnapshot.url ? (
-                        <img
+                        <Image
                           src={selectedSnapshot.url}
                           alt={`Snapshot from ${selectedSnapshot.camera_name}`}
                           className="w-full h-full object-contain"
+                          width={640}
+                          height={360}
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -897,9 +872,11 @@ export default function SnapshotPage() {
           >
             <XCircle className="w-8 h-8 text-white" />
           </button>
-          <img
+          <Image
             src={selectedSnapshot.url}
             alt={`Snapshot from ${selectedSnapshot.camera_name}`}
+            width={640}
+            height={360}
             className="max-w-full max-h-full object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
           />

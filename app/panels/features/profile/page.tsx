@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Profile } from "@/types";
 import {
@@ -15,45 +15,18 @@ import {
   Camera,
   Loader2,
 } from "lucide-react";
+import { userLoginStore } from "@/store/loginUserStore";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const profile = userLoginStore((s) => s.user);
+  const setProfile = userLoginStore((s) => s.setUser);
+  const loading = userLoginStore((s) => s.isLoading);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [editedProfile, setEditedProfile] = useState<Partial<Profile>>({});
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
-
-      setProfile(data);
-      setEditedProfile(data);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [editedProfile, setEditedProfile] = useState<Partial<Profile>>(
+    profile || {},
+  );
 
   const handleSave = async () => {
     if (!profile) return;
@@ -74,10 +47,10 @@ export default function ProfilePage() {
 
       setProfile({ ...profile, ...editedProfile });
       setEditing(false);
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast.error("Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
     }

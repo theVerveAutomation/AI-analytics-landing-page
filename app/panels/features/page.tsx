@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
-import { DashboardState, Profile } from "@/types";
+import { DashboardState } from "@/types";
 import {
   Camera,
   Bell,
@@ -27,6 +25,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { userLoginStore } from "@/store/loginUserStore";
 
 const recentAlerts = [
   {
@@ -67,10 +66,9 @@ const recentAlerts = [
 //   { hour: "6PM", object: 0, motion: 0, Staff: 0 },
 //   { hour: "9PM", object: 78, motion: 65, Staff: 42 },
 // ];
+
 export default function DashboardPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const profile = userLoginStore((state) => state.user);
   const [dashboardState, setDashboardState] = useState<DashboardState>({
     camerasOnline: 0,
     totalCameras: 0,
@@ -130,25 +128,6 @@ export default function DashboardPage() {
   ];
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) return router.replace("/Login");
-
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      setProfile(prof);
-      setLoading(false);
-    };
-    fetchProfile();
-  }, [router]);
-
-  useEffect(() => {
     const fetchDashboardState = async () => {
       try {
         const res = await fetch("/api/dashboard/state");
@@ -187,7 +166,7 @@ export default function DashboardPage() {
     }
   }, [profile]);
 
-  if (loading || !profile) {
+  if (!profile) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <div className="text-center">

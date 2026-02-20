@@ -27,6 +27,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import CameraFeed from "@/components/CameraFeed";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function CameraSettingPage() {
   const router = useRouter();
@@ -38,6 +39,8 @@ export default function CameraSettingPage() {
       }),
     [],
   );
+
+  const profile = userLoginStore((s) => s.user);
 
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string | undefined>(
@@ -52,7 +55,6 @@ export default function CameraSettingPage() {
       }
     },
   );
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showAddCameraModal, setShowAddCameraModal] = useState(false);
   const [newCameraUrl, setNewCameraUrl] = useState("");
@@ -76,32 +78,6 @@ export default function CameraSettingPage() {
       // ignore
     }
   }, [selectedCameraId]);
-
-  // Fetch user profile on mount and redirect if not logged in
-  useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) {
-        router.push("/Login");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*, organizations!inner(displayid)")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        router.push("/Login");
-        return;
-      }
-      setProfile(profile);
-    };
-    fetchUserAndProfile();
-  }, [router]);
 
   // Fetch cameras from database when profile becomes available
   useEffect(() => {
@@ -155,14 +131,8 @@ export default function CameraSettingPage() {
           )}`,
         );
         const data = await res.json();
-        if (res.ok && Array.isArray(data.snapshots)) {
-          const thumbMap: Record<string, string> = {};
-          for (const snap of data.snapshots as Snapshot[]) {
-            if (snap.camera_id && snap.url) {
-              thumbMap[snap.camera_id] = snap.url;
-            }
-          }
-          setThumbnails(thumbMap);
+        if (res.ok) {
+          setThumbnails(data.snapshots);
         }
       } catch (err) {
         console.error("Error fetching thumbnails:", err);

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 import UpdateUserModal from "@/components/UpdateUserModal";
 import {
   Users,
@@ -19,9 +18,11 @@ import {
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { Profile } from "@/types";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function UserManagementPage() {
   const router = useRouter();
+  const profile = userLoginStore((state) => state.user);
 
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<Profile[]>([]);
@@ -32,12 +33,8 @@ export default function UserManagementPage() {
   const [editingUser, setEditingUser] = useState<Profile | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) return router.replace("/Login");
-
-      fetchUsers();
-    })();
+    if (!profile) return;
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -96,7 +93,7 @@ export default function UserManagementPage() {
           user.organization_name?.toLowerCase().includes(query) ||
           user.organization_id?.toLowerCase().includes(query) ||
           user.email?.toLowerCase().includes(query) ||
-          user.full_name?.toLowerCase().includes(query)
+          user.full_name?.toLowerCase().includes(query),
       );
     }
 
@@ -130,7 +127,7 @@ export default function UserManagementPage() {
   }
 
   const uniqueRoles = Array.from(new Set(users.map((u) => u.role))).filter(
-    Boolean
+    Boolean,
   );
 
   if (loading) {
@@ -363,8 +360,8 @@ export default function UserManagementPage() {
                             u.role === "admin"
                               ? "bg-red-500/20 text-red-400 border-red-500/30"
                               : u.role === "user"
-                              ? "bg-blue-600/20 text-blue-400 border-blue-600/30"
-                              : "bg-slate-700/50 text-slate-300 border-slate-600"
+                                ? "bg-blue-600/20 text-blue-400 border-blue-600/30"
+                                : "bg-slate-700/50 text-slate-300 border-slate-600"
                           }`}
                         >
                           {u.role?.charAt(0).toUpperCase() + u.role?.slice(1)}

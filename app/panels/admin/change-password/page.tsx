@@ -1,45 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function ChangePasswordPage() {
-  const router = useRouter();
-
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const profile = userLoginStore((state) => state.user);
+  const loading = userLoginStore((state) => state.isLoading);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) return router.replace("/Login");
-
-      console.log(data.user);
-
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
-
-      console.log(prof);
-
-      if (!prof) return router.replace("/Login");
-
-      setProfile(prof);
-      setLoading(false);
-    })();
-  }, []);
 
   async function handleChangePassword() {
     if (!password || !confirmPassword) {
@@ -75,7 +51,17 @@ export default function ChangePasswordPage() {
     setConfirmPassword("");
   }
 
-  if (loading || !profile) return null;
+  if (loading || !profile)
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <span className="text-lg text-foreground font-medium">
+            Loading user data...
+          </span>
+        </div>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50 mt-20">

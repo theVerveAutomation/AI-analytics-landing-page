@@ -40,6 +40,7 @@ export default function CollectionPage() {
         id: "uncategorized",
         name: "Other Products",
         description: "Products without a category",
+        created_at: "",
       },
       products: [],
     };

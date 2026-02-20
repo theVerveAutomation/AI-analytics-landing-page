@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 
 export async function GET() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = await createServerSupabaseClient();
 
-  const { data, error } = await supabase
+  try {
+    const { data, error } = await supabase
     .from("categories")
     .select("id, name, image_url")
     .order("name");
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-  return NextResponse.json({ categories: data });
+    return NextResponse.json({ categories: data });
+  } catch (err) {
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+  }
 }

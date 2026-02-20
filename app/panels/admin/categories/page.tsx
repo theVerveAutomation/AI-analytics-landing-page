@@ -1,67 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import AddCategoryForm from "@/components/AddCategoryForm";
 import UpdateCategoryForm from "@/components/UpdateCategoryForm";
 import ShopNavbar from "@/components/ShopNavbar";
 import { Tags, Plus, Trash2, ArrowLeft } from "lucide-react";
-import { Profile } from "@/types";
+import { Category } from "@/types";
 import Image from "next/image";
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  image_url?: string;
-}
+import { userLoginStore } from "@/store/loginUserStore";
+import { toast } from "@/components/ui/sonner";
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
-
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const profile = userLoginStore((state) => state.user);
+  const loading = userLoginStore((state) => state.isLoading);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) return router.replace("/Login");
-
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (!prof) return router.replace("/Login");
-
-      setProfile(prof);
-
-      // Fetch categories
-      const { data } = await supabase
-        .from("categories")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      setCategories(data || []);
-      setLoading(false);
-    })();
-  }, [router]);
-
   async function deleteCategory(id: string) {
-    const { error } = await supabase.from("categories").delete().eq("id", id);
-
-    if (!error) {
-      setCategories((prev) => prev.filter((c) => c.id !== id));
+    if (
+      !confirm(
+        "Are you sure you want to delete this category? This action cannot be undone.",
+      )
+    ) {
+      return;
     }
+    const res = await fetch(
+      `/api/categories/delete?category_id=${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+      },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error(data.error || "Failed to delete category");
+      return;
+    }
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+    toast.success("Category deleted successfully");
   }
 
   if (loading || !profile) {

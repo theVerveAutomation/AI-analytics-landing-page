@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
 import { Boxes, Plus, Trash2, ArrowLeft, Check, X, Save } from "lucide-react";
 import { toast } from "sonner";
-import { Feature, Profile } from "@/types";
+import { Feature } from "@/types";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function FeaturesPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const profile = userLoginStore((state) => state.user);
+  const loading = userLoginStore((state) => state.isLoading);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newFeature, setNewFeature] = useState({
@@ -23,43 +23,24 @@ export default function FeaturesPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) return router.replace("/Login");
-
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (!prof || prof.role !== "admin") {
-        toast.error("Access denied");
-        return router.replace("/Login");
+    const loadFeatures = async () => {
+      try {
+        const res = await fetch("/api/features/list");
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error(data.error || "Failed to load features");
+          return;
+        }
+        setFeatures(data.features || []);
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        toast.error("Failed to load features");
       }
-
-      setProfile(prof);
-      await loadFeatures();
-      setLoading(false);
-    })();
-  }, [router]);
-
-  async function loadFeatures() {
-    try {
-      const res = await fetch("/api/features/list");
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error || "Failed to load features");
-        return;
-      }
-      setFeatures(data.features || []);
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      toast.error("Failed to load features");
+    };
+    if (profile) {
+      loadFeatures();
     }
-  }
+  }, [profile, router]);
 
   async function toggleFeature(featureId: string) {
     const feature = features.find((f) => f.id === featureId);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import {
   Video,
   Camera,
@@ -22,13 +21,12 @@ import {
   FileVideo,
   AlertCircle,
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
-import { Profile, CameraConfig, Recording } from "@/types";
+import { CameraConfig, Recording } from "@/types";
+import { userLoginStore } from "@/store/loginUserStore";
 
 export default function RecordingPage() {
-  const router = useRouter();
+  const profile = userLoginStore((state) => state.user);
 
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [filteredRecordings, setFilteredRecordings] = useState<Recording[]>([]);
@@ -49,32 +47,6 @@ export default function RecordingPage() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const recordingsPerPage = 12;
-
-  // Fetch user profile
-  useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user;
-
-      if (!user) {
-        router.push("/Login");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        router.push("/Login");
-        return;
-      }
-      setProfile(profile);
-    };
-    fetchUserAndProfile();
-  }, [router]);
 
   // Fetch cameras when profile is available
   useEffect(() => {
