@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import {
   Image as ImageIcon,
   Camera,
@@ -27,6 +26,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { CameraConfig, Snapshot, CameraFolder } from "@/types";
 import Image from "next/image";
 import { userLoginStore } from "@/store/loginUserStore";
+import { toast } from "sonner";
 
 // Camera folder with snapshot count
 
@@ -233,22 +233,22 @@ export default function SnapshotPage() {
     if (!confirm("Are you sure you want to delete this snapshot?")) return;
 
     try {
-      const { error } = await supabase
-        .from("camera_snaps")
-        .delete()
-        .eq("id", snapshot.id);
-
-      if (error) {
-        console.error("Error deleting snapshot:", error);
+      const res = await fetch("/api/snapshots/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: snapshot.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        console.error("Error deleting snapshot:", data.error);
         alert("Failed to delete snapshot");
         return;
       }
-
       setSnapshots((prev) => prev.filter((s) => s.id !== snapshot.id));
       if (selectedSnapshot?.id === snapshot.id) {
         setSelectedSnapshot(null);
       }
-      alert("Snapshot deleted successfully!");
+      toast.success("Snapshot deleted successfully!");
     } catch (err) {
       console.error("Error deleting snapshot:", err);
       alert("Failed to delete snapshot");
