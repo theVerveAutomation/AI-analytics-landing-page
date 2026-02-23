@@ -17,6 +17,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { CartItem } from "@/types";
 import Image from "next/image";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 interface QuoteRequestFormProps {
   open: boolean;
@@ -212,15 +213,14 @@ export function QuoteRequestForm({
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    required
+                  <PhoneInput
                     value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
+                    onChange={(_value, formatted) =>
+                      setFormData({ ...formData, phone: formatted })
                     }
-                    placeholder="+1 234 567 8900"
+                    defaultCountry="US"
+                    showValidation
+                    className="rounded-ele border border-border bg-input px-2 py-1"
                   />
                 </div>
 

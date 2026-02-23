@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import AddCategoryForm from "@/components/AddCategoryForm";
@@ -20,6 +20,15 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const res = await fetch("/api/categories/fetch");
+      const data = await res.json();
+      setCategories(data.categories || []);
+    };
+    fetchCategories();
+  }, []);
 
   async function deleteCategory(id: string) {
     if (
@@ -90,7 +99,10 @@ export default function AdminCategoriesPage() {
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
                   <th className="p-4 text-left text-xs font-bold text-foreground uppercase">
-                    Image Name
+                    Image
+                  </th>
+                  <th className="p-4 text-left text-xs font-bold text-foreground uppercase">
+                    Product Name
                   </th>
                   <th className="p-4 text-left text-xs font-bold text-foreground uppercase">
                     Description
