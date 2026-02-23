@@ -50,6 +50,7 @@ export default function AddCategoryForm({
         upsert: false,
       });
     if (error) {
+      console.error("Error uploading image:", error);
       throw new Error(error.message);
     }
     const { data } = supabase.storage.from("products").getPublicUrl(fileName);

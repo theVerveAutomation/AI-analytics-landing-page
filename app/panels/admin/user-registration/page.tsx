@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ShopNavbar from "@/components/ShopNavbar";
-import { UserPlus, Lock, Building2, Mail } from "lucide-react";
-import { Feature, Organization } from "@/types";
+import { UserPlus, Building2, Mail } from "lucide-react";
+import { Organization } from "@/types";
 import { userLoginStore } from "@/store/loginUserStore";
+import { toast } from "sonner";
 
 export default function UserRegistrationPage() {
   const router = useRouter();
@@ -23,17 +24,6 @@ export default function UserRegistrationPage() {
 
   const [formError, setFormError] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [showServices, setShowServices] = useState(false);
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [loadingFeatures, setLoadingFeatures] = useState(true);
-
-  function toggleService(service: string) {
-    setSelectedServices((prev) =>
-      prev.includes(service)
-        ? prev.filter((s) => s !== service)
-        : [...prev, service],
-    );
-  }
 
   useEffect(() => {
     const fetchOrganizations = async () => {
@@ -53,27 +43,6 @@ export default function UserRegistrationPage() {
     };
     if (!profile) return;
     fetchOrganizations();
-  }, [profile]);
-
-  useEffect(() => {
-    const fetchFeatures = async () => {
-      try {
-        const res = await fetch("/api/features/fetchEnabled");
-        const data = await res.json();
-        if (!res.ok) {
-          setFeatures([]);
-        } else {
-          setFeatures(data.features || []);
-        }
-      } catch (err) {
-        console.error("Unexpected error loading features:", err);
-        setFeatures([]);
-      } finally {
-        setLoadingFeatures(false);
-      }
-    };
-    if (!profile) return;
-    fetchFeatures();
   }, [profile]);
 
   async function handleRegister() {
@@ -115,8 +84,7 @@ export default function UserRegistrationPage() {
     }
 
     setFormError("");
-    alert("User created successfully!");
-
+    toast.success("User created successfully!");
     // Reset form
 
     setOrgId("");
@@ -126,7 +94,6 @@ export default function UserRegistrationPage() {
     setPassword("");
     setConfirmPassword("");
     setSelectedServices([]);
-    setShowServices(false);
 
     router.push("/panels/admin/users");
   }
@@ -305,90 +272,6 @@ export default function UserRegistrationPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl p-3 focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
                 />
-              </div>
-
-              {/* SERVICES DROPDOWN */}
-              <div className="relative">
-                <label className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-primary" />
-                  Enabled Services
-                </label>
-
-                <button
-                  type="button"
-                  className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-left flex justify-between items-center hover:bg-slate-800/70 transition-colors"
-                  onClick={() => setShowServices((v) => !v)}
-                >
-                  <span className="text-sm text-slate-300">
-                    {selectedServices.length > 0
-                      ? `${selectedServices.length} feature${
-                          selectedServices.length > 1 ? "s" : ""
-                        } selected`
-                      : loadingFeatures
-                        ? "Loading features..."
-                        : "Select features"}
-                  </span>
-                  <span className="text-slate-500">▾</span>
-                </button>
-
-                {showServices && (
-                  <div className="absolute z-20 mt-2 w-full bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-3 space-y-2 max-h-96 overflow-y-auto">
-                    {loadingFeatures ? (
-                      <div className="text-center py-8">
-                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                        <p className="text-sm text-slate-400">
-                          Loading features...
-                        </p>
-                      </div>
-                    ) : features.length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-sm text-slate-400">
-                          No features available
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          Add features in Feature Management
-                        </p>
-                      </div>
-                    ) : (
-                      features.map((feature) => (
-                        <label
-                          key={feature.id}
-                          className="flex items-center gap-3 cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedServices.includes(feature.id)}
-                            onChange={() => toggleService(feature.id)}
-                            className="w-4 h-4 accent-primary"
-                          />
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-lg">
-                              {feature.icon || "⚙️"}
-                            </span>
-                            <div className="flex-1">
-                              <p className="text-sm font-semibold text-slate-200">
-                                {feature.name}
-                              </p>
-                              <p className="text-xs text-slate-400">
-                                {feature.description}
-                              </p>
-                            </div>
-                          </div>
-                        </label>
-                      ))
-                    )}
-
-                    <div className="pt-2 text-center border-t border-slate-700">
-                      <button
-                        type="button"
-                        onClick={() => setShowServices(false)}
-                        className="text-sm font-semibold text-primary hover:underline"
-                      >
-                        Done
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Passwords */}

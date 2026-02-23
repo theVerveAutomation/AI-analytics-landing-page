@@ -143,7 +143,7 @@ export default function AdminProductsPage() {
               <tbody className="divide-y divide-slate-800">
                 {products.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-12 text-center">
+                    <td colSpan={8} className="p-12 text-center justify-center">
                       <ImageIcon className="w-10 h-10 mx-auto text-slate-600 mb-2" />
                       <p className="text-slate-500">No products found</p>
                     </td>
@@ -167,7 +167,9 @@ export default function AdminProductsPage() {
                         {p.name}
                       </td>
                       <td className="p-4 text-sm text-slate-400">
-                        {p.brand || <span className="italic text-slate-600">-</span>}
+                        {p.brand || (
+                          <span className="italic text-slate-600">-</span>
+                        )}
                       </td>
                       <td className="p-4 text-sm text-slate-400">
                         {p.description}

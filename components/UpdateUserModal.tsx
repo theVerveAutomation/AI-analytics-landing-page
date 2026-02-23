@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, Save, User, Mail, Shield, Lock } from "lucide-react";
+import { useState } from "react";
+import { X, Save, User, Mail, Shield } from "lucide-react";
 import toast from "react-hot-toast";
-import { supabase } from "@/lib/supabaseClient";
-import { Profile, Feature } from "@/types";
+import { Profile } from "@/types";
 
 interface UpdateUserModalProps {
   user: Profile;
@@ -25,52 +24,6 @@ export default function UpdateUserModal({
   );
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [showFeatures, setShowFeatures] = useState(false);
-  const [loadingFeatures, setLoadingFeatures] = useState(true);
-
-  useEffect(() => {
-    loadFeatures();
-    loadUserFeatures();
-  }, [user.id]);
-
-  async function loadFeatures() {
-    try {
-      const res = await fetch("/api/features/fetchEnabled");
-      const data = await res.json();
-      setFeatures(data.features || []);
-    } catch (err) {
-      console.error("Unexpected error loading features:", err);
-      setFeatures([]);
-    } finally {
-      setLoadingFeatures(false);
-    }
-  }
-
-  async function loadUserFeatures() {
-    try {
-      const { data, error } = await supabase
-        .from("user_features")
-        .select("feature_id")
-        .eq("user_id", user.id);
-      if (error) {
-        console.error("Error loading user features:", error);
-        return;
-      }
-      setSelectedFeatures(data?.map((f) => f.feature_id) || []);
-    } catch (err) {
-      console.error("Error loading user features:", err);
-    }
-  }
-
-  function toggleFeature(featureId: string) {
-    setSelectedFeatures((prev) =>
-      prev.includes(featureId)
-        ? prev.filter((id) => id !== featureId)
-        : [...prev, featureId],
-    );
-  }
 
   // async function handleLogoUpload(file: File) {
   //   setUploadingLogo(true);
@@ -120,7 +73,6 @@ export default function UpdateUserModal({
           email,
           role,
           organization_logo: organizationLogo,
-          features: selectedFeatures,
         }),
       });
 
@@ -234,88 +186,6 @@ export default function UpdateUserModal({
                 placeholder="user@example.com"
               />
             </div>
-          </div>
-
-          {/* Features Selection */}
-          <div className="relative">
-            <label className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-primary" />
-              Enabled Features
-            </label>
-
-            <button
-              type="button"
-              className="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-3 text-left flex justify-between items-center hover:bg-slate-800/70 transition-colors"
-              onClick={() => setShowFeatures((v) => !v)}
-            >
-              <span className="text-sm text-slate-300">
-                {selectedFeatures.length > 0
-                  ? `${selectedFeatures.length} feature${
-                      selectedFeatures.length > 1 ? "s" : ""
-                    } selected`
-                  : loadingFeatures
-                    ? "Loading features..."
-                    : "Select features"}
-              </span>
-              <span className="text-slate-500">▾</span>
-            </button>
-
-            {showFeatures && (
-              <div className="absolute z-20 mt-2 w-full bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-3 space-y-2 max-h-64 overflow-y-auto">
-                {loadingFeatures ? (
-                  <div className="text-center py-8">
-                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    <p className="text-sm text-slate-400">
-                      Loading features...
-                    </p>
-                  </div>
-                ) : features.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-slate-400">
-                      No features available
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Add features in Feature Management
-                    </p>
-                  </div>
-                ) : (
-                  features.map((feature) => (
-                    <label
-                      key={feature.id}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-slate-700/50 p-2 rounded-lg transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedFeatures.includes(feature.id)}
-                        onChange={() => toggleFeature(feature.id)}
-                        className="w-4 h-4 accent-primary"
-                      />
-                      <div className="flex items-center gap-2 flex-1">
-                        <span className="text-lg">{feature.icon || "⚙️"}</span>
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-slate-200">
-                            {feature.name}
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            {feature.description}
-                          </p>
-                        </div>
-                      </div>
-                    </label>
-                  ))
-                )}
-
-                <div className="pt-2 text-center border-t border-slate-700">
-                  <button
-                    type="button"
-                    onClick={() => setShowFeatures(false)}
-                    className="text-sm font-semibold text-primary hover:underline"
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Role */}
