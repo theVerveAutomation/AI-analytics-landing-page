@@ -30,13 +30,13 @@ export async function GET(req: NextRequest) {
       
     const { data, error } = await supabase
       .from("cameras")
-      .select(`*, camera_features(*)`)
+      .select(`*, camera_features(*, features(*))`)
       .eq("organization_id", organization_id);
       
     if (error) {
+      console.error("Error fetching cameras:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
     return NextResponse.json({ cameras: data }, { status: 200 });
   } catch (err) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

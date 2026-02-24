@@ -11,11 +11,9 @@ import {
   UserCheck,
   AlertTriangle,
   X,
-  Clock,
   Camera,
-  MapPin,
 } from "lucide-react";
-import { FeatureAlert, AlertType } from "@/types";
+import { AlertType, CameraConfig, CameraFeatures, Feature } from "@/types";
 import { supabase } from "@/lib/supabaseClient";
 import PhoneNumberManager, {
   AlertContact,
@@ -23,111 +21,11 @@ import PhoneNumberManager, {
 import { userLoginStore } from "@/store/loginUserStore";
 import { toast } from "sonner";
 
-const featureAlertsData: FeatureAlert[] = [
-  {
-    id: "object-detection",
-    name: "Object Detection",
-    description: "Alerts triggered when specific objects are detected",
-    icon: <Eye className="w-5 h-5" />,
-    alertCount: 24,
-    color: "blue",
-    lastAlert: "2 min ago",
-    recentAlerts: [
-      {
-        id: "od-1",
-        timestamp: "2 min ago",
-        camera: "Cam 1 - Main Entrance",
-        location: "Building A - Front Gate",
-        description: "Suspicious package detected near entrance.",
-        imageUrl: "/placeholder-alert-1.jpg",
-      },
-      {
-        id: "od-2",
-        timestamp: "15 min ago",
-        camera: "Cam 3 - Parking Lot",
-        location: "Building A - Parking Area",
-        description:
-          "Unattended package detected near entrance. Security team has been notified for inspection.",
-        imageUrl: "/placeholder-alert-2.jpg",
-      },
-      {
-        id: "od-3",
-        timestamp: "1 hour ago",
-        camera: "Cam 5 - Warehouse",
-        location: "Building B - Storage",
-        description:
-          "Forklift operating in restricted hours. Equipment movement detected outside scheduled time.",
-        imageUrl: "/placeholder-alert-3.jpg",
-      },
-    ],
-  },
-  {
-    id: "motion-detection",
-    name: "Motion Detection",
-    description: "Alerts triggered when motion is detected",
-    icon: <Activity className="w-5 h-5" />,
-    alertCount: 18,
-    color: "cyan",
-    lastAlert: "5 min ago",
-    recentAlerts: [
-      {
-        id: "md-1",
-        timestamp: "5 min ago",
-        camera: "Cam 2 - Back Door",
-        location: "Building A - Rear Exit",
-        description:
-          "Motion detected in restricted area after hours. Movement pattern suggests human activity near emergency exit.",
-        imageUrl: "/placeholder-alert-4.jpg",
-      },
-      {
-        id: "md-2",
-        timestamp: "20 min ago",
-        camera: "Cam 4 - Server Room",
-        location: "Building C - IT Department",
-        description:
-          "Unexpected motion in server room. Access log shows no scheduled maintenance.",
-        imageUrl: "/placeholder-alert-5.jpg",
-      },
-    ],
-  },
-  {
-    id: "face-recognition",
-    name: "Human Recognition",
-    description: "Alerts triggered when faces are recognized",
-    icon: <UserCheck className="w-5 h-5" />,
-    alertCount: 7,
-    color: "purple",
-    lastAlert: "12 min ago",
-    recentAlerts: [
-      {
-        id: "fr-1",
-        timestamp: "12 min ago",
-        camera: "Cam 1 - Main Entrance",
-        location: "Building A - Reception",
-        description:
-          "Unknown person detected attempting entry. Face not matching any registered employee or visitor database.",
-        imageUrl: "/placeholder-alert-6.jpg",
-      },
-      {
-        id: "fr-2",
-        timestamp: "45 min ago",
-        camera: "Cam 6 - Executive Floor",
-        location: "Building A - Floor 5",
-        description:
-          "Employee John Smith recognized outside authorized hours. Last scheduled shift ended at 6:00 PM.",
-        imageUrl: "/placeholder-alert-7.jpg",
-      },
-    ],
-  },
-];
-
 export default function AlertsPage() {
   const profile = userLoginStore((s) => s.user);
-  const [selectedFeature, setSelectedFeature] = useState<FeatureAlert | null>(
-    null,
-  );
-  const [featureAlerts] = useState<FeatureAlert[]>(featureAlertsData);
+  const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingCameras, setLoadingCameras] = useState(true);
   const [selectedPlatform, setSelectedPlatform] = useState<AlertType | null>(
     null,
   );
@@ -170,6 +68,34 @@ export default function AlertsPage() {
     };
     if (!profile) return;
     fetchPhoneNumbers();
+  }, [profile]);
+
+  // Fetch cameras with their features
+  useEffect(() => {
+    const fetchCameras = async () => {
+      if (!profile?.organizations?.id) {
+        setLoadingCameras(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/camera/fetch?organization_id=${profile.organizations.id}`,
+        );
+        const result = await response.json();
+
+        if (result.cameras) {
+          setCameras(result.cameras);
+        }
+      } catch (error) {
+        console.error("Error fetching cameras:", error);
+        toast.error("Failed to load cameras");
+      } finally {
+        setLoadingCameras(false);
+      }
+    };
+
+    fetchCameras();
   }, [profile]);
 
   const addPhoneNumber = (platform: AlertType, contact: AlertContact) => {
@@ -236,6 +162,21 @@ export default function AlertsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const getFeatureDisplay = (feature: Feature) => {
+    const name = feature.name?.toLowerCase() || "";
+    if (name.includes("object"))
+      return { color: "blue", icon: <Eye className="w-5 h-5" /> };
+    if (name.includes("motion"))
+      return { color: "cyan", icon: <Activity className="w-5 h-5" /> };
+    if (
+      name.includes("human") ||
+      name.includes("face") ||
+      name.includes("person")
+    )
+      return { color: "purple", icon: <UserCheck className="w-5 h-5" /> };
+    return { color: "gray", icon: <Activity className="w-5 h-5" /> };
   };
 
   const getColorClasses = (color: string) => {
@@ -315,8 +256,6 @@ export default function AlertsPage() {
         };
     }
   };
-
-  const totalAlerts = featureAlerts.reduce((sum, f) => sum + f.alertCount, 0);
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -533,7 +472,7 @@ export default function AlertsPage() {
         </div>
       )}
 
-      {/* Feature Alerts Section */}
+      {/* Feature Alerts Section - Grouped by Camera */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-lg">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -545,175 +484,153 @@ export default function AlertsPage() {
                 Feature Alerts
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Alert counts by detection feature
+                Assigned features for each camera
               </p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-gray-800 dark:text-white">
-              {totalAlerts}
+              {cameras.length}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Total Alerts
+              Total Cameras
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {featureAlerts.map((feature) => {
-            const colors = getColorClasses(feature.color);
-            return (
+        {loadingCameras ? (
+          <div className="space-y-6">
+            {Array.from({ length: 2 }).map((_, idx) => (
               <div
-                key={feature.id}
-                onClick={() => setSelectedFeature(feature)}
-                className={`p-4 rounded-xl border ${colors.border} ${colors.bg} transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1`}
+                key={idx}
+                className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4 animate-pulse"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center bg-white dark:bg-slate-800 shadow-sm`}
-                  >
-                    <span className={colors.icon}>{feature.icon}</span>
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-full ${colors.badge} text-white text-sm font-bold`}
-                  >
-                    {feature.alertCount}
-                  </div>
-                </div>
-                <h3 className="font-semibold text-gray-800 dark:text-white mb-1">
-                  {feature.name}
-                </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                  {feature.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Last alert: {feature.lastAlert}
-                  </p>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 hover:underline">
-                    View Details →
-                  </span>
+                <div className="h-6 bg-gray-300 dark:bg-slate-600 rounded w-1/3 mb-4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-32 bg-gray-300 dark:bg-slate-600 rounded-xl"
+                    ></div>
+                  ))}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
+        ) : cameras.length === 0 ? (
+          <div className="text-center py-12">
+            <Camera className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">
+              No Cameras Found
+            </p>
+            <p className="text-gray-500 dark:text-gray-500 text-sm">
+              Add cameras to your organization to see feature alerts
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {cameras.map((camera: CameraConfig) => {
+              const cameraFeatures = camera.camera_features || [];
+              const hasFeatures = cameraFeatures.length > 0;
 
-      {/* Alert Details Modal */}
-      {selectedFeature && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div
-              className={`bg-gradient-to-r ${
-                getColorClasses(selectedFeature.color).header
-              } p-6`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                    <span className="text-white">{selectedFeature.icon}</span>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">
-                      {selectedFeature.name}
-                    </h2>
-                    <p className="text-white/80 text-sm">
-                      {selectedFeature.alertCount} alerts • Last:{" "}
-                      {selectedFeature.lastAlert}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedFeature(null)}
-                  className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+              return (
+                <div
+                  key={camera.id}
+                  className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-700/50 dark:to-slate-600/30 rounded-xl p-5 border border-gray-200 dark:border-slate-600"
                 >
-                  <X className="w-5 h-5 text-white" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                Recent Alerts
-              </h3>
-              <div className="space-y-4">
-                {selectedFeature.recentAlerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className="bg-gray-50 dark:bg-slate-700/50 rounded-xl border border-gray-200 dark:border-slate-600 overflow-hidden"
-                  >
-                    <div className="flex flex-col md:flex-row">
-                      {/* Alert Image */}
-                      <div className="md:w-64 h-48 md:h-auto bg-gray-900 dark:bg-slate-900 flex items-center justify-center relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                          <div className="text-center">
-                            <Camera className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                            <p className="text-gray-500 text-sm">
-                              Alert Snapshot
-                            </p>
-                          </div>
-                        </div>
-                        {/* Timestamp overlay */}
-                        <div className="absolute bottom-2 left-2 bg-black/70 px-2 py-1 rounded text-xs text-white">
-                          {alert.timestamp}
-                        </div>
-                      </div>
-
-                      {/* Alert Details */}
-                      <div className="flex-1 p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                            <Clock className="w-4 h-4" />
-                            <span>{alert.timestamp}</span>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              getColorClasses(selectedFeature.color).badge
-                            } text-white`}
-                          >
-                            Alert
-                          </span>
-                        </div>
-
-                        <div className="space-y-2 mb-3">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Camera className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                            <span className="font-medium text-gray-800 dark:text-white">
-                              {alert.camera}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                            <span className="text-gray-600 dark:text-gray-400">
-                              {alert.location}
-                            </span>
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {alert.description}
-                        </p>
-
-                        <div className="mt-4 flex gap-2">
-                          <button className="px-3 py-1.5 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-slate-500 transition-colors">
-                            View Full Image
-                          </button>
-                          <button className="px-3 py-1.5 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-slate-500 transition-colors">
-                            Mark as Reviewed
-                          </button>
-                        </div>
-                      </div>
+                  {/* Camera Header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                        {camera.name || `Camera ${camera.id}`}
+                      </h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {hasFeatures
+                          ? `${cameraFeatures.length} feature${cameraFeatures.length !== 1 ? "s" : ""} assigned`
+                          : "No features assigned"}
+                      </p>
+                    </div>
+                    <div
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        camera.status === "normal"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : camera.status === "warning"
+                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      }`}
+                    >
+                      {camera.status || "unknown"}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+
+                  {/* Features Grid */}
+                  {hasFeatures ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {cameraFeatures.map((camera_features: CameraFeatures) => {
+                        const { color, icon } = getFeatureDisplay(
+                          camera_features.features,
+                        );
+                        const colors = getColorClasses(color);
+
+                        return (
+                          <div
+                            key={camera_features.features.id}
+                            className={`p-4 rounded-xl border ${colors.border} ${colors.bg} transition-all duration-200`}
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white dark:bg-slate-800 shadow-sm">
+                                <span className={colors.icon}>{icon}</span>
+                              </div>
+                              <div
+                                className={`w-2.5 h-2.5 rounded-full ${
+                                  camera_features.features.enabled
+                                    ? "bg-green-500 animate-pulse"
+                                    : "bg-gray-400"
+                                }`}
+                              />
+                            </div>
+                            <h4 className="font-semibold text-gray-800 dark:text-white mb-1 text-sm">
+                              {camera_features.features.name ||
+                                "Unknown Feature"}
+                            </h4>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                              {camera_features.features.description ||
+                                "No description"}
+                            </p>
+                            <div className="mt-3 pt-2 border-t border-gray-200 dark:border-slate-600">
+                              <span
+                                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                  camera_features.features.enabled
+                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                    : "bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-gray-400"
+                                }`}
+                              >
+                                {camera_features.features.enabled
+                                  ? "Active"
+                                  : "Inactive"}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-white dark:bg-slate-800 rounded-lg">
+                      <AlertTriangle className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        No features assigned to this camera
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Help Section */}
       <div className="mt-8 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-lg">

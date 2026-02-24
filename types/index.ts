@@ -101,7 +101,15 @@ export interface CameraConfig {
   created_at?: string;
   organization_id?: string | number;
   stream_url?: string;
-  camera_features?: Feature[]; // Optional array of features assigned to the camera
+  camera_features?: CameraFeatures[]; // Optional array of features assigned to the camera
+}
+
+export interface CameraFeatures {
+  id: string;
+  camera_id: string;
+  feature_id: string;
+  features: Feature; // Include the full feature details
+  assigned_at: string;
 }
 
 export interface Snapshot {
