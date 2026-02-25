@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
   const recentAlerts = alerts?.slice(0, 5).map((alert) => ({
       id: alert.id,
       timestamp: new Date(alert.created_at).toLocaleString(),
-      type: alert.alert_type,
+      alert_type: alert.alert_type,
       camera: alert.camera,
       message: alert.message,
     })) || []

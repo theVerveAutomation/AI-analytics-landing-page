@@ -132,7 +132,7 @@ export interface AlertDetail {
   id: string;
   timestamp: string;
   camera: string;
-  type: string;
+  alert_type: string;
   message: string;
   imageUrl: string;
 }

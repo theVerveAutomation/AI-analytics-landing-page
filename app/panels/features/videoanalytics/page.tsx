@@ -18,94 +18,13 @@ import {
   Activity,
   ShieldCheck,
   Clock,
+  AlertCircle,
 } from "lucide-react";
-import { CameraConfig } from "@/types";
+import { AlertDetail, CameraConfig } from "@/types";
 import Image from "next/image";
 import CameraFeed from "@/components/CameraFeed";
 import { userLoginStore } from "@/store/loginUserStore";
-
-const metrics = [
-  {
-    title: "Active Video Feeds",
-    value: "3/3",
-    change: "+0 today",
-    icon: Video,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-  },
-  {
-    title: "Total Detections",
-    value: "0",
-    change: "+0 today",
-    icon: Eye,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-  },
-  {
-    title: "Active Events",
-    value: "23",
-    change: "5 critical",
-    icon: AlertTriangle,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/30",
-  },
-  {
-    title: "Storage Used",
-    value: "2.4 TB",
-    change: "68% capacity",
-    icon: HardDrive,
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-50 dark:bg-purple-900/30",
-  },
-];
-
-const recentEvents = [
-  {
-    id: 1,
-    type: "Person Detected",
-    camera: "Entrance",
-    time: "2 min ago",
-    severity: "low",
-    icon: User,
-    color: "text-cyan-500",
-  },
-  {
-    id: 2,
-    type: "Object Detected",
-    camera: "Object Lot",
-    time: "5 min ago",
-    severity: "low",
-    icon: Car,
-    color: "text-blue-500",
-  },
-  {
-    id: 3,
-    type: "Unauthorized Access",
-    camera: "Back Door",
-    time: "12 min ago",
-    severity: "critical",
-    icon: AlertTriangle,
-    color: "text-red-500",
-  },
-  {
-    id: 4,
-    type: "Group Detected",
-    camera: "Reception",
-    time: "18 min ago",
-    severity: "medium",
-    icon: Users,
-    color: "text-amber-500",
-  },
-  {
-    id: 5,
-    type: "Object Movement",
-    camera: "Storage",
-    time: "25 min ago",
-    severity: "low",
-    icon: Package,
-    color: "text-purple-500",
-  },
-];
+import getSeverityColor from "@/data/serverity";
 
 export default function VideoAnalyticsPage() {
   const [selectedCamera, setSelectedCamera] = useState<string | undefined>(
@@ -123,7 +42,46 @@ export default function VideoAnalyticsPage() {
   const profile = userLoginStore((s) => s.user);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
-  // Fetch latest snapshot thumbnail for each camera (from new API route)
+  const [recentAlerts, setRecentAlerts] = useState<AlertDetail[]>([]);
+
+  // Fetch cameras from database when profile becomes available
+  useEffect(() => {
+    if (!profile) return;
+
+    const fetchCameras = async () => {
+      try {
+        const res = await fetch(
+          `/api/camera/fetch?organization_id=${encodeURIComponent(
+            profile.organization_id,
+          )}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.cameras)) {
+          setCameras(data.cameras);
+          setSelectedCamera((prev) => {
+            if (
+              prev != null &&
+              data.cameras.some((c: CameraConfig) => c.id === prev)
+            ) {
+              return prev;
+            }
+            return data.cameras[0]?.id;
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching cameras:", err);
+      }
+    };
+    fetchCameras();
+  }, [profile]);
+
+  // Fetch latest snapshot thumbnail for each camera
   useEffect(() => {
     if (!profile || cameras.length === 0) return;
 
@@ -160,62 +118,66 @@ export default function VideoAnalyticsPage() {
     }
   }, [selectedCamera]);
 
-  // Fetch cameras from database when profile becomes available
+  // fetch recentAlerts
   useEffect(() => {
-    if (!profile) return;
-
-    const fetchCameras = async () => {
+    const fetchRecentAlerts = async () => {
       try {
         const res = await fetch(
-          `/api/camera/fetch?organization_id=${encodeURIComponent(
-            profile.organization_id,
-          )}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
+          `/api/alerts/recent?organization_id=${encodeURIComponent(profile?.organization_id || "")}`,
         );
         const data = await res.json();
-        if (res.ok && Array.isArray(data.cameras)) {
-          const dbCameras: CameraConfig[] = data.cameras.map(
-            (cam: CameraConfig) => ({
-              id: cam.id,
-              name: cam.name,
-              status: cam.status || "normal",
-              detection: cam.detection ?? true,
-              alert_sound: cam.alert_sound ?? true,
-              frame_rate: cam.frame_rate ?? 30,
-              resolution: cam.resolution || "1080p",
-              updated_at: cam.updated_at || "-",
-              url: cam.url,
-              organization_id: cam.organization_id,
-            }),
-          );
-          setCameras(dbCameras);
-          setSelectedCamera((prev) => {
-            if (
-              prev != null &&
-              dbCameras.some((c: CameraConfig) => c.id === prev)
-            ) {
-              return prev;
-            }
-            return dbCameras[0]?.id;
-          });
+        if (res.ok) {
+          setRecentAlerts(data.recentAlerts);
         }
       } catch (err) {
-        console.error("Error fetching cameras:", err);
+        console.error("Error fetching recent alerts:", err);
       }
     };
-
-    fetchCameras();
+    if (!profile) return;
+    fetchRecentAlerts();
   }, [profile]);
 
   // Get selected camera
   const getSelectedCamera = () => {
     return cameras.find((c) => c.id === selectedCamera);
   };
+
+  const normalCameras = cameras.filter((c) => c.status === "normal").length;
+
+  const metrics = [
+    {
+      title: "Active Video Feeds",
+      value: `${normalCameras}/${cameras.length}`,
+      change: "+0 today",
+      icon: Video,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+    },
+    {
+      title: "Total Detections",
+      value: "0",
+      change: "+0 today",
+      icon: Eye,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+    },
+    {
+      title: "Active Events",
+      value: "23",
+      change: "5 critical",
+      icon: AlertTriangle,
+      color: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-50 dark:bg-amber-900/30",
+    },
+    {
+      title: "Storage Used",
+      value: "2.4 TB",
+      change: "68% capacity",
+      icon: HardDrive,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-50 dark:bg-purple-900/30",
+    },
+  ];
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -231,7 +193,7 @@ export default function VideoAnalyticsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <button className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2">
             <Search className="w-4 h-4" />
             Search
@@ -244,7 +206,7 @@ export default function VideoAnalyticsPage() {
             <Download className="w-4 h-4" />
             Export
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Metrics Cards */}
@@ -287,7 +249,7 @@ export default function VideoAnalyticsPage() {
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {getSelectedCamera()
-                    ? `Camera ${selectedCamera} • Real-time monitoring`
+                    ? `Camera - ${getSelectedCamera()?.name || "Unknown"} • Real-time monitoring`
                     : "Select a camera to view"}
                 </p>
               </div>
@@ -377,7 +339,6 @@ export default function VideoAnalyticsPage() {
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        unoptimized
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -569,36 +530,30 @@ export default function VideoAnalyticsPage() {
               <Zap className="w-5 h-5 text-amber-500" />
             </div>
             <div className="space-y-3">
-              {recentEvents.map((event) => (
+              {recentAlerts.map((event: AlertDetail) => (
                 <div
                   key={event.id}
                   className="p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-lg ${
-                        event.severity === "critical"
-                          ? "bg-red-100 dark:bg-red-900/30"
-                          : event.severity === "medium"
-                            ? "bg-amber-100 dark:bg-amber-900/30"
-                            : "bg-blue-100 dark:bg-blue-900/30"
-                      } flex items-center justify-center flex-shrink-0`}
-                    >
-                      <event.icon className={`w-5 h-5 ${event.color}`} />
+                    <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
+                      <AlertCircle className="w-5 h-5 text-gray-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-gray-800 dark:text-white">
-                        {event.type}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {event.camera} • {event.time}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-800 dark:text-white">
+                          Alert triggered {event.alert_type}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {event.camera}
+                      </div>
                     </div>
-                    {event.severity === "critical" && (
-                      <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-medium">
-                        Critical
+                    <div className="flex flex-col items-end min-w-max">
+                      <span className="text-xs text-gray-400">
+                        {event.timestamp}
                       </span>
-                    )}
+                    </div>
                   </div>
                 </div>
               ))}
