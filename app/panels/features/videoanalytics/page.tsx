@@ -18,6 +18,10 @@ import {
   Activity,
   ShieldCheck,
   Clock,
+  Shield,
+  Bell,
+  Camera,
+  UserCheck,
 } from "lucide-react";
 import { CameraConfig } from "@/types";
 import Image from "next/image";
@@ -26,34 +30,34 @@ import { userLoginStore } from "@/store/loginUserStore";
 
 const metrics = [
   {
-    title: "Active Video Feeds",
-    value: "3/3",
+    title: "Healthy Cameras",
+    value: "6/6",
     change: "+0 today",
-    icon: Video,
+    icon: Camera,
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-50 dark:bg-blue-900/30",
   },
   {
+    title: "Alerts Today",
+    value: "106",
+    change: "+0 from yesterday",
+    icon: Bell,
+    color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-900/30",
+  },
+  {
     title: "Total Detections",
-    value: "0",
-    change: "+0 today",
+    value: "1284",
+    change: "Last 24 hours",
     icon: Eye,
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-50 dark:bg-blue-900/30",
   },
   {
-    title: "Active Events",
-    value: "23",
-    change: "5 critical",
-    icon: AlertTriangle,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/30",
-  },
-  {
-    title: "Storage Used",
-    value: "2.4 TB",
-    change: "68% capacity",
-    icon: HardDrive,
+    title: "System Health",
+    value: "98%",
+    change: "System summary",
+    icon: Shield,
     color: "text-purple-600 dark:text-purple-400",
     bg: "bg-purple-50 dark:bg-purple-900/30",
   },
@@ -62,48 +66,66 @@ const metrics = [
 const recentEvents = [
   {
     id: 1,
-    type: "Person Detected",
-    camera: "Entrance",
+    type: "Arm Flailing",
+    camera: "Analytics 1",
     time: "2 min ago",
-    severity: "low",
-    icon: User,
-    color: "text-cyan-500",
+    severity: "medium",
+    icon: Activity,
+    color: "text-pink-500",
   },
   {
     id: 2,
-    type: "Object Detected",
-    camera: "Object Lot",
-    time: "5 min ago",
-    severity: "low",
-    icon: Car,
-    color: "text-blue-500",
-  },
-  {
-    id: 3,
-    type: "Unauthorized Access",
-    camera: "Back Door",
-    time: "12 min ago",
-    severity: "critical",
-    icon: AlertTriangle,
+    type: "Erratic Movements",
+    camera: "Analytics 2",
+    time: "8 min ago",
+    severity: "high",
+    icon: Activity,
     color: "text-red-500",
   },
   {
+    id: 3,
+    type: "Facial Expressions",
+    camera: "Analytics 3",
+    time: "15 min ago",
+    severity: "low",
+    icon: UserCheck,
+    color: "text-yellow-500",
+  },
+  {
     id: 4,
-    type: "Group Detected",
-    camera: "Reception",
-    time: "18 min ago",
+    type: "Thermal Indicators",
+    camera: "Analytics 1",
+    time: "32 min ago",
     severity: "medium",
-    icon: Users,
-    color: "text-amber-500",
+    icon: Shield,
+    color: "text-teal-500",
   },
   {
     id: 5,
-    type: "Object Movement",
-    camera: "Storage",
-    time: "25 min ago",
-    severity: "low",
-    icon: Package,
+    type: "Fall Detection",
+    camera: "Analytics 2",
+    time: "1 hour ago",
+    severity: "high",
+    icon: AlertTriangle,
     color: "text-purple-500",
+  },
+  {
+    id: 6,
+    type: "Escape Attempts",
+    camera: "Analytics 3",
+    time: "2 hours ago",
+    severity: "high",
+    icon: AlertTriangle,
+    color: "text-yellow-500",
+  },
+  {
+    id: 7,
+    type: "Staff Detection",
+    camera: "Analytics 1",
+    time: "3 hours ago",
+    severity: "medium",
+    icon: UserCheck,
+    color: "text-indigo-500",
   },
 ];
 
@@ -123,42 +145,6 @@ export default function VideoAnalyticsPage() {
   const profile = userLoginStore((s) => s.user);
   const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
-  // Fetch latest snapshot thumbnail for each camera (from new API route)
-  useEffect(() => {
-    if (!profile || cameras.length === 0) return;
-
-    const fetchThumbnails = async () => {
-      try {
-        const res = await fetch(
-          `/api/snapshots/latest/fetch?cameras=${encodeURIComponent(
-            JSON.stringify(cameras.map((c) => c.id)),
-          )}`,
-        );
-        const data = await res.json();
-        if (res.ok) {
-          setThumbnails(data.snapshots);
-        }
-      } catch (err) {
-        console.error("Error fetching thumbnails:", err);
-      }
-    };
-
-    fetchThumbnails();
-  }, [profile, cameras]);
-
-  // Persist selection
-  useEffect(() => {
-    try {
-      if (selectedCamera != null) {
-        localStorage.setItem(
-          "videoAnalytics:selectedCamera",
-          String(selectedCamera),
-        );
-      }
-    } catch {
-      // ignore
-    }
-  }, [selectedCamera]);
 
   // Fetch cameras from database when profile becomes available
   useEffect(() => {
@@ -211,6 +197,43 @@ export default function VideoAnalyticsPage() {
 
     fetchCameras();
   }, [profile]);
+
+  // Fetch latest snapshot thumbnail for each camera (from new API route)
+  useEffect(() => {
+    if (!profile || cameras.length === 0) return;
+
+    const fetchThumbnails = async () => {
+      try {
+        const res = await fetch(
+          `/api/snapshots/latest/fetch?cameras=${encodeURIComponent(
+            JSON.stringify(cameras.map((c) => c.id)),
+          )}`,
+        );
+        const data = await res.json();
+        if (res.ok) {
+          setThumbnails(data.snapshots);
+        }
+      } catch (err) {
+        console.error("Error fetching thumbnails:", err);
+      }
+    };
+
+    fetchThumbnails();
+  }, [profile, cameras]);
+
+  // Persist selection
+  useEffect(() => {
+    try {
+      if (selectedCamera != null) {
+        localStorage.setItem(
+          "videoAnalytics:selectedCamera",
+          String(selectedCamera),
+        );
+      }
+    } catch {
+      // ignore
+    }
+  }, [selectedCamera]);
 
   // Get selected camera
   const getSelectedCamera = () => {
