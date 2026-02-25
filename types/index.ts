@@ -101,7 +101,15 @@ export interface CameraConfig {
   created_at?: string;
   organization_id?: string | number;
   stream_url?: string;
-  camera_features?: Feature[]; // Optional array of features assigned to the camera
+  camera_features?: CameraFeatures[]; // Optional array of features assigned to the camera
+}
+
+export interface CameraFeatures {
+  id: string;
+  camera_id: string;
+  feature_id: string;
+  features: Feature; // Include the full feature details
+  assigned_at: string;
 }
 
 export interface Snapshot {
@@ -124,8 +132,8 @@ export interface AlertDetail {
   id: string;
   timestamp: string;
   camera: string;
-  location: string;
-  description: string;
+  alert_type: string;
+  message: string;
   imageUrl: string;
 }
 
@@ -141,19 +149,48 @@ export interface FeatureAlert {
 }
 
 export interface DashboardState {
-  camerasOnline: number;
-  totalCameras: number;
-  alertsToday: number;
-  totalDetections: number;
+  features: string[];
   systemHealth: number;
-  objectDetected: number;
-  staffDetected: number;
-  motionDetected: number;
-  hourlyDetections: { hour: string; object: number; motion: number; staff: number }[];
-  cameraStatus: {
-    id: string;
-    name: string;
-    status: "normal" | "warning" | "offline";
-    detections: number;
+  cameras: {
+    camerasOnline: number;
+    totalCameras: number;
+    cameraStatus: {
+      id: string;
+      name: string;
+      status: "normal" | "warning" | "offline";
+      detections: number;
+    }[];
+  }
+  alerts: {  
+    alertsToday: number;
+    recentAlerts: AlertDetail[];
+  };
+  detections: {
+    totalDetections: number;
+    objectDetected: number;
+    staffDetected: number;
+    motionDetected: number;
+    pacingDetected: number;
+    erraticMovementsDetected: number;
+    armFlailingDetected: number;
+    facialExpressionsDetected: number;
+    thermalIndicatorsDetected: number;
+    fallDetectionDetected: number;
+    escapeAttemptsDetected: number;
+    loiteringDetected: number;
+  };
+  hourlyDetections: { 
+    hour: string; 
+    "Object Detection": number; 
+    "Motion Detection": number; 
+    "Staff Detection": number; 
+    "Pacing Detection": number; 
+    "Erratic Movements Detection": number; 
+    "Facial Expressions Detection": number; 
+    "Thermal Indicators Detection": number; 
+    "Fall Detection": number; 
+    "Escape Attempts Detection": number; 
+    "Arm Flailing Detection": number; 
+    "Loitering Detection": number;
   }[];
 }

@@ -22,7 +22,6 @@ import {
   ArrowLeft,
   Filter,
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 import { CameraConfig, Snapshot, CameraFolder } from "@/types";
 import Image from "next/image";
 import { userLoginStore } from "@/store/loginUserStore";

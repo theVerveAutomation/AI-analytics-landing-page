@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardState } from "@/types";
+import { AlertDetail, DashboardState } from "@/types";
 import {
   Camera,
   Bell,
@@ -11,6 +11,7 @@ import {
   Shield,
   Clock,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import {
   PieChart,
@@ -26,67 +27,58 @@ import {
   Legend,
 } from "recharts";
 import { userLoginStore } from "@/store/loginUserStore";
+import getSeverityColor from "@/data/serverity";
 
-const recentAlerts = [
-  {
-    id: 2,
-    type: "Motion Detection",
-    message: "Movement detected in restricted area",
-    camera: "Cam 1",
-    time: "8 min ago",
-    severity: "medium",
-    icon: Activity,
-  },
-  {
-    id: 3,
-    type: "Staff Recognition",
-    message: "Unknown person identified at entrance",
-    camera: "Cam 2",
-    time: "15 min ago",
-    severity: "high",
-    icon: UserCheck,
-  },
-  {
-    id: 4,
-    type: "Motion Detection",
-    message: "Activity detected after hours",
-    camera: "Cam 3",
-    time: "32 min ago",
-    severity: "low",
-    icon: Activity,
-  },
-];
-
-// const hourlyDetections = [
-//   { hour: "3AM", object: 0, motion: 0, Staff: 0 },
-//   { hour: "6AM", object: 45, motion: 32, Staff: 28 },
-//   { hour: "9AM", object: 78, motion: 65, Staff: 42 },
-//   { hour: "12PM", object: 92, motion: 71, Staff: 55 },
-//   { hour: "3PM", object: 68, motion: 52, Staff: 38 },
-//   { hour: "6PM", object: 0, motion: 0, Staff: 0 },
-//   { hour: "9PM", object: 78, motion: 65, Staff: 42 },
-// ];
+const barColors: Record<string, string> = {
+  "Object Detection": "#10b981",
+  "Motion Detection": "#3b82f6",
+  "Staff Detection": "#8b5cf6",
+  "Pacing Detection": "#f59e42",
+  "Erratic Movements Detection": "#ef4444",
+  "Arm Flailing Detection": "#f472b6",
+  "Facial Expressions Detection": "#fbbf24",
+  "Thermal Indicators Detection": "#14b8a6",
+  "Fall Detection": "#a21caf",
+  "Escape Attempts Detection": "#eab308",
+  "Loitering Detection": "#06b6d4",
+};
 
 export default function DashboardPage() {
   const profile = userLoginStore((state) => state.user);
   const [dashboardState, setDashboardState] = useState<DashboardState>({
-    camerasOnline: 0,
-    totalCameras: 0,
-    alertsToday: 0,
-    totalDetections: 0,
+    features: [],
     systemHealth: 0,
-    objectDetected: 0,
-    staffDetected: 0,
-    motionDetected: 0,
+    cameras: {
+      camerasOnline: 0,
+      totalCameras: 0,
+      cameraStatus: [],
+    },
+    alerts: {
+      alertsToday: 0,
+      recentAlerts: [],
+    },
+    detections: {
+      totalDetections: 0,
+      objectDetected: 0,
+      staffDetected: 0,
+      motionDetected: 0,
+      pacingDetected: 0,
+      erraticMovementsDetected: 0,
+      armFlailingDetected: 0,
+      facialExpressionsDetected: 0,
+      thermalIndicatorsDetected: 0,
+      fallDetectionDetected: 0,
+      escapeAttemptsDetected: 0,
+      loiteringDetected: 0,
+    },
     hourlyDetections: [],
-    cameraStatus: [],
   });
 
   const stats = [
     {
       title: "Healthy Cameras",
-      value: `${dashboardState.camerasOnline}`,
-      subtitle: `of ${dashboardState.totalCameras} total`,
+      value: `${dashboardState.cameras.camerasOnline}`,
+      subtitle: `of ${dashboardState.cameras.totalCameras} total`,
       icon: Camera,
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-50 dark:bg-blue-900/30",
@@ -94,7 +86,7 @@ export default function DashboardPage() {
     },
     {
       title: "Alerts Today",
-      value: dashboardState.alertsToday.toString(),
+      value: dashboardState.alerts.alertsToday.toString(),
       subtitle: "+0 from yesterday",
       icon: Bell,
       color: "text-amber-600 dark:text-amber-400",
@@ -103,7 +95,7 @@ export default function DashboardPage() {
     },
     {
       title: "Total Detections",
-      value: dashboardState.totalDetections.toString(),
+      value: dashboardState.detections.totalDetections.toString(),
       subtitle: "Last 24 hours",
       icon: Eye,
       color: "text-blue-600 dark:text-blue-400",
@@ -121,41 +113,93 @@ export default function DashboardPage() {
     },
   ];
 
-  const detectionsByType = [
-    { name: "Object", value: dashboardState.objectDetected, color: "#10b981" },
-    { name: "Motion", value: dashboardState.motionDetected, color: "#3b82f6" },
-    { name: "Staff", value: dashboardState.staffDetected, color: "#8b5cf6" },
+  const allDetectionTypes = [
+    {
+      name: "Object Detection",
+      value: dashboardState.detections.objectDetected,
+      color: "#10b981",
+    },
+    {
+      name: "Motion Detection",
+      value: dashboardState.detections.motionDetected,
+      color: "#3b82f6",
+    },
+    {
+      name: "Staff Detection",
+      value: dashboardState.detections.staffDetected,
+      color: "#8b5cf6",
+    },
+    {
+      name: "Pacing Detection",
+      value: dashboardState.detections.pacingDetected || 0,
+      color: "#f59e42",
+    },
+    {
+      name: "Erratic Movements Detection",
+      value: dashboardState.detections.erraticMovementsDetected || 0,
+      color: "#ef4444",
+    },
+    {
+      name: "Arm Flailing Detection",
+      value: dashboardState.detections.armFlailingDetected || 0,
+      color: "#f472b6",
+    },
+    {
+      name: "Facial Expressions Detection",
+      value: dashboardState.detections.facialExpressionsDetected || 0,
+      color: "#fbbf24",
+    },
+    {
+      name: "Thermal Indicators Detection",
+      value: dashboardState.detections.thermalIndicatorsDetected || 0,
+      color: "#14b8a6",
+    },
+    {
+      name: "Fall Detection",
+      value: dashboardState.detections.fallDetectionDetected || 0,
+      color: "#a21caf",
+    },
+    {
+      name: "Escape Attempts Detection",
+      value: dashboardState.detections.escapeAttemptsDetected || 0,
+      color: "#eab308",
+    },
+    {
+      name: "Loitering Detection",
+      value: dashboardState.detections.loiteringDetected || 0,
+      color: "#06b6d4",
+    },
   ];
+
+  const detectionsByType = allDetectionTypes.filter((type) =>
+    dashboardState.features.includes(type.name),
+  );
 
   useEffect(() => {
     const fetchDashboardState = async () => {
       try {
-        const res = await fetch("/api/dashboard/state");
+        const res = await fetch(
+          `/api/dashboard/state?organization_id=${encodeURIComponent(profile?.organization_id || "")}`,
+        );
         if (!res.ok) throw new Error("Failed to fetch dashboard state");
         const {
-          camerasOnline,
-          totalCameras,
-          alertsToday,
-          totalDetections,
+          features,
           systemHealth,
-          objectDetected,
-          staffDetected,
-          motionDetected,
+          cameras,
+          alerts,
+          detections,
           hourlyDetections,
-          cameraStatus,
         } = await res.json();
 
+        console.log("Features:", features);
+
         setDashboardState({
-          camerasOnline,
-          totalCameras,
-          alertsToday,
-          totalDetections,
+          features,
           systemHealth,
-          objectDetected,
-          staffDetected,
-          motionDetected,
-          hourlyDetections,
-          cameraStatus,
+          cameras: cameras,
+          alerts: alerts,
+          detections: detections,
+          hourlyDetections: hourlyDetections,
         });
       } catch (error) {
         console.error("Error fetching dashboard state:", error);
@@ -178,19 +222,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400";
-      case "medium":
-        return "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400";
-      case "low":
-        return "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400";
-      default:
-        return "bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400";
-    }
-  };
 
   return (
     <div className="min-h-screen w-full bg-gray-50 dark:bg-slate-900 relative overflow-hidden">
@@ -313,24 +344,15 @@ export default function DashboardPage() {
                     }}
                   />
                   <Legend wrapperStyle={{ color: "#9ca3af" }} />
-                  <Bar
-                    dataKey="object"
-                    name="Object"
-                    fill="#10b981"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="motion"
-                    name="Motion"
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="Staff"
-                    name="Staff"
-                    fill="#8b5cf6"
-                    radius={[4, 4, 0, 0]}
-                  />
+                  {dashboardState.features.map((feature) => (
+                    <Bar
+                      key={feature}
+                      dataKey={feature}
+                      name={feature}
+                      fill={barColors[feature] || "#8884d8"}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -353,40 +375,33 @@ export default function DashboardPage() {
               </div>
 
               <div className="space-y-3">
-                {recentAlerts.map((alert) => (
-                  <div
-                    key={alert.id}
-                    className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl"
-                  >
+                {dashboardState.alerts.recentAlerts.map(
+                  (alert: AlertDetail) => (
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${getSeverityColor(
-                        alert.severity,
-                      )}`}
+                      key={alert.id}
+                      className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl"
                     >
-                      <alert.icon className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                        {alert.message}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {alert.type} • {alert.camera}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${getSeverityColor(
-                          alert.severity,
-                        )}`}
+                      <div
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${getSeverityColor("")}`}
                       >
-                        {alert.severity}
-                      </span>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {alert.time}
-                      </p>
+                        <AlertCircle className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                          {alert.message}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {alert.alert_type} • {alert.camera}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                          {alert.timestamp}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             </div>
 
@@ -401,16 +416,16 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {
-                    dashboardState.cameraStatus.filter(
+                    dashboardState.cameras.cameraStatus.filter(
                       (c) => c.status === "normal",
                     ).length
                   }
-                  /{dashboardState.cameraStatus.length} Normal
+                  /{dashboardState.cameras.cameraStatus.length} Normal
                 </span>
               </div>
 
               <div className="space-y-3">
-                {dashboardState.cameraStatus.map((camera) => (
+                {dashboardState.cameras.cameraStatus.map((camera) => (
                   <div
                     key={camera.id}
                     className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
