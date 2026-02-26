@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -31,51 +31,30 @@ import {
   Camera,
   AlertTriangle,
   Clock,
-  Filter,
 } from "lucide-react";
 import { userLoginStore } from "@/store/loginUserStore";
+import {
+  AlertDistItem,
+  CameraPerformance,
+  HourlyPoint,
+  KpiData,
+  TimeRange,
+  YoyPoint,
+} from "@/types";
 
-type TimeRange = "7d" | "30d" | "90d" | "1y";
+type TrendPoint = Record<string, string | number>;
 
-const detectionTrendData = [
-  { date: "Jan 1", object: 45, motion: 32, face: 28 },
-  { date: "Jan 2", object: 52, motion: 38, face: 31 },
-  { date: "Jan 3", object: 48, motion: 35, face: 29 },
-  { date: "Jan 4", object: 61, motion: 42, face: 35 },
-  { date: "Jan 5", object: 55, motion: 40, face: 33 },
-  { date: "Jan 6", object: 67, motion: 48, face: 41 },
-  { date: "Jan 7", object: 59, motion: 44, face: 37 },
-];
-
-const alertDistribution = [
-  { name: "Critical", value: 12, color: "#dc2626" },
-  { name: "High", value: 28, color: "#f59e0b" },
-  { name: "Medium", value: 45, color: "#3b82f6" },
-  { name: "Low", value: 68, color: "#10b981" },
-];
-
-const cameraPerformance = [
-  { camera: "Cam 1", uptime: 99.8, detections: 234, alerts: 12 },
-  { camera: "Cam 2", uptime: 98.5, detections: 189, alerts: 8 },
-  { camera: "Cam 3", uptime: 100, detections: 156, alerts: 5 },
-];
-
-const hourlyActivityData = [
-  { hour: "00:00", activity: 12 },
-  { hour: "03:00", activity: 8 },
-  { hour: "06:00", activity: 25 },
-  { hour: "09:00", activity: 68 },
-  { hour: "12:00", activity: 89 },
-  { hour: "15:00", activity: 95 },
-  { hour: "18:00", activity: 78 },
-  { hour: "21:00", activity: 42 },
-];
-
-const weeklyComparison = [
-  { week: "Week 1", thisYear: 420, lastYear: 380 },
-  { week: "Week 2", thisYear: 445, lastYear: 395 },
-  { week: "Week 3", thisYear: 468, lastYear: 410 },
-  { week: "Week 4", thisYear: 490, lastYear: 425 },
+const trendLineColors = [
+  "#10b981",
+  "#3b82f6",
+  "#8b5cf6",
+  "#f59e42",
+  "#ef4444",
+  "#f472b6",
+  "#fbbf24",
+  "#14b8a6",
+  "#a21caf",
+  "#06b6d4",
 ];
 
 const reports = [
@@ -113,54 +92,101 @@ const reports = [
   },
 ];
 
-const metrics = [
-  {
-    title: "Total Detections",
-    value: "8,547",
-    change: "+12.5%",
-    trend: "up",
-    icon: Eye,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-  },
-  {
-    title: "Active Cameras",
-    value: "3/3",
-    change: "100%",
-    trend: "stable",
-    icon: Camera,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-  },
-  {
-    title: "Total Alerts",
-    value: "153",
-    change: "-8.3%",
-    trend: "down",
-    icon: AlertTriangle,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/30",
-  },
-  {
-    title: "Avg Response Time",
-    value: "2.3s",
-    change: "-15.2%",
-    trend: "down",
-    icon: Clock,
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-50 dark:bg-purple-900/30",
-  },
-];
-
 export default function ReportingAnalyticsPage() {
   const profile = userLoginStore((s) => s.user);
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
-  const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Data states
+  const [kpis, setKpis] = useState<KpiData | null>(null);
+  const [dailyTrends, setDailyTrends] = useState<TrendPoint[]>([]);
+  const [trendTypes, setTrendTypes] = useState<string[]>([]);
+  const [hourlyActivity, setHourlyActivity] = useState<HourlyPoint[]>([]);
+  const [alertDistribution, setAlertDistribution] = useState<AlertDistItem[]>(
+    [],
+  );
+  const [weeklyComparison, setWeeklyComparison] = useState<YoyPoint[]>([]);
+  const [yoyYears, setYoyYears] = useState<{
+    currentYear: number;
+    previousYear: number;
+  }>({ currentYear: 2026, previousYear: 2025 });
+  const [cameraPerformance, setCameraPerformance] = useState<
+    CameraPerformance[]
+  >([]);
+
   const detectionTrendsRef = useRef<HTMLDivElement>(null);
   const alertDistributionRef = useRef<HTMLDivElement>(null);
   const hourlyActivityRef = useRef<HTMLDivElement>(null);
   const weeklyComparisonRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all analytics data when profile or timeRange changes
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      if (!profile) return;
+
+      try {
+        const response = await fetch(
+          `/api/analytics?organization_id=${encodeURIComponent(profile.organization_id || "")}&range=${timeRange}`,
+        );
+        const data = await response.json();
+        if (data.error) {
+          console.error("Error fetching analytics:", data.error);
+          return;
+        }
+        setKpis(data.kpis);
+        setDailyTrends(data.dailyTrends || []);
+        setTrendTypes(data.trendTypes || []);
+        setHourlyActivity(data.hourlyActivity || []);
+        setAlertDistribution(data.alertDistribution || []);
+        setWeeklyComparison(data.yoyComparison || []);
+        setYoyYears(data.yoyYears || { currentYear: 2026, previousYear: 2025 });
+        setCameraPerformance(data.cameraPerformance || []);
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+      }
+    };
+
+    fetchAnalytics();
+  }, [profile, timeRange]);
+
+  const metrics = [
+    {
+      title: "Total Detections",
+      value: kpis?.totalDetections.value?.toString() || "0",
+      change: kpis?.totalDetections.change || "",
+      trend: kpis?.totalDetections.trend || "stable",
+      icon: Eye,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+    },
+    {
+      title: "Active Cameras",
+      value: kpis?.activeCameras.value?.toString() || "0/0",
+      change: kpis?.activeCameras.change || "",
+      trend: kpis?.activeCameras.trend || "stable",
+      icon: Camera,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+    },
+    {
+      title: "Total Alerts",
+      value: kpis?.totalAlerts.value?.toString() || "0",
+      change: kpis?.totalAlerts.change || "",
+      trend: kpis?.totalAlerts.trend || "stable",
+      icon: AlertTriangle,
+      color: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-50 dark:bg-amber-900/30",
+    },
+    {
+      title: "Avg Response Time",
+      value: kpis?.avgResponseTime.value?.toString() || "0s",
+      change: kpis?.avgResponseTime.change || "",
+      trend: kpis?.avgResponseTime.trend || "stable",
+      icon: Clock,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-50 dark:bg-purple-900/30",
+    },
+  ];
 
   const generateReport = async () => {
     if (!profile) return;
@@ -285,12 +311,14 @@ export default function ReportingAnalyticsPage() {
     doc.text("Detection Trends (Daily)", 14, y);
     y += 8;
 
+    const trendHeaders = ["Date", ...trendTypes];
     autoTable(doc, {
       startY: y,
-      head: [
-        ["Date", "Object Detection", "Motion Detection", "Face Detection"],
-      ],
-      body: detectionTrendData.map((d) => [d.date, d.object, d.motion, d.face]),
+      head: [trendHeaders],
+      body: dailyTrends.map((d) => [
+        d.date as string,
+        ...trendTypes.map((t) => d[t] ?? 0),
+      ]),
       theme: "grid",
       headStyles: {
         fillColor: [16, 185, 129],
@@ -311,14 +339,17 @@ export default function ReportingAnalyticsPage() {
     doc.text("Alert Distribution by Severity", 14, y);
     y += 8;
 
-    const totalAlerts = alertDistribution.reduce((sum, a) => sum + a.value, 0);
+    const totalAlertsPdf = alertDistribution.reduce(
+      (sum, a) => sum + a.value,
+      0,
+    );
     autoTable(doc, {
       startY: y,
       head: [["Severity", "Count", "Percentage"]],
       body: alertDistribution.map((a) => [
         a.name,
         a.value,
-        `${((a.value / totalAlerts) * 100).toFixed(1)}%`,
+        `${totalAlertsPdf > 0 ? ((a.value / totalAlertsPdf) * 100).toFixed(1) : 0}%`,
       ]),
       theme: "grid",
       headStyles: {
@@ -379,13 +410,12 @@ export default function ReportingAnalyticsPage() {
 
     autoTable(doc, {
       startY: y,
-      head: [["Camera", "Uptime (%)", "Detections", "Alerts", "Status"]],
+      head: [["Camera", "Detections", "Alerts", "Status"]],
       body: cameraPerformance.map((c) => [
-        c.camera,
-        `${c.uptime}%`,
+        c.name,
         c.detections,
         c.alerts,
-        c.uptime >= 99 ? "Excellent" : "Good",
+        c.status === "normal" ? "Normal" : c.status,
       ]),
       theme: "grid",
       headStyles: {
@@ -450,8 +480,7 @@ export default function ReportingAnalyticsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-            <BarChart className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center">
             Reporting & Analytics
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -476,13 +505,13 @@ export default function ReportingAnalyticsPage() {
           </div>
 
           {/* Filter Button */}
-          <button
+          {/* <button
             onClick={() => setShowFilters(!showFilters)}
             className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
           >
             <Filter className="w-4 h-4" />
             Filters
-          </button>
+          </button> */}
 
           {/* Export Button */}
           <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
@@ -546,7 +575,7 @@ export default function ReportingAnalyticsPage() {
             <TrendingUp className="w-5 h-5 text-blue-500" />
           </div>
           <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={detectionTrendData}>
+            <LineChart data={dailyTrends}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="#374151"
@@ -570,27 +599,16 @@ export default function ReportingAnalyticsPage() {
                 }}
               />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
-              <Line
-                type="monotone"
-                dataKey="object"
-                stroke="#10b981"
-                strokeWidth={2}
-                name="Object"
-              />
-              <Line
-                type="monotone"
-                dataKey="motion"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                name="Motion"
-              />
-              <Line
-                type="monotone"
-                dataKey="face"
-                stroke="#8b5cf6"
-                strokeWidth={2}
-                name="Face"
-              />
+              {trendTypes.map((type, i) => (
+                <Line
+                  key={type}
+                  type="monotone"
+                  dataKey={type}
+                  stroke={trendLineColors[i % trendLineColors.length]}
+                  strokeWidth={2}
+                  name={type}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -614,7 +632,8 @@ export default function ReportingAnalyticsPage() {
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={alertDistribution}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                data={alertDistribution as any[]}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -650,7 +669,7 @@ export default function ReportingAnalyticsPage() {
             <Activity className="w-5 h-5 text-blue-600" />
           </div>
           <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={hourlyActivityData}>
+            <AreaChart data={hourlyActivity}>
               <defs>
                 <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
@@ -731,13 +750,13 @@ export default function ReportingAnalyticsPage() {
               <Legend wrapperStyle={{ fontSize: "12px" }} />
               <Bar
                 dataKey="thisYear"
-                name="2026"
+                name={String(yoyYears.currentYear)}
                 fill="#10b981"
                 radius={[4, 4, 0, 0]}
               />
               <Bar
                 dataKey="lastYear"
-                name="2025"
+                name={String(yoyYears.previousYear)}
                 fill="#6b7280"
                 radius={[4, 4, 0, 0]}
               />
@@ -766,9 +785,9 @@ export default function ReportingAnalyticsPage() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Camera
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {/* <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Uptime
-                </th>
+                </th> */}
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Detections
                 </th>
@@ -783,30 +802,11 @@ export default function ReportingAnalyticsPage() {
             <tbody>
               {cameraPerformance.map((camera, index) => (
                 <tr
-                  key={index}
+                  key={camera.id}
                   className="border-b border-gray-100 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
                 >
                   <td className="py-3 px-4 text-sm text-gray-800 dark:text-white font-medium">
-                    {camera.camera}
-                  </td>
-                  <td className="py-3 px-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden max-w-[100px]">
-                        <div
-                          className={`h-full ${
-                            camera.uptime >= 99
-                              ? "bg-blue-500"
-                              : camera.uptime >= 95
-                                ? "bg-amber-500"
-                                : "bg-red-500"
-                          }`}
-                          style={{ width: `${camera.uptime}%` }}
-                        />
-                      </div>
-                      <span className="text-gray-700 dark:text-gray-300 text-xs">
-                        {camera.uptime}%
-                      </span>
-                    </div>
+                    {camera.name || `Camera ${index + 1}`}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
                     {camera.detections}
@@ -817,12 +817,12 @@ export default function ReportingAnalyticsPage() {
                   <td className="py-3 px-4 text-sm">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        camera.uptime >= 99
+                        camera.status === "normal"
                           ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                          : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+                          : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
                       }`}
                     >
-                      {camera.uptime >= 99 ? "Excellent" : "Good"}
+                      {camera.status === "normal" ? "Normal" : camera.status}
                     </span>
                   </td>
                 </tr>

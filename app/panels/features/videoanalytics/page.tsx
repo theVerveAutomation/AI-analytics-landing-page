@@ -6,14 +6,7 @@ import {
   Eye,
   AlertTriangle,
   HardDrive,
-  User,
-  Package,
-  Car,
-  Users,
   Zap,
-  Download,
-  Search,
-  Filter,
   TrendingUp,
   Activity,
   ShieldCheck,
@@ -24,7 +17,6 @@ import { AlertDetail, CameraConfig } from "@/types";
 import Image from "next/image";
 import CameraFeed from "@/components/CameraFeed";
 import { userLoginStore } from "@/store/loginUserStore";
-import getSeverityColor from "@/data/serverity";
 
 export default function VideoAnalyticsPage() {
   const [selectedCamera, setSelectedCamera] = useState<string | undefined>(
