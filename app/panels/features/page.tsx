@@ -28,6 +28,7 @@ import {
 } from "recharts";
 import { userLoginStore } from "@/store/loginUserStore";
 import getSeverityColor from "@/data/serverity";
+import { useAssignFeaturesStore } from "@/store/assignFeaturesStore";
 
 const barColors: Record<string, string> = {
   "Object Detection": "#10b981",
@@ -45,6 +46,10 @@ const barColors: Record<string, string> = {
 
 export default function DashboardPage() {
   const profile = userLoginStore((state) => state.user);
+  const assignedFeatures = useAssignFeaturesStore(
+    (state) => state.assignedFeatures,
+  );
+  console.log("Assigned features in DashboardPage:", assignedFeatures);
   const [dashboardState, setDashboardState] = useState<DashboardState>({
     features: [],
     systemHealth: 0,

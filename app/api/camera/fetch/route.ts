@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
     }
     return NextResponse.json({ cameras: data }, { status: 200 });
   } catch (err) {
+    console.error("Error in GET /api/camera/fetch:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

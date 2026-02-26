@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, use, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
@@ -31,9 +31,9 @@ import {
   Camera,
   AlertTriangle,
   Clock,
-  Filter,
 } from "lucide-react";
 import { userLoginStore } from "@/store/loginUserStore";
+import { CameraConfig } from "@/types";
 
 type TimeRange = "7d" | "30d" | "90d" | "1y";
 
@@ -113,54 +113,94 @@ const reports = [
   },
 ];
 
-const metrics = [
-  {
-    title: "Total Detections",
-    value: "8,547",
-    change: "+12.5%",
-    trend: "up",
-    icon: Eye,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-  },
-  {
-    title: "Active Cameras",
-    value: "3/3",
-    change: "100%",
-    trend: "stable",
-    icon: Camera,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/30",
-  },
-  {
-    title: "Total Alerts",
-    value: "153",
-    change: "-8.3%",
-    trend: "down",
-    icon: AlertTriangle,
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/30",
-  },
-  {
-    title: "Avg Response Time",
-    value: "2.3s",
-    change: "-15.2%",
-    trend: "down",
-    icon: Clock,
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-50 dark:bg-purple-900/30",
-  },
-];
-
 export default function ReportingAnalyticsPage() {
   const profile = userLoginStore((s) => s.user);
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
-  const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cameras, setCameras] = useState<CameraConfig[]>([]);
   const detectionTrendsRef = useRef<HTMLDivElement>(null);
   const alertDistributionRef = useRef<HTMLDivElement>(null);
   const hourlyActivityRef = useRef<HTMLDivElement>(null);
   const weeklyComparisonRef = useRef<HTMLDivElement>(null);
+
+  // fetch cameras
+  useEffect(() => {
+    const fetchCameras = async () => {
+      try {
+        const res = await fetch(
+          `/api/camera/fetch?organization_id=${encodeURIComponent(profile?.organization_id || "")}`,
+        );
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.cameras)) {
+          setCameras(data.cameras);
+        }
+      } catch (err) {
+        console.error("Error fetching cameras:", err);
+      }
+    };
+    if (!profile) return;
+    fetchCameras();
+  }, [profile]);
+
+  // fetch alert count
+  useEffect(() => {
+    const fetchAlertCount = async () => {
+      try {
+        const res = await fetch(
+          `/api/alerts/count?organization_id=${encodeURIComponent(profile?.organization_id || "")}`,
+        );
+        const data = await res.json();
+        if (res.ok) {
+          console.log("Alert count:", data.count);
+        }
+      } catch (err) {
+        console.error("Error fetching alert count:", err);
+      }
+    };
+    if (!profile) return;
+    fetchAlertCount();
+  }, [profile]);
+
+  const normalCameras = cameras.filter((c) => c.status === "normal").length;
+
+  const metrics = [
+    {
+      title: "Total Detections",
+      value: "8,547",
+      change: "+12.5%",
+      trend: "up",
+      icon: Eye,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+    },
+    {
+      title: "Active Cameras",
+      value: `${normalCameras}/${cameras.length}`,
+      change: "",
+      trend: "stable",
+      icon: Camera,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50 dark:bg-blue-900/30",
+    },
+    {
+      title: "Total Alerts",
+      value: "153",
+      change: "-8.3%",
+      trend: "down",
+      icon: AlertTriangle,
+      color: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-50 dark:bg-amber-900/30",
+    },
+    {
+      title: "Avg Response Time",
+      value: "2.3s",
+      change: "-15.2%",
+      trend: "down",
+      icon: Clock,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-50 dark:bg-purple-900/30",
+    },
+  ];
 
   const generateReport = async () => {
     if (!profile) return;
@@ -450,8 +490,7 @@ export default function ReportingAnalyticsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-            <BarChart className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center">
             Reporting & Analytics
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -476,13 +515,13 @@ export default function ReportingAnalyticsPage() {
           </div>
 
           {/* Filter Button */}
-          <button
+          {/* <button
             onClick={() => setShowFilters(!showFilters)}
             className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
           >
             <Filter className="w-4 h-4" />
             Filters
-          </button>
+          </button> */}
 
           {/* Export Button */}
           <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
@@ -766,9 +805,9 @@ export default function ReportingAnalyticsPage() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Camera
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {/* <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Uptime
-                </th>
+                </th> */}
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Detections
                 </th>
@@ -781,40 +820,29 @@ export default function ReportingAnalyticsPage() {
               </tr>
             </thead>
             <tbody>
-              {cameraPerformance.map((camera, index) => (
+              {cameras.map((camera, index) => (
                 <tr
                   key={index}
                   className="border-b border-gray-100 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
                 >
                   <td className="py-3 px-4 text-sm text-gray-800 dark:text-white font-medium">
-                    {camera.camera}
+                    {camera.name || `Camera ${index + 1}`}
                   </td>
-                  <td className="py-3 px-4 text-sm">
+                  {/* <td className="py-3 px-4 text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden max-w-[100px]">
-                        <div
-                          className={`h-full ${
-                            camera.uptime >= 99
-                              ? "bg-blue-500"
-                              : camera.uptime >= 95
-                                ? "bg-amber-500"
-                                : "bg-red-500"
-                          }`}
-                          style={{ width: `${camera.uptime}%` }}
-                        />
-                      </div>
+                      <div className="flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden max-w-[100px]"></div>
                       <span className="text-gray-700 dark:text-gray-300 text-xs">
                         {camera.uptime}%
                       </span>
                     </div>
+                  </td> */}
+                  <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
+                    {camera.name}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
-                    {camera.detections}
+                    {camera.name}
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
-                    {camera.alerts}
-                  </td>
-                  <td className="py-3 px-4 text-sm">
+                  {/* <td className="py-3 px-4 text-sm">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${
                         camera.uptime >= 99
@@ -824,7 +852,7 @@ export default function ReportingAnalyticsPage() {
                     >
                       {camera.uptime >= 99 ? "Excellent" : "Good"}
                     </span>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

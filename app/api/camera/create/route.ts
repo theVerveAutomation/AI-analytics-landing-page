@@ -6,7 +6,6 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { name, url, status, detection, alert_sound, frame_rate, resolution, organization_id } = body;
-    console.log("Creating camera with data:", { name, url, status, detection, alert_sound, frame_rate, resolution, organization_id });
     if (!name || !url || !organization_id) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
