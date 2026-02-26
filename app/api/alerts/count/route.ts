@@ -1,18 +1,6 @@
 import { createServerSupabaseAlertClient } from "@/lib/supabaseAlertServer";
 import { NextRequest, NextResponse } from "next/server";
 
-// Utility function to count alerts by type
-async function countAlertsByType(supabase: any, organization_id: string) {
-    const { data, error } = await supabase
-        .from("alerts")
-        .select("alert_type, count:id", { groupBy: "alert_type" })
-        .eq("organization_id", organization_id);
-    if (error) {
-        throw new Error(error.message);
-    }
-    return data || [];
-}
-
 export async function GET(req: NextRequest) {
     try {
         const supabase = await createServerSupabaseAlertClient();
@@ -24,8 +12,21 @@ export async function GET(req: NextRequest) {
         }
 
         // Use the utility function
-        const counts = await countAlertsByType(supabase, organization_id);
-        return NextResponse.json({ counts });
+        const { data: alerts, error } = await supabase
+            .from("alerts")
+            .select("*")
+            // .eq("organization_id", organization_id);
+        if (error) {
+            throw new Error(error.message);
+        }  
+        const alertCounts = alerts.reduce((acc: Record<string, number>, alert) => {
+            const type = alert.alert_type || "Unknown";
+            acc[type] = (acc[type] || 0) + 1;
+            return acc;
+        }, {});
+        const totalAlerts = alerts.length;
+        alertCounts["Total"] = totalAlerts;
+        return NextResponse.json({ counts: alertCounts }, { status: 200 });
     } catch (err) {
         console.error("Error in GET /api/alerts/count:", err);
         return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500 });

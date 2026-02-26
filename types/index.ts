@@ -194,3 +194,32 @@ export interface DashboardState {
     "Loitering Detection": number;
   }[];
 }
+
+// analytics types
+
+export interface KpiMetric {
+  value: string | number;
+  change: string;
+  trend: string;
+};
+
+export interface KpiData {
+  totalDetections: KpiMetric;
+  activeCameras: KpiMetric;
+  totalAlerts: KpiMetric;
+  avgResponseTime: KpiMetric;
+};
+
+export interface HourlyPoint { hour: string; activity: number };
+export interface AlertDistItem { name: string; value: number; color: string };
+export interface YoyPoint { week: string; thisYear: number; lastYear: number };
+export interface CameraPerformance {
+  id: string;
+  name: string;
+  status: string;
+  detections: number;
+  alerts: number;
+};
+
+export type TimeRange = "7d" | "30d" | "90d" | "1y";
+
