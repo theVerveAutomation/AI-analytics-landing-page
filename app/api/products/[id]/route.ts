@@ -9,6 +9,8 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     return NextResponse.json({ error: "Missing product id" }, { status: 400 });
   }
 
+  console.log("Fetching product with ID:", id);
+
   const { data, error } = await supabaseAdmin
     .from("products")
     .select("*")
