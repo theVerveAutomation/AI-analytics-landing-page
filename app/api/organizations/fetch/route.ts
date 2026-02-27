@@ -7,6 +7,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
+    if (!id) {
+      return NextResponse.json(
+        { error: "Organization ID is required" },
+        { status: 400 }
+      );
+    }
+
     // If ID is provided, fetch single organization
     if (id) {
       const { data: organization, error } = await supabaseAdmin

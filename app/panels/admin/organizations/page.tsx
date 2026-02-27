@@ -45,12 +45,10 @@ export default function OrganizationManagementPage() {
     try {
       const res = await fetch("/api/organizations/all");
       const data = await res.json();
-      console.log("Fetched organizations:", data);
       if (!res.ok) {
         toast.error(data.error || "Failed to fetch organizations");
         return;
       }
-
       setOrganizations(data.organizations);
     } catch (err) {
       console.error("Fetch organizations error:", err);
@@ -71,7 +69,6 @@ export default function OrganizationManagementPage() {
       }
 
       const data = await res.json();
-      console.log("Refreshed organizations:", data);
 
       setOrganizations(data.organizations);
       toast.success("Organizations refreshed!");

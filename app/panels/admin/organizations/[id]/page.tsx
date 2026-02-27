@@ -54,7 +54,6 @@ export default function CameraSetupPage() {
           toast.error(data.error || "Failed to fetch organization");
           return;
         }
-
         setOrganization(data.organization);
       } catch (err) {
         toast.error("Failed to fetch organization");
@@ -75,9 +74,10 @@ export default function CameraSetupPage() {
         toast.error(data.error || "Failed to fetch cameras");
         return;
       }
-
+      console.log("Fetched cameras:", data.cameras);
       setCameras(data.cameras || []);
-    } catch {
+    } catch (err) {
+      console.error("Error fetching cameras:", err);
       toast.error("Failed to fetch cameras");
     } finally {
       setLoading(false);
