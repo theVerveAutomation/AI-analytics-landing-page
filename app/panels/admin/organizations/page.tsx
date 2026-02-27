@@ -45,14 +45,15 @@ export default function OrganizationManagementPage() {
     try {
       const res = await fetch("/api/organizations/fetch");
       const data = await res.json();
-
+      console.log("Fetched organizations:", data);
       if (!res.ok) {
         toast.error(data.error || "Failed to fetch organizations");
         return;
       }
 
       setOrganizations(data.organizations);
-    } catch {
+    } catch (err) {
+      console.error("Fetch organizations error:", err);
       toast.error("Failed to fetch organizations");
     } finally {
       setLoading(false);
@@ -64,7 +65,7 @@ export default function OrganizationManagementPage() {
     try {
       const res = await fetch("/api/organizations/fetch");
       const data = await res.json();
-
+      console.log("Refreshed organizations:", data);
       if (!res.ok) {
         toast.error(data.error || "Failed to refresh organizations");
         return;
@@ -72,7 +73,8 @@ export default function OrganizationManagementPage() {
 
       setOrganizations(data.organizations);
       toast.success("Organizations refreshed!");
-    } catch {
+    } catch (err) {
+      console.error("Refresh organizations error:", err);
       toast.error("Failed to refresh organizations");
     } finally {
       setRefreshing(false);
