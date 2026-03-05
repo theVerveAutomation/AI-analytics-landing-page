@@ -21,14 +21,13 @@ export default function ProductDetailsPage() {
       try {
         // Fetch all products and find the one with matching ID
         const res = await fetch(`/api/products/${params.id}`);
-        const json = await res.json();
+        const data = await res.json();
         if (!res.ok) {
-          console.error("Failed to load product:", json.error);
-          throw new Error(json.error || "Failed to load product");
+          console.error("Failed to load product:", data.error);
+          throw new Error(data.error || "Failed to load product");
         }
-        const found = json.product;
-        console.log("Product found:", found);
-        setProduct(found);
+        console.log("Product found:", data.product);
+        setProduct(data.product);
       } catch (error) {
         console.error("Error loading product:", error);
       } finally {
