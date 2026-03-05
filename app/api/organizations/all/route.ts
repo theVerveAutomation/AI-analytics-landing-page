@@ -19,8 +19,8 @@ export async function GET() {
 
     if (error) {
       console.error("Fetch organizations error:", error);
-      return new NextResponse(
-        JSON.stringify({ error: error.message || "Failed to fetch organizations" }),
+      return NextResponse.json(
+        { error: error.message || "Failed to fetch organizations" },
         { status: 500 }
       );
     }
@@ -34,11 +34,11 @@ export async function GET() {
         user_count: org.profiles?.length || 0,
         alerts: org.alerts || [],
     }));
-    return new NextResponse(JSON.stringify({ organizations: organizationsWithCount }), { status: 200 });
+    return NextResponse.json({ organizations: organizationsWithCount }, { status: 200 });
   } catch (error) {
     console.error("Unexpected error fetching organizations:", error);
-    return new NextResponse(
-      JSON.stringify({ error: "An unexpected error occurred while fetching organizations" }),
+    return NextResponse.json(
+      { error: "An unexpected error occurred while fetching organizations" },
       { status: 500 }
     );
   }

@@ -16,6 +16,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     .single();
 
   if (error) {
+    console.error("Error fetching product:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
   return NextResponse.json({ product: data }, { status: 200 });
