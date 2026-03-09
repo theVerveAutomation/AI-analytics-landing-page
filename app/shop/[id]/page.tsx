@@ -16,6 +16,8 @@ export default function ProductDetailsPage() {
   const [quoteFormOpen, setQuoteFormOpen] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
+  console.log("ProductDetailsPage rendered with ID:", params.id);
+
   useEffect(() => {
     const loadProduct = async () => {
       try {
