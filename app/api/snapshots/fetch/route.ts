@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const organization_id = searchParams.get("organization_id");
   const camera_id = searchParams.get("camera_id");
 
-  let query = supabase
+  const supabase = await createServerSupabaseClient();
+
+  const  query = supabase
     .from("camera_snaps")
     .select("*")
     .order("created_at", { ascending: false });

@@ -16,8 +16,6 @@ export default function ProductDetailsPage() {
   const [quoteFormOpen, setQuoteFormOpen] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  console.log("ProductDetailsPage rendered with ID:", params.id);
-
   useEffect(() => {
     const loadProduct = async () => {
       try {
@@ -28,7 +26,6 @@ export default function ProductDetailsPage() {
           console.error("Failed to load product:", data.error);
           throw new Error(data.error || "Failed to load product");
         }
-        console.log("Product found:", data.product);
         setProduct(data.product);
       } catch (error) {
         console.error("Error loading product:", error);

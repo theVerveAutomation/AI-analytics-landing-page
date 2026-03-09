@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 import { CORS_HEADERS } from "@/lib/cors";
 import { Organization } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const supabase = await createServerSupabaseClient();
     const { id, name, displayid, address, email, contact_phone, alerts } = body;
 
     // Validate required fields
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if organization exists
-    const { data: existingOrg, error: checkError } = await supabaseAdmin
+    const { data: existingOrg, error: checkError } = await supabase
       .from("organizations")
       .select("id")
       .eq("id", id)
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     // Check if new name conflicts with existing organization
     if (updateData.name) {
-      const { data: nameConflict } = await supabaseAdmin
+      const { data: nameConflict } = await supabase
         .from("organizations")
         .select("id")
         .eq("name", updateData.name)
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update organization
-    const { data: organization, error: updateError } = await supabaseAdmin
+    const { data: organization, error: updateError } = await supabase
       .from("organizations")
       .update(updateData)
       .eq("id", id)

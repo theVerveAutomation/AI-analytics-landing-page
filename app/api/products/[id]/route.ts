@@ -10,8 +10,6 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
   }
   const supabase = await createServerSupabaseClient(); 
 
-  console.log("Fetching product with ID:", id);
-
   const { data, error } = await supabase
     .from("products")
     .select("*")

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 
 export async function POST(req: Request) {
   try {
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     if (!id || !name || price === undefined) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
-
+    const supabase = await createServerSupabaseClient();
     const { error } = await supabase
       .from("products")
       .update({

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 import { withCors, corsOptions } from "@/lib/cors";
 
 // OPTIONS handler (required for CORS)
@@ -13,6 +13,8 @@ export async function POST(req: Request) {
     if (!name || !imageUrl || price === undefined) {
       return withCors({ error: "Missing fields" }, 400);
     }
+
+    const supabase = await createServerSupabaseClient();
 
     // Insert product using normal client
     const { error } = await supabase.from("products").insert({

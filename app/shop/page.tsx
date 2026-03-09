@@ -203,10 +203,7 @@ export default function ShopPage() {
                     delay: idx * 0.1,
                     ease: "easeOut",
                   }}
-                  onClick={() => {
-                    console.log("Navigating to product with ID:", p.id);
-                    router.push(`/shop/${p.id}`);
-                  }}
+                  onClick={() => router.push(`/shop/${p.id}`)}
                 >
                   <div className="absolute inset-0 z-20">
                     <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[clamp(1.5rem,4vw,2.5rem)] font-bold relative z-10 text-primary my-2 sm:my-4 group-hover:text-primary/90 transition-colors duration-300">

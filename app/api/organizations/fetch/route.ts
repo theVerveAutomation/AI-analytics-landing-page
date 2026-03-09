@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 import { CORS_HEADERS } from "@/lib/cors";
 
 export async function GET(req: NextRequest) {
@@ -13,10 +13,10 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
-
+    const supabase = await createServerSupabaseClient();
     // If ID is provided, fetch single organization
     if (id) {
-      const { data: organization, error } = await supabaseAdmin
+      const { data: organization, error } = await supabase
         .from("organizations")
         .select(`
           *,
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch all organizations with user count from profiles
-    const { data: organizations, error } = await supabaseAdmin
+    const { data: organizations, error } = await supabase
       .from("organizations")
       .select(`
         *,

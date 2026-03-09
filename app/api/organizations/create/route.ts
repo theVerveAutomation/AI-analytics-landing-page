@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 import { CORS_HEADERS } from "@/lib/cors";
 
 export async function POST(req: NextRequest) {
@@ -34,8 +34,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const supabase = await createServerSupabaseClient();
+
     // Check if organization name already exists
-    const { data: existingOrg, error: checkError } = await supabaseAdmin
+    const { data: existingOrg, error: checkError } = await supabase
       .from("organizations")
       .select("id, name")
       .eq("name", name.trim())
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create organization
-    const { data: organization, error: orgError } = await supabaseAdmin
+    const { data: organization, error: orgError } = await supabase
       .from("organizations")
       .insert({
         displayid: displayid.trim(),

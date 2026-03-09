@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -8,6 +8,8 @@ export async function GET(req: Request) {
     if (!cameras) {
         return NextResponse.json({ error: "Missing cameras parameter" }, { status: 400 });
     }
+
+    const supabase = await createServerSupabaseClient();
 
     const cameraIds = JSON.parse(cameras);
     const { data, error } = await supabase
@@ -23,9 +25,9 @@ export async function GET(req: Request) {
 
     const latestSnapshots: Record<string, string> = {};
     for (const snap of data || []) {
-    if (!latestSnapshots[snap.camera_id]) {
-        latestSnapshots[snap.camera_id] = snap.url;
-    }
+        if (!latestSnapshots[snap.camera_id]) {
+            latestSnapshots[snap.camera_id] = snap.url;
+        }
     }
 
     return NextResponse.json({ snapshots: latestSnapshots });
