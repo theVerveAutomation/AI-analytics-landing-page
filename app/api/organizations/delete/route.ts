@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 import { CORS_HEADERS } from "@/lib/cors";
 
 export async function POST(req: NextRequest) {
@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
+    const supabase = await createServerSupabaseClient();
     // Check if organization exists
-    const { data: existingOrg, error: checkError } = await supabaseAdmin
+    const { data: existingOrg, error: checkError } = await supabase
       .from("organizations")
       .select("id, name")
       .eq("id", id)
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Delete organization (this will cascade delete related records if configured)
-    const { error: deleteError } = await supabaseAdmin
+    const { error: deleteError } = await supabase
       .from("organizations")
       .delete()
       .eq("id", id);

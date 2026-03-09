@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -7,9 +7,9 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: "Missing or invalid snapshot ids" }, { status: 400 });
     }
-
+    const supabase = await createServerSupabaseClient();
     // Fetch urls for all snapshots
-    const { data: snapRows, error: fetchError } = await supabaseAdmin
+    const { data: snapRows, error: fetchError } = await supabase
       .from("camera_snaps")
       .select("id, url")
       .in("id", ids);
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }).filter(Boolean);
 
     // Delete from table
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from("camera_snaps")
       .delete()
       .in("id", ids);
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     // Remove from Supabase storage bucket
     if (storagePaths.length > 0) {
-      const { error: storageError } = await supabaseAdmin.storage
+      const { error: storageError } = await supabase.storage
         .from("snapshots")
         .remove(storagePaths);
       if (storageError) {

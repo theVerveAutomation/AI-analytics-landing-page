@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -8,7 +8,8 @@ export async function DELETE(req: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: "Missing camera id" }, { status: 400 });
     }
-    const { error } = await supabaseAdmin
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase
       .from("cameras")
       .delete()
       .eq("id", id);

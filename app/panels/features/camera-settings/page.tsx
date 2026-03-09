@@ -262,13 +262,13 @@ export default function CameraSettingPage() {
         alert(data.error || "Failed to delete camera");
         return;
       }
-      // setCameras((prev) => {
-      //   const next = prev.filter((c) => c.id !== cameraId);
-      //   if (selectedCameraId === cameraId) {
-      //     setSelectedCameraId(next[0]?.id);
-      //   }
-      //   return next;
-      // });
+      setCameras((prev) => {
+        const next = prev.filter((c) => c.id !== cameraId);
+        if (selectedCameraId === cameraId) {
+          setSelectedCameraId(next[0]?.id);
+        }
+        return next;
+      });
       alert("Camera deleted successfully!");
     } catch {
       alert("Failed to delete camera (network error)");

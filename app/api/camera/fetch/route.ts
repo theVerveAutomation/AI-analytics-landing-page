@@ -37,7 +37,6 @@ export async function GET(req: NextRequest) {
       console.error("Error fetching cameras:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    console.log("Fetched cameras data:", data);
     return NextResponse.json({ cameras: data }, { status: 200 });
   } catch (err) {
     console.error("Error in GET /api/camera/fetch:", err);

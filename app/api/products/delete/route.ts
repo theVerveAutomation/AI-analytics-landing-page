@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 
 export async function POST(req: Request) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
+    const supabase = await createServerSupabaseClient();
     const { error } = await supabase
       .from("products")
       .delete()
