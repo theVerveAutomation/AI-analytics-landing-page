@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createServerSupabaseClient } from "@/lib/supabaseServer";
 
 export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const params = await context.params;
@@ -8,10 +8,11 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     console.error("Product ID is missing in the request");
     return NextResponse.json({ error: "Missing product id" }, { status: 400 });
   }
+  const supabase = await createServerSupabaseClient(); 
 
   console.log("Fetching product with ID:", id);
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await supabase
     .from("products")
     .select("*")
     .eq("id", id)
