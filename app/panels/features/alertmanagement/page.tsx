@@ -117,6 +117,17 @@ export default function AlertsPage() {
     }));
   };
 
+  const updatePhoneNumber = (
+    platform: AlertType,
+    index: number,
+    contact: AlertContact,
+  ) => {
+    setPhoneNumbers((prev) => ({
+      ...prev,
+      [platform]: prev[platform].map((c, i) => (i === index ? contact : c)),
+    }));
+  };
+
   const savePhoneNumbers = async () => {
     if (!profile?.organizations?.id) return;
 
@@ -443,6 +454,7 @@ export default function AlertsPage() {
                 phoneNumbers={phoneNumbers[selectedPlatform]}
                 onAdd={addPhoneNumber}
                 onRemove={removePhoneNumber}
+                onUpdate={updatePhoneNumber}
               />
 
               <div className="mt-6 flex gap-3">

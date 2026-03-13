@@ -132,7 +132,8 @@ export default function SnapshotPage() {
       );
       const latestSnapshot = cameraSnapshots.sort(
         (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+          new Date(b.timestamp || b.created_at).getTime() -
+          new Date(a.timestamp || a.created_at).getTime(),
       )[0];
 
       return {
@@ -157,15 +158,16 @@ export default function SnapshotPage() {
       filtered = filtered.filter(
         (s) =>
           s.camera_name.toLowerCase().includes(query) ||
-          s.created_at.toLowerCase().includes(query),
+          (s.timestamp || s.created_at).toLowerCase().includes(query),
       );
     }
 
     // Date filter
     if (dateFilter) {
-      filtered = filtered.filter((s) => s.created_at.startsWith(dateFilter));
+      filtered = filtered.filter((s) =>
+        (s.timestamp || s.created_at).startsWith(dateFilter),
+      );
     }
-
     // Type filter
     if (typeFilter !== "all") {
       filtered = filtered.filter((s) => s.capture_method === typeFilter);
@@ -174,7 +176,8 @@ export default function SnapshotPage() {
     // Sort by date (newest first)
     return filtered.sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        new Date(b.timestamp || b.created_at).getTime() -
+        new Date(a.timestamp || a.created_at).getTime(),
     );
   }, [snapshots, selectedCameraId, searchQuery, dateFilter, typeFilter]);
 
@@ -186,14 +189,18 @@ export default function SnapshotPage() {
   }, [cameras, selectedCameraId]);
 
   // Format date/time
-  const formatDateTime = (isoString: string) => {
+  const formatDateTime = (isoString: string | undefined) => {
+    if (!isoString) return "No date";
     const date = new Date(isoString);
-    return date.toLocaleString("en-US", {
+    return date.toLocaleString("en-SG", {
       month: "short",
       day: "numeric",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Singapore",
     });
   };
 
@@ -268,7 +275,9 @@ export default function SnapshotPage() {
       const link = document.createElement("a");
       link.href = blobUrl;
       link.download = `snapshot_${snapshot.camera_name}_${
-        new Date(snapshot.created_at).toISOString().split("T")[0]
+        new Date(snapshot.timestamp || snapshot.created_at)
+          .toISOString()
+          .split("T")[0]
       }.jpg`;
       document.body.appendChild(link);
       link.click();
@@ -393,7 +402,10 @@ export default function SnapshotPage() {
                       {/* Date Modified */}
                       <div className="col-span-3 flex items-center text-sm text-gray-600 dark:text-gray-400">
                         {folder.latestSnapshot
-                          ? formatDateTime(folder.latestSnapshot.created_at)
+                          ? formatDateTime(
+                              folder.latestSnapshot.timestamp ||
+                                folder.latestSnapshot.created_at,
+                            )
                           : "—"}
                       </div>
 
@@ -448,7 +460,8 @@ export default function SnapshotPage() {
                         <p className="text-white text-xs flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {formatDateTime(
-                            selectedFolder.latestSnapshot.created_at,
+                            selectedFolder.latestSnapshot.timestamp ||
+                              selectedFolder.latestSnapshot.created_at,
                           )}
                         </p>
                       </div>
@@ -486,7 +499,8 @@ export default function SnapshotPage() {
                         </span>
                         <span className="text-gray-800 dark:text-white font-medium text-right">
                           {formatDateTime(
-                            selectedFolder.latestSnapshot.created_at,
+                            selectedFolder.latestSnapshot.timestamp ||
+                              selectedFolder.latestSnapshot.created_at,
                           )}
                         </span>
                       </div>
@@ -680,7 +694,9 @@ export default function SnapshotPage() {
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {formatDateTime(snapshot.created_at)}
+                              {formatDateTime(
+                                snapshot.timestamp || snapshot.created_at,
+                              )}
                             </p>
                           </div>
                         </div>
@@ -801,6 +817,15 @@ export default function SnapshotPage() {
                     {/* Snapshot Info */}
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                        <p className="text-gray-500 dark:text-gray-400">Date</p>
+                        <p className="text-gray-800 dark:text-white font-medium text-right">
+                          {formatDateTime(
+                            selectedSnapshot.timestamp ||
+                              selectedSnapshot.created_at,
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex justify-between text-gray-600 dark:text-gray-400">
                         <span>Camera</span>
                         <span className="font-medium text-gray-800 dark:text-white">
                           {selectedSnapshot.camera_name}
@@ -809,7 +834,10 @@ export default function SnapshotPage() {
                       <div className="flex justify-between text-gray-600 dark:text-gray-400">
                         <span>Captured</span>
                         <span className="font-medium text-gray-800 dark:text-white">
-                          {formatDateTime(selectedSnapshot.created_at)}
+                          {formatDateTime(
+                            selectedSnapshot.timestamp ||
+                              selectedSnapshot.created_at,
+                          )}
                         </span>
                       </div>
                     </div>
@@ -881,7 +909,9 @@ export default function SnapshotPage() {
           />
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-4 py-2 rounded-lg text-white text-sm">
             {selectedSnapshot.camera_name} •{" "}
-            {formatDateTime(selectedSnapshot.created_at)}
+            {formatDateTime(
+              selectedSnapshot.timestamp || selectedSnapshot.created_at,
+            )}
           </div>
         </div>
       )}

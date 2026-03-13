@@ -1,5 +1,5 @@
 "use client";
-import { X, MessageCircle } from "lucide-react";
+import { X, MessageCircle, Pencil, Check, XCircle } from "lucide-react";
 import { AlertType } from "@/types";
 import { useState } from "react";
 
@@ -10,20 +10,41 @@ export default function PhoneNumberManager({
   phoneNumbers,
   onAdd,
   onRemove,
+  onUpdate,
 }: {
   platform: AlertType;
   phoneNumbers: AlertContact[];
   onAdd: (platform: AlertType, contact: AlertContact) => void;
   onRemove: (platform: AlertType, index: number) => void;
+  onUpdate: (platform: AlertType, index: number, contact: AlertContact) => void;
 }) {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editedContact, setEditedContact] = useState<AlertContact | null>(null);
 
   const handleAdd = () => {
     if (newName.trim() && newNumber.trim()) {
       onAdd(platform, { name: newName.trim(), phoneNumber: newNumber.trim() });
       setNewName("");
       setNewNumber("");
+    }
+  };
+
+  const handleEdit = (index: number, contact: AlertContact) => {
+    setEditingIndex(index);
+    setEditedContact(contact);
+  };
+
+  const handleCancel = () => {
+    setEditingIndex(null);
+    setEditedContact(null);
+  };
+
+  const handleSave = (index: number) => {
+    if (editedContact) {
+      onUpdate(platform, index, editedContact);
+      handleCancel();
     }
   };
 
@@ -91,18 +112,71 @@ export default function PhoneNumberManager({
                       {index + 1}
                     </td>
                     <td className="px-4 py-2.5 text-sm text-gray-900 dark:text-white">
-                      {contact.name}
+                      {editingIndex === index ? (
+                        <input
+                          type="text"
+                          value={editedContact?.name || ""}
+                          onChange={(e) =>
+                            setEditedContact({
+                              ...editedContact!,
+                              name: e.target.value,
+                            })
+                          }
+                          className="w-full px-2 py-1 bg-gray-50 dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-md"
+                        />
+                      ) : (
+                        contact.name
+                      )}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-sm text-gray-900 dark:text-white">
-                      {contact.phoneNumber}
+                      {editingIndex === index ? (
+                        <input
+                          type="text"
+                          value={editedContact?.phoneNumber || ""}
+                          onChange={(e) =>
+                            setEditedContact({
+                              ...editedContact!,
+                              phoneNumber: e.target.value,
+                            })
+                          }
+                          className="w-full px-2 py-1 bg-gray-50 dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-md"
+                        />
+                      ) : (
+                        contact.phoneNumber
+                      )}
                     </td>
                     <td className="px-4 py-2.5 text-right">
-                      <button
-                        onClick={() => onRemove(platform, index)}
-                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      {editingIndex === index ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleSave(index)}
+                            className="p-1 text-green-500 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={handleCancel}
+                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleEdit(index, contact)}
+                            className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => onRemove(platform, index)}
+                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
