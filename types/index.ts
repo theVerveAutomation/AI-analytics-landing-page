@@ -120,6 +120,7 @@ export interface Snapshot {
   organization_id: string;
   created_at: string;
   capture_method?: "time" | "door_crossing";
+  timestamp: string;
 }
 
 export interface CameraFolder {
