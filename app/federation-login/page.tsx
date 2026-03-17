@@ -10,6 +10,7 @@ function FederationContent() {
   useEffect(() => {
     const access_token = params.get("access_token");
     const refresh_token = params.get("refresh_token");
+    const returnUrl = params.get("returnUrl");
 
     if (!access_token || !refresh_token) {
       window.location.href = "/login";
@@ -22,9 +23,9 @@ function FederationContent() {
         refresh_token,
       })
       .then(() => {
-        // ✅ IMPORTANT — redirect BACK to THK after session set
+        // ✅ Redirect BACK to THK root dashboard
         window.location.href =
-          "https://thk-org.onrender.com/dashboard?vapLogged=true";
+          returnUrl || "https://thk-org.onrender.com/?vapLogged=true";
       });
   }, []);
 
