@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 function FederationContent() {
-  const router = useRouter();
   const params = useSearchParams();
 
   useEffect(() => {
@@ -13,16 +12,20 @@ function FederationContent() {
     const refresh_token = params.get("refresh_token");
 
     if (!access_token || !refresh_token) {
-      router.push("/login");
+      window.location.href = "/login";
       return;
     }
 
-    supabase.auth.setSession({
-      access_token,
-      refresh_token,
-    }).then(() => {
-      router.push("/panels/features"); // or admin
-    });
+    supabase.auth
+      .setSession({
+        access_token,
+        refresh_token,
+      })
+      .then(() => {
+        // ✅ IMPORTANT — redirect BACK to THK after session set
+        window.location.href =
+          "https://thk-org.onrender.com/dashboard?vapLogged=true";
+      });
   }, []);
 
   return <div style={{ padding: 20 }}>Logging into Video Analytics...</div>;
