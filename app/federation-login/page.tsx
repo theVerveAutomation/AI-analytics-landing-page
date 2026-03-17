@@ -23,9 +23,11 @@ function FederationContent() {
         refresh_token,
       })
       .then(() => {
-        // ✅ Redirect BACK to THK root dashboard
-        window.location.href =
-          returnUrl || "https://thk-org.onrender.com/?vapLogged=true";
+        // ✅ Decode returnUrl properly so tokens aren't stripped
+        const destination = returnUrl
+          ? decodeURIComponent(returnUrl)
+          : "https://thk-org.onrender.com/?vapLogged=true";
+        window.location.href = destination;
       });
   }, []);
 
