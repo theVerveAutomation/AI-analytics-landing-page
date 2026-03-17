@@ -11,6 +11,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/(iframe-entry|panels/:path*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors https://thk-org.onrender.com",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
