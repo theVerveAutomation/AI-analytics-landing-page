@@ -95,6 +95,8 @@ export interface CameraConfig {
   detection?: boolean;
   alert_sound?: boolean;
   frame_rate?: number;
+  /** Two points defining the white crossing line in the camera frame */
+  white_crossing_points?: { x?: number; y?: number }[];
   resolution?: string;
   updated_at?: string;
   url?: string; // Optional URL for RTSP/HTTP streams
