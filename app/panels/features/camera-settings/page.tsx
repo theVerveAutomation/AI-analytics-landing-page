@@ -193,7 +193,7 @@ export default function CameraSettingPage() {
   const updateCameraSetting = (
     cameraId: string,
     key: keyof CameraConfig,
-    value: number | string | boolean,
+    value: number | string | boolean | CameraConfig["white_crossing_points"],
   ) => {
     setCameras((prev) =>
       prev.map((cam) => (cam.id === cameraId ? { ...cam, [key]: value } : cam)),
@@ -201,10 +201,43 @@ export default function CameraSettingPage() {
     setHasChanges(true);
   };
 
-  const handleSaveSettings = () => {
-    // Save logic here
-    setHasChanges(false);
-    alert("Settings saved successfully!");
+  const handleSaveSettings = async () => {
+    const cam = getSelectedCamera();
+    if (!cam) {
+      alert("No camera selected");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/camera/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: cam.id,
+          name: cam.name,
+          url: cam.url || null,
+          status: cam.status,
+          detection: cam.detection,
+          alert_sound: cam.alert_sound,
+          frame_rate: cam.frame_rate,
+          resolution: cam.resolution,
+          white_crossing_points: cam.white_crossing_points,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Failed to save settings");
+        return;
+      }
+      // Update the camera in state with the response
+      setCameras((prev) =>
+        prev.map((c) => (c.id === cam.id ? data.camera : c)),
+      );
+      setHasChanges(false);
+      alert("Settings saved successfully!");
+    } catch (err) {
+      alert(`Failed to save settings - ${err}`);
+    }
   };
 
   const handleReset = () => {
@@ -229,6 +262,10 @@ export default function CameraSettingPage() {
           detection: false,
           alert_sound: false,
           frame_rate: 30,
+          white_crossing_points: [
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+          ],
           resolution: "1080p",
           organization_id: profile?.organization_id,
         }),
@@ -693,6 +730,158 @@ export default function CameraSettingPage() {
                 <option value="1080p">1080p</option>
                 <option value="4K">4K</option>
               </select>
+            </div>
+
+            {/* White Crossing Line Points (2 points: x,y) */}
+            <div>
+              <label className="font-medium text-gray-800 dark:text-white block mb-2">
+                White Crossing Line Points (px)
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    Point 1 X
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min={0}
+                      className="w-full pr-10 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm outline-none"
+                      value={
+                        getSelectedCamera()?.white_crossing_points?.[0]?.x ?? 0
+                      }
+                      onChange={(e) => {
+                        const cam = getSelectedCamera();
+                        if (!cam) return;
+                        const next = (
+                          cam.white_crossing_points ?? [
+                            { x: 0, y: 0 },
+                            { x: 0, y: 0 },
+                          ]
+                        ).map((p) => ({ ...p }));
+                        next[0] = { ...next[0], x: Number(e.target.value) };
+                        updateCameraSetting(
+                          cam.id ?? "",
+                          "white_crossing_points" as keyof CameraConfig,
+                          next,
+                        );
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      px
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    Point 1 Y
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min={0}
+                      className="w-full pr-10 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm outline-none"
+                      value={
+                        getSelectedCamera()?.white_crossing_points?.[0]?.y ?? 0
+                      }
+                      onChange={(e) => {
+                        const cam = getSelectedCamera();
+                        if (!cam) return;
+                        const next = (
+                          cam.white_crossing_points ?? [
+                            { x: 0, y: 0 },
+                            { x: 0, y: 0 },
+                          ]
+                        ).map((p) => ({ ...p }));
+                        next[0] = { ...next[0], y: Number(e.target.value) };
+                        updateCameraSetting(
+                          cam.id ?? "",
+                          "white_crossing_points" as keyof CameraConfig,
+                          next,
+                        );
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      px
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    Point 2 X
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min={0}
+                      className="w-full pr-10 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm outline-none"
+                      value={
+                        getSelectedCamera()?.white_crossing_points?.[1]?.x ?? 0
+                      }
+                      onChange={(e) => {
+                        const cam = getSelectedCamera();
+                        if (!cam) return;
+                        const next = (
+                          cam.white_crossing_points ?? [
+                            { x: 0, y: 0 },
+                            { x: 0, y: 0 },
+                          ]
+                        ).map((p) => ({ ...p }));
+                        next[1] = { ...next[1], x: Number(e.target.value) };
+                        updateCameraSetting(
+                          cam.id ?? "",
+                          "white_crossing_points" as keyof CameraConfig,
+                          next,
+                        );
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      px
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    Point 2 Y
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type="number"
+                      min={0}
+                      className="w-full pr-10 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white text-sm outline-none"
+                      value={
+                        getSelectedCamera()?.white_crossing_points?.[1]?.y ?? 0
+                      }
+                      onChange={(e) => {
+                        const cam = getSelectedCamera();
+                        if (!cam) return;
+                        const next = (
+                          cam.white_crossing_points ?? [
+                            { x: 0, y: 0 },
+                            { x: 0, y: 0 },
+                          ]
+                        ).map((p) => ({ ...p }));
+                        next[1] = { ...next[1], y: Number(e.target.value) };
+                        updateCameraSetting(
+                          cam.id ?? "",
+                          "white_crossing_points" as keyof CameraConfig,
+                          next,
+                        );
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 dark:text-gray-400">
+                      px
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Define two points (x,y) in pixel coordinates for the white
+                crossing line.
+              </p>
             </div>
 
             {/* Action Buttons */}
