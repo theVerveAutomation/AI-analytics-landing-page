@@ -158,7 +158,7 @@ export default function ProductDetailsPage() {
               </div>
 
               {/* Date Listed */}
-              {product.created_at && (
+              {/* {product.created_at && (
                 <div className="mb-6 pb-6 border-b border-border">
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="w-5 h-5 text-primary" />
@@ -174,7 +174,7 @@ export default function ProductDetailsPage() {
                     })}
                   </p>
                 </div>
-              )}
+              )} */}
 
               {/* Contact Actions */}
               <div className="space-y-3">
