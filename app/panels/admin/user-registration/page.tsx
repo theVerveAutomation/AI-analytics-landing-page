@@ -29,7 +29,7 @@ export default function UserRegistrationPage() {
     const fetchOrganizations = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/organizations/fetch");
+        const res = await fetch("/api/organizations/all");
         const data = await res.json();
         if (res.ok && data.organizations) {
           setOrganizations(data.organizations);
